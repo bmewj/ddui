@@ -12,7 +12,7 @@
 #include "Context.hpp"
 #include <functional>
 
-namespace ddui {
+namespace app {
 
 bool init(const char* title_bar);
 bool running();

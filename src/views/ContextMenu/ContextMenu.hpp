@@ -10,10 +10,9 @@
 #define ddui_ContextMenu_hpp
 
 #include "ContextMenuState.hpp"
-#include "../../Context.hpp"
+#include <ddui/Context>
 #include <functional>
 
-namespace ddui {
 namespace ContextMenu {
 
 void update(ContextMenuState* state, Context ctx, std::function<void(Context)> inner_update);
@@ -21,7 +20,6 @@ void update(ContextMenuState* state, Context ctx, std::function<void(Context)> i
 int process_action(Context ctx, void* identifier);
 void show(Context ctx, void* identifier, int x, int y, std::vector<Item> items);
 
-}
 }
 
 #endif

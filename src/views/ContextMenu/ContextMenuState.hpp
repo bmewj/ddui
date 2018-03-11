@@ -9,9 +9,26 @@
 #ifndef ddui_ContextMenuState_hpp
 #define ddui_ContextMenuState_hpp
 
-namespace ddui {
+#include <vector>
+#include <string>
 
+namespace ContextMenu {
 
+struct Item {
+    std::string label;
+    bool checked;
+};
+
+struct ContextMenuState {
+    ContextMenuState();
+
+    bool open;
+    void* identifier;
+    int action_pressing;
+    int action;
+    int x, y;
+    std::vector<Item> items;
+};
 
 }
 

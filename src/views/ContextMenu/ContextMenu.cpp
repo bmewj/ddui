@@ -10,7 +10,6 @@
 #include "../../Context.hpp"
 #include <nanovg.h>
 
-namespace ddui {
 namespace ContextMenu {
 
 ContextMenuState::ContextMenuState() {
@@ -173,5 +172,4 @@ void show(Context ctx, void* identifier, int x, int y, std::vector<Item> items) 
     *ctx.must_repaint = true;
 }
 
-}
 }

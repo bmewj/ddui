@@ -14,8 +14,6 @@
 #include <vector>
 #include "views/ContextMenu/ContextMenuState.hpp"
 
-namespace ddui {
-
 struct MouseState {
     int x, y;
     bool pressed, pressed_secondary, accepted;
@@ -58,7 +56,5 @@ Context child_context(Context ctx, int x, int y, int width, int height);
 bool mouse_hit(Context ctx, int x, int y, int width, int height);
 bool mouse_hit_secondary(Context ctx, int x, int y, int width, int height);
 bool mouse_over(Context ctx, int x, int y, int width, int height);
-
-}
 
 #endif

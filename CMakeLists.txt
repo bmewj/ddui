@@ -8,13 +8,44 @@ list(APPEND ddui_SOURCES
 )
 
 add_subdirectory(src)
+
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "build docs")
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "build examples")
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "build tests")
+
 add_subdirectory(lib/glfw)
 
-include_directories(
-  ${CMAKE_CURRENT_SOURCE_DIR}/include
-  ${CMAKE_CURRENT_SOURCE_DIR}/lib/nanovg/src
-  ${CMAKE_CURRENT_SOURCE_DIR}/lib/glfw/include
-  ${CMAKE_CURRENT_SOURCE_DIR}/lib/gl3w/include
-)
+set(CMAKE_C_FLAGS "-std=gnu99")
 
 add_library(ddui ${ddui_SOURCES})
+
+target_include_directories(ddui PUBLIC
+  include
+  lib/nanovg/src
+  lib/glfw/include
+  lib/gl3w/include
+)
+
+if(APPLE)
+  list(APPEND EXTRA_LIBS
+    "-framework Cocoa -framework OpenGL"
+  )
+  set(CMAKE_EXE_LINKER_FLAGS "-std=gnu99")
+
+elseif(WIN32)
+  list(APPEND EXTRA_LIBS
+    "-lglu32 -lopengl32"
+  )
+  set(CMAKE_EXE_LINKER_FLAGS "-std=gnu99 -static -static-libgcc -static-libstdc++ -mwindows")
+
+else()
+  list(APPEND EXTRA_LIBS
+    "-lGL -lGLU -lX11"
+  )
+
+endif()
+
+target_link_libraries(ddui
+  glfw
+  ${EXTRA_LIBS}
+)
