@@ -84,11 +84,11 @@ bool app::init(const char* title_bar) {
 
     glfwSetTime(0);
 
-    nvgCreateFont(vg, "regular", "assets/SFRegular.ttf");
-    nvgCreateFont(vg, "medium", "assets/SFMedium.ttf");
-    nvgCreateFont(vg, "bold", "assets/SFBold.ttf");
-
     return true;
+}
+
+void app::load_font_face(const char* name, const char* file_name) {
+    nvgCreateFont(vg, name, file_name);
 }
 
 bool app::running() {

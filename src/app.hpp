@@ -15,6 +15,7 @@
 namespace app {
 
 bool init(const char* title_bar);
+void load_font_face(const char* name, const char* file_name);
 bool running();
 void update(std::function<void(Context)> update_function);
 void wait_events();
