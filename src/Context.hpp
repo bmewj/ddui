@@ -34,6 +34,27 @@ enum Cursor {
     CURSOR_COUNT
 };
 
+struct KeyEvent {
+
+    enum EventType {
+        NO_EVENT,
+        KEY_PRESS,
+        KEY_RELEASE
+    };
+
+    enum Modifier {
+        MODIFIER_CONTROL,
+        MODIFIER_SHIFT,
+        MODIFIER_ALT,
+
+        MODIFIER_COUNT
+    };
+
+    EventType type;
+    bool modifiers[MODIFIER_COUNT];
+
+};
+
 struct Context {
     NVGcontext* vg;
     MouseState* mouse;

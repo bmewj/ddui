@@ -17,8 +17,6 @@ TextEditState::TextEditState() {
     
 }
 
-bool pressing = false;
-
 static void refresh_model(TextEditState* state, Context ctx, std::function<void(Context,int,int*,int*)> measure_entity);
 static void outline_box(NVGcontext* vg, int x, int y, int width, int height);
 
@@ -65,19 +63,10 @@ void update(TextEditState* state,
     }
     
     // Selection
-    if (mouse_hit(ctx, 0, 0, ctx.width, ctx.height)) {
-        ctx.mouse->accepted = true;
-        pressing = true;
-    }
-    if (pressing && !ctx.mouse->pressed) {
-        pressing = false;
-    }
-    if (pressing) {
+    {
         *ctx.cursor = CURSOR_IBEAM;
-    
-        TextEditModel::Selection selection = { 0 };
-        locate_selection_point(state, ctx.mouse->initial_x, ctx.mouse->initial_y, &selection.a_line, &selection.a_index);
-        locate_selection_point(state, ctx.mouse->x, ctx.mouse->y, &selection.b_line, &selection.b_index);
+
+        auto selection = state->model->selection;
         
         if (selection.a_line  == selection.b_line &&
             selection.a_index == selection.b_index) {
@@ -177,7 +166,7 @@ void refresh_model(TextEditState* state, Context ctx, std::function<void(Context
     state->measurements.clear();
     state->measurements.reserve(state->model->lines.size());
     for (auto& line : state->model->lines) {
-        auto measurements = measure(ctx, &line, 10.0, "regular", "bold", measure_entity);
+        auto measurements = measure(ctx, &line, 20.0, "regular", "bold", measure_entity);
         measurements.y = y;
         y += measurements.height;
         state->measurements.push_back(std::move(measurements));
