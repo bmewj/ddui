@@ -9,6 +9,7 @@
 #include "ContextMenu.hpp"
 #include <ddui/Context>
 #include <ddui/util/entypo>
+#include <ddui/views/ScrollArea>
 #include <nanovg.h>
 
 namespace ContextMenu {
@@ -17,8 +18,6 @@ ContextMenuState::ContextMenuState() {
     open = false;
     identifier = NULL;
 }
-
-static constexpr int ICON_CHECK = 0x2713;
 
 static constexpr int ITEM_HEIGHT = 28;
 static constexpr int ITEM_FONT_SIZE = 16;
@@ -104,66 +103,82 @@ void update(ContextMenuState* state, Context ctx, std::function<void(Context)> i
 
     // Step 3. Draw context menu
     if (state->open && identifier == state->identifier) {
-    
-        // Background
-        nvgBeginPath(ctx.vg);
-        nvgFillColor(ctx.vg, nvgRGB(255, 255, 255));
-        nvgRect(ctx.vg, state->x, state->y, menu_width, menu_height);
-        nvgFill(ctx.vg);
-      
-        // Items
-        float ascender, descender, line_height;
-        nvgFontFace(ctx.vg, ITEM_FONT_FACE);
-        nvgFontSize(ctx.vg, ITEM_FONT_SIZE);
-        nvgTextMetrics(ctx.vg, &ascender, &descender, &line_height);
-      
-        int y = state->y + PADDING_TOP;
-        int text_y = (ITEM_HEIGHT - (int)line_height) / 2 + (int)ascender;
-        int text_x = state->x + PADDING_LEFT;
-        for (int i = 0; i < state->items.size(); ++i) {
-            int hover_state = 0;
 
-            if (mouse_over(ctx, state->x, y, menu_width, ITEM_HEIGHT)) {
-                hover_state = 1;
-                *ctx.cursor = CURSOR_POINTING_HAND;
-            }
-          
-            if (state->action_pressing == i) {
-                hover_state = 2;
-              
-                if (ctx.mouse->x < state->x || ctx.mouse->x > state->x + menu_width ||
-                    ctx.mouse->y < y || ctx.mouse->y > y + ITEM_HEIGHT) {
-                    --hover_state;
-                }
-            }
-
-            if (hover_state > 0) {
-                nvgBeginPath(ctx.vg);
-                nvgFillColor(ctx.vg, hover_state == 2 ? ITEM_PRESS_COLOR : ITEM_HOVER_COLOR);
-                nvgRect(ctx.vg, state->x, y, menu_width, ITEM_HEIGHT);
-                nvgFill(ctx.vg);
-            }
-          
-            nvgFillColor(ctx.vg, ITEM_TEXT_COLOR);
-            nvgText(ctx.vg, text_x, y + text_y, state->items[i].label.c_str(), 0);
+        int width = ctx.width - state->x;
+        if (width > menu_width) {
+            width = menu_width;
+        }
+      
+        int height = ctx.height - state->y;
+        if (height > menu_height) {
+            height = menu_height;
+        }
+      
+        auto child_ctx = child_context(ctx, state->x, state->y, width, height);
+        ScrollArea::update(&state->scroll_area_state, child_ctx, menu_width, menu_height, [&](Context ctx) {
         
-            y += ITEM_HEIGHT;
-        }
+            // Background
+            nvgBeginPath(ctx.vg);
+            nvgFillColor(ctx.vg, nvgRGB(255, 255, 255));
+            nvgRect(ctx.vg, 0, 0, ctx.width, ctx.height);
+            nvgFill(ctx.vg);
+          
+            // Items
+            float ascender, descender, line_height;
+            nvgFontFace(ctx.vg, ITEM_FONT_FACE);
+            nvgFontSize(ctx.vg, ITEM_FONT_SIZE);
+            nvgTextMetrics(ctx.vg, &ascender, &descender, &line_height);
+          
+            int y = PADDING_TOP;
+            int text_y = (ITEM_HEIGHT - (int)line_height) / 2 + (int)ascender;
+            int text_x = PADDING_LEFT;
+            for (int i = 0; i < state->items.size(); ++i) {
+                int hover_state = 0;
 
-        nvgFontSize(ctx.vg, CHECK_FONT_SIZE);
-        nvgFontFace(ctx.vg, "entypo");
-        nvgFillColor(ctx.vg, ITEM_TEXT_COLOR);
-        nvgTextMetrics(ctx.vg, &ascender, &descender, &line_height);
+                if (mouse_over(ctx, 0, y, menu_width, ITEM_HEIGHT)) {
+                    hover_state = 1;
+                    *ctx.cursor = CURSOR_POINTING_HAND;
+                }
+              
+                if (state->action_pressing == i) {
+                    hover_state = 2;
+                  
+                    if (ctx.mouse->x < state->x || ctx.mouse->x > state->x + menu_width ||
+                        ctx.mouse->y < y || ctx.mouse->y > y + ITEM_HEIGHT) {
+                        --hover_state;
+                    }
+                }
 
-        y = state->y + PADDING_TOP + (ascender + ITEM_HEIGHT) / 2 - 4;
-        for (int i = 0; i < state->items.size(); ++i) {
-            if (state->items[i].checked) {
-                nvgText(ctx.vg, state->x + PADDING_HORIZONTAL, y, entypo::CHECK_MARK, NULL);
+                if (hover_state > 0) {
+                    nvgBeginPath(ctx.vg);
+                    nvgFillColor(ctx.vg, hover_state == 2 ? ITEM_PRESS_COLOR : ITEM_HOVER_COLOR);
+                    nvgRect(ctx.vg, state->x, y, menu_width, ITEM_HEIGHT);
+                    nvgFill(ctx.vg);
+                }
+              
+                nvgFillColor(ctx.vg, ITEM_TEXT_COLOR);
+                nvgText(ctx.vg, text_x, y + text_y, state->items[i].label.c_str(), 0);
+            
+                y += ITEM_HEIGHT;
             }
 
-            y += ITEM_HEIGHT;
-        }
-      
+            nvgFontSize(ctx.vg, CHECK_FONT_SIZE);
+            nvgFontFace(ctx.vg, "entypo");
+            nvgFillColor(ctx.vg, ITEM_TEXT_COLOR);
+            nvgTextMetrics(ctx.vg, &ascender, &descender, &line_height);
+
+            y = PADDING_TOP + (ascender + ITEM_HEIGHT) / 2 - 4;
+            for (int i = 0; i < state->items.size(); ++i) {
+                if (state->items[i].checked) {
+                    nvgText(ctx.vg, PADDING_HORIZONTAL, y, entypo::CHECK_MARK, NULL);
+                }
+
+                y += ITEM_HEIGHT;
+            }
+
+        });
+        nvgRestore(ctx.vg);
+          
     }
 }
 

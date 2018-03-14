@@ -1,5 +1,6 @@
 list(APPEND ddui_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/ScrollArea.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/ScrollArea.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/ScrollAreaState.hpp
 )
 set(ddui_SOURCES ${ddui_SOURCES} PARENT_SCOPE)

@@ -11,19 +11,9 @@
 
 #include <ddui/Context>
 #include <functional>
+#include "ScrollAreaState.hpp"
 
 namespace ScrollArea {
-
-struct ScrollAreaState {
-    ScrollAreaState();
-
-    int scroll_x;
-    int scroll_y;
-    int initial_scroll_x;
-    int initial_scroll_y;
-    bool is_dragging_horizontal_bar;
-    bool is_dragging_vertical_bar;
-};
 
 void update(ScrollAreaState* state, Context ctx, int inner_width, int inner_height, std::function<void(Context)> update_inner);
 

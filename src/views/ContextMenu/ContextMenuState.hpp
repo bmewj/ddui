@@ -11,6 +11,7 @@
 
 #include <vector>
 #include <string>
+#include "../ScrollArea/ScrollAreaState.hpp"
 
 namespace ContextMenu {
 
@@ -28,6 +29,8 @@ struct ContextMenuState {
     int action;
     int x, y;
     std::vector<Item> items;
+
+    ScrollArea::ScrollAreaState scroll_area_state;
 };
 
 }
