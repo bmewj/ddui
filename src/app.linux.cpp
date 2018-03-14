@@ -264,6 +264,6 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
-    mouse.scroll_dx = (int)(10.0 * xoffset);
-    mouse.scroll_dy = (int)(10.0 * yoffset);
+    mouse.scroll_dx = (int)(50.0 * xoffset);
+    mouse.scroll_dy = (int)(50.0 * yoffset);
 }
