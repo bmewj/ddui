@@ -8,7 +8,6 @@
 
 #include "TextEditModel.hpp"
 #include <cstdlib>
-#include <string.h>
 
 namespace TextEdit {
 

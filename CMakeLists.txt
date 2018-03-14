@@ -7,6 +7,12 @@ list(APPEND ddui_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/lib/nanovg/src/nanovg.c 
 )
 
+list(APPEND ddui_ASSETS
+  ${CMAKE_CURRENT_SOURCE_DIR}/assets/Entypo.ttf
+)
+set(ddui_ASSETS ${ddui_ASSETS} PARENT_SCOPE)
+set(ddui_MACOSX_BUNDLE ${CMAKE_CURRENT_SOURCE_DIR}/assets/MacOSXBundleInfo.plist.in PARENT_SCOPE)
+
 add_subdirectory(src)
 
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "build docs")

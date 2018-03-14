@@ -17,8 +17,11 @@ ContextMenuState::ContextMenuState() {
     identifier = NULL;
 }
 
-static constexpr int ITEM_HEIGHT = 24;
+static constexpr int ICON_CHECK = 0x2713;
+
+static constexpr int ITEM_HEIGHT = 28;
 static constexpr int ITEM_FONT_SIZE = 16;
+static constexpr int CHECK_FONT_SIZE = 32;
 static constexpr const char* ITEM_FONT_FACE = "regular";
 static NVGcolor ITEM_TEXT_COLOR = nvgRGB(0, 0, 0);
 static NVGcolor ITEM_HOVER_COLOR = nvgRGB(200, 200, 200);
@@ -26,8 +29,12 @@ static NVGcolor ITEM_PRESS_COLOR = nvgRGB(150, 150, 150);
 static NVGcolor BG_COLOR = nvgRGB(255, 255, 255);
 static constexpr int PADDING_TOP = 4;
 static constexpr int PADDING_BOTTOM = 4;
-static constexpr int PADDING_LEFT = 20;
-static constexpr int PADDING_RIGHT = 10;
+
+static constexpr int PADDING_HORIZONTAL = 9;
+static constexpr int PADDING_LEFT = 32;
+static constexpr int PADDING_RIGHT = 16;
+
+static char* cpToUTF8(int cp, char* str);
 
 void update(ContextMenuState* state, Context ctx, std::function<void(Context)> inner_update) {
     // Step 1. Process mouse input
@@ -143,6 +150,23 @@ void update(ContextMenuState* state, Context ctx, std::function<void(Context)> i
         
             y += ITEM_HEIGHT;
         }
+
+        char icon[8];
+        cpToUTF8(ICON_CHECK, icon);
+
+        nvgFontSize(ctx.vg, CHECK_FONT_SIZE);
+        nvgFontFace(ctx.vg, "entypo");
+        nvgFillColor(ctx.vg, ITEM_TEXT_COLOR);
+        nvgTextMetrics(ctx.vg, &ascender, &descender, &line_height);
+
+        y = state->y + PADDING_TOP + (ascender + ITEM_HEIGHT) / 2 - 4;
+        for (int i = 0; i < state->items.size(); ++i) {
+            if (state->items[i].checked) {
+                nvgText(ctx.vg, state->x + PADDING_HORIZONTAL, y, icon, NULL);
+            }
+
+            y += ITEM_HEIGHT;
+        }
       
     }
 }
@@ -170,6 +194,26 @@ void show(Context ctx, void* identifier, int x, int y, std::vector<Item> items) 
     state->items = std::move(items);
 
     *ctx.must_repaint = true;
+}
+
+char* cpToUTF8(int cp, char* str) {
+    int n = 0;
+    if (cp < 0x80) n = 1;
+    else if (cp < 0x800) n = 2;
+    else if (cp < 0x10000) n = 3;
+    else if (cp < 0x200000) n = 4;
+    else if (cp < 0x4000000) n = 5;
+    else if (cp <= 0x7fffffff) n = 6;
+    str[n] = '\0';
+    switch (n) {
+    case 6: str[5] = 0x80 | (cp & 0x3f); cp = cp >> 6; cp |= 0x4000000;
+    case 5: str[4] = 0x80 | (cp & 0x3f); cp = cp >> 6; cp |= 0x200000;
+    case 4: str[3] = 0x80 | (cp & 0x3f); cp = cp >> 6; cp |= 0x10000;
+    case 3: str[2] = 0x80 | (cp & 0x3f); cp = cp >> 6; cp |= 0x800;
+    case 2: str[1] = 0x80 | (cp & 0x3f); cp = cp >> 6; cp |= 0xc0;
+    case 1: str[0] = cp;
+    }
+    return str;
 }
 
 }

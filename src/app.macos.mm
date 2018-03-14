@@ -96,6 +96,8 @@ bool app::init(const char* title_bar) {
     glfwSwapInterval(0);
 
     glfwSetTime(0);
+  
+    app::load_font_face("entypo", "assets/Entypo.ttf");
 
     return true;
 }
