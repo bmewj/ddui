@@ -21,6 +21,30 @@ struct MouseState {
     int scroll_dx, scroll_dy;
 };
 
+struct FocusState {
+    void* focus_old;
+    void* focus_new;
+    std::vector<void*> groups;
+
+    enum Action {
+        NO_CHANGE,
+        TAB_FORWARD,
+        TAB_BACKWARD,
+        TAB_TO,
+        BLUR
+    };
+
+    Action action;
+    void* tab_to;
+};
+
+struct KeyState {
+    const char* character;
+    int action;
+    int key;
+    int mods;
+};
+
 enum Cursor {
     CURSOR_ARROW,
     CURSOR_IBEAM,
@@ -34,30 +58,11 @@ enum Cursor {
     CURSOR_COUNT
 };
 
-struct KeyEvent {
-
-    enum EventType {
-        NO_EVENT,
-        KEY_PRESS,
-        KEY_RELEASE
-    };
-
-    enum Modifier {
-        MODIFIER_CONTROL,
-        MODIFIER_SHIFT,
-        MODIFIER_ALT,
-
-        MODIFIER_COUNT
-    };
-
-    EventType type;
-    bool modifiers[MODIFIER_COUNT];
-
-};
-
 struct Context {
     NVGcontext* vg;
     MouseState* mouse;
+    FocusState* focus;
+    KeyState* key;
     Cursor* cursor;
     bool* must_repaint;
     ContextMenu::ContextMenuState* context_menu_state;
@@ -67,8 +72,8 @@ struct Context {
     int global_x, global_y;
 
     struct {
-      int x1, y1;
-      int x2, y2;
+        int x1, y1;
+        int x2, y2;
     } clip;
 };
 

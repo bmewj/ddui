@@ -37,6 +37,8 @@ LineMeasurements measure(Context ctx,
                          const char* bold_font,
                          std::function<void(Context,int,int*,int*)> measure_entity);
 
+void locate_selection_point(const std::vector<LineMeasurements>* measurements, int x, int y, int* lineno, int* index);
+
 }
 
 #endif

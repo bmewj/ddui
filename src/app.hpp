@@ -21,6 +21,8 @@ void update(std::function<void(Context)> update_function);
 void wait_events();
 void terminate();
 void post_empty_event();
+const char* get_clipboard_string();
+void set_clipboard_string(const char* string);
 
 }
 

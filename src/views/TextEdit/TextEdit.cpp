@@ -8,7 +8,7 @@
 
 #include "TextEdit.hpp"
 #include "TextMeasurements.hpp"
-#include <stb_truetype.h>
+#include <ddui/keyboard>
 #include <cstdlib>
 
 namespace TextEdit {
@@ -25,7 +25,17 @@ void update(TextEditState* state,
             std::function<void(Context,int,int*,int*)> measure_entity,
             std::function<void(Context,int)> update_entity) {
 
+    keyboard::register_focus_group(ctx, state);
+    
+    if (keyboard::has_key_event(ctx, state)) {
+        apply_keyboard_input(state->model, ctx.key);
+    }
+
     refresh_model(state, ctx, measure_entity);
+
+    if (!keyboard::has_focus(ctx, state) && mouse_hit(ctx, 0, 0, ctx.width, ctx.height)) {
+        keyboard::focus(ctx, state);
+    }
 
     // White background
     nvgBeginPath(ctx.vg);
@@ -47,16 +57,18 @@ void update(TextEditState* state,
             auto& measurement = measurements.characters[i];
             
             if (character.entity_id != -1) {
-                auto child_ctx = child_context(ctx, measurement.x, y + measurement.y, measurement.width, measurement.height);
+                auto child_ctx = child_context(ctx, measurement.x, y + measurement.y,
+                                                    measurement.width, measurement.height);
                 update_entity(child_ctx, character.entity_id);
                 nvgRestore(ctx.vg);
                 continue;
             }
             
-            nvgFontFace(ctx.vg, character.font_bold ? "bold" : "regular");
-            nvgFontSize(ctx.vg, character.text_size);
-            nvgFillColor(ctx.vg, character.text_color);
-            nvgText(ctx.vg, measurement.x, y + measurement.y, &content[character.index], &content[character.index + character.num_bytes]);
+            nvgFontFace(ctx.vg, character.style.font_bold ? "bold" : "regular");
+            nvgFontSize(ctx.vg, character.style.text_size);
+            nvgFillColor(ctx.vg, character.style.text_color);
+            nvgText(ctx.vg, measurement.x, y + measurement.y,
+                            &content[character.index], &content[character.index + character.num_bytes]);
         }
         
         y = measurements.y + measurements.height;
@@ -80,13 +92,15 @@ void update(TextEditState* state,
             } else {
                 x = line.characters[selection.a_index - 1].max_x;
             }
-            
-            nvgBeginPath(ctx.vg);
-            nvgStrokeColor(ctx.vg, nvgRGB(50, 100, 255));
-            nvgStrokeWidth(ctx.vg, 2.0);
-            nvgMoveTo(ctx.vg, x, line.y);
-            nvgLineTo(ctx.vg, x, line.y + line.height);
-            nvgStroke(ctx.vg);
+
+            if (keyboard::has_focus(ctx, state)) {
+                nvgBeginPath(ctx.vg);
+                nvgStrokeColor(ctx.vg, nvgRGB(50, 100, 255));
+                nvgStrokeWidth(ctx.vg, 2.0);
+                nvgMoveTo(ctx.vg, x, line.y);
+                nvgLineTo(ctx.vg, x, line.y + line.height);
+                nvgStroke(ctx.vg);
+            }
             
         } else {
             // Selection
@@ -154,6 +168,10 @@ void update(TextEditState* state,
         }
     }
 
+    if (mouse_hit(ctx, 0, 0, ctx.width, ctx.height)) {
+        ctx.mouse->accepted = true;
+    }
+
 }
 
 void refresh_model(TextEditState* state, Context ctx, std::function<void(Context,int,int*,int*)> measure_entity) {
@@ -180,42 +198,6 @@ void outline_box(NVGcontext* vg, int x, int y, int width, int height) {
     nvgStrokeColor(vg, nvgRGB(255, 0, 0));
     nvgRect(vg, x, y, width, height);
     nvgStroke(vg);
-}
-
-void locate_selection_point(const TextEditState* state, int x, int y, int* lineno, int* index) {
-    if (y < 0.0) {
-        *lineno = 0;
-        *index = 0;
-        return;
-    }
-    
-    if (y >= state->measurements.back().y + state->measurements.back().height) {
-        *lineno = state->measurements.size() - 1;
-        *index = state->measurements.back().characters.size();
-        return;
-    }
-    
-    for (int i = 0; i < state->measurements.size(); ++i) {
-        if (y < state->measurements[i].y + state->measurements[i].height) {
-            *lineno = i;
-            break;
-        }
-    }
-    
-    auto& line = state->measurements[*lineno];
-    
-    float prev_max_x = 0.0;
-    
-    for (int i = 0; i < line.characters.size(); ++i) {
-        float mid = (prev_max_x + line.characters[i].max_x) / 2;
-        if (x < mid) {
-            *index = i;
-            return;
-        }
-        prev_max_x = line.characters[i].max_x;
-    }
-    
-    *index = line.characters.size();
 }
 
 }

@@ -59,16 +59,16 @@ LineMeasurements measure(Context ctx,
             continue;
         }
         
-        auto font_bold = characters[i].font_bold;
-        auto text_size = characters[i].text_size;
+        auto font_bold = characters[i].style.font_bold;
+        auto text_size = characters[i].style.text_size;
         
         // Get number of characters in the current segment.
         int num_chars = 1;
         while (i + num_chars < characters.size()) {
             auto& character = characters[i + num_chars];
             if (character.entity_id != -1 ||
-                character.font_bold != font_bold ||
-                character.text_size != text_size) {
+                character.style.font_bold != font_bold ||
+                character.style.text_size != text_size) {
                 break;
             }
             ++num_chars;
@@ -129,6 +129,42 @@ LineMeasurements measure(Context ctx,
     }
     
     return output;
+}
+
+void locate_selection_point(const std::vector<LineMeasurements>* measurements, int x, int y, int* lineno, int* index) {
+    if (y < 0.0) {
+        *lineno = 0;
+        *index = 0;
+        return;
+    }
+    
+    if (y >= measurements->back().y + measurements->back().height) {
+        *lineno = measurements->size() - 1;
+        *index = measurements->back().characters.size();
+        return;
+    }
+    
+    for (int i = 0; i < measurements->size(); ++i) {
+        if (y < measurements->at(i).y + measurements->at(i).height) {
+            *lineno = i;
+            break;
+        }
+    }
+    
+    auto& line = measurements->at(*lineno);
+    
+    float prev_max_x = 0.0;
+    
+    for (int i = 0; i < line.characters.size(); ++i) {
+        float mid = (prev_max_x + line.characters[i].max_x) / 2;
+        if (x < mid) {
+            *index = i;
+            return;
+        }
+        prev_max_x = line.characters[i].max_x;
+    }
+    
+    *index = line.characters.size();
 }
 
 }

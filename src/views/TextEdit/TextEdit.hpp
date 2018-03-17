@@ -37,8 +37,6 @@ void update(TextEditState* state,
             std::function<void(Context,int,int*,int*)> measure_entity,
             std::function<void(Context,int)> update_entity);
 
-void locate_selection_point(const TextEditState* state, int x, int y, int* lineno, int* index);
-
 }
 
 #endif
