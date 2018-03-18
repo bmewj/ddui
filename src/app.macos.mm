@@ -8,6 +8,7 @@
 
 #include "app.hpp"
 #include "keyboard.hpp"
+#include "views/TextEdit/TextEditCaret.hpp"
 
 #include <AppKit/AppKit.h>
 #include <GL3/gl3w.h>
@@ -107,6 +108,7 @@ bool app::init(const char* title_bar) {
     focus.focus_new = NULL;
   
     app::load_font_face("entypo", "assets/Entypo.ttf");
+    TextEditCaret::init();
 
     return true;
 }
@@ -181,7 +183,9 @@ void app::update(std::function<void(Context)> update_function) {
         }
     }
     
-    key_state = { 0 };
+    key_state.character = NULL;
+    key_state.action = 0;
+    key_state.key = 0;
     
     focus.focus_old = focus.focus_new;
     focus.focus_new = NULL;

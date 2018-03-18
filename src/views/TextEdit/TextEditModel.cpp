@@ -13,9 +13,28 @@
 #include <algorithm>
 #include <string.h>
 
-namespace TextEdit {
+namespace TextEditModel {
 
-void set_text_content(TextEditModel* model, const char* content) {
+Model::Model() {
+    auto empty_content = new char[1];
+    empty_content[0] = '\0';
+
+    Line empty_line;
+    empty_line.num_bytes = 1;
+    empty_line.content = std::unique_ptr<char[]>(empty_content);
+    empty_line.style.font_bold = false;
+    empty_line.style.text_size = 16.0;
+    empty_line.style.text_color = nvgRGB(0, 0, 0);
+
+    version_count = 0;
+    lines.push_back(std::move(empty_line));
+    selection = { 0 };
+}
+
+void set_text_content(Model* model, const char* content) {
+    
+    // Get default styles
+    auto default_style = model->lines.front().style;
     
     // Reset the model
     model->lines.clear();
@@ -33,6 +52,7 @@ void set_text_content(TextEditModel* model, const char* content) {
             content[ptr - line_start] = '\0';
             current_line.num_bytes = ptr - line_start + 1;
             current_line.content = std::unique_ptr<char[]>(content);
+            current_line.style = default_style;
         
             model->lines.push_back(std::move(current_line));
             line_start = ++ptr;
@@ -47,9 +67,7 @@ void set_text_content(TextEditModel* model, const char* content) {
             !(*ptr & 0x10) ? 3 : 4
         );
         character.entity_id = -1;
-        character.style.font_bold = false;
-        character.style.text_size = 48.0;
-        character.style.text_color = nvgRGB(0, 0, 0);
+        character.style = default_style;
         ptr += character.num_bytes;
         
         current_line.characters.push_back(std::move(character));
@@ -61,6 +79,7 @@ void set_text_content(TextEditModel* model, const char* content) {
         content[ptr - line_start] = '\0';
         current_line.num_bytes = ptr - line_start + 1;
         current_line.content = std::unique_ptr<char[]>(content);
+        current_line.style = default_style;
     
         model->lines.push_back(std::move(current_line));
     }
@@ -70,7 +89,7 @@ void set_text_content(TextEditModel* model, const char* content) {
     
 }
 
-void insert_text_content(TextEditModel* model, int* lineno, int* index, const char* content) {
+void insert_text_content(Model* model, int* lineno, int* index, const char* content) {
     
     std::vector<TextEditModel::Line> lines;
     
@@ -203,7 +222,7 @@ void insert_text_content(TextEditModel* model, int* lineno, int* index, const ch
     
 }
 
-char* get_text_content(TextEditModel* model, TextEditModel::Selection selection) {
+std::unique_ptr<char[]> get_text_content(Model* model, TextEditModel::Selection selection) {
     
     if (selection.a_line == selection.b_line) {
         // Single-line copy string
@@ -221,7 +240,8 @@ char* get_text_content(TextEditModel* model, TextEditModel::Selection selection)
         auto text_content = new char[num_bytes];
         strncpy(text_content, line.content.get() + ch_from_index, num_bytes - 1);
         text_content[num_bytes - 1] = '\0';
-        return text_content;
+
+        return std::unique_ptr<char[]>(text_content);
         
     } else {
         // Multi-line copy string
@@ -270,7 +290,7 @@ char* get_text_content(TextEditModel* model, TextEditModel::Selection selection)
             ptr += to_ch_index + 1;
         }
         
-        return text_content;
+        return std::unique_ptr<char[]>(text_content);
     }
 }
 
@@ -279,7 +299,28 @@ char* get_text_content(TextEditModel* model, TextEditModel::Selection selection)
 
 static void apply_style_to_line(TextEditModel::Line* line, int a_index, int b_index, TextEditModel::StyleCommand style);
 
-void apply_style(TextEditModel* model, TextEditModel::Selection selection, TextEditModel::StyleCommand style) {
+void set_style(Model* model, bool font_bold, float text_size, NVGcolor text_color) {
+
+    TextEditModel::Selection selection = { 0 };
+    selection.b_line = model->lines.size();
+
+    TextEditModel::StyleCommand command;
+    
+    command.type = TextEditModel::StyleCommand::BOLD;
+    command.bool_value = font_bold;
+    apply_style(model, selection, command);
+    
+    command.type = TextEditModel::StyleCommand::SIZE;
+    command.float_value = text_size;
+    apply_style(model, selection, command);
+    
+    command.type = TextEditModel::StyleCommand::COLOR;
+    command.color_value = text_color;
+    apply_style(model, selection, command);
+    
+}
+
+void apply_style(Model* model, TextEditModel::Selection selection, TextEditModel::StyleCommand style) {
 
     // Single-line selection
     if (selection.a_line == selection.b_line) {
@@ -346,7 +387,7 @@ void apply_style_to_line(TextEditModel::Line* line, int a_index, int b_index, Te
     }
 }
 
-void create_entity(TextEditModel* model, int lineno, int from, int to, int entity_id) {
+void create_entity(Model* model, int lineno, int from, int to, int entity_id) {
     if (from > to) {
         throw "Entity range must be greater than 1.";
     }
@@ -372,7 +413,7 @@ void create_entity(TextEditModel* model, int lineno, int from, int to, int entit
     line.characters.erase(begin_iter, end_iter);
 }
 
-void apply_keyboard_input(TextEditModel* model, KeyState* key_state) {
+void apply_keyboard_input(Model* model, KeyState* key_state) {
 
     if (key_state->action != keyboard::ACTION_PRESS && key_state->action != keyboard::ACTION_REPEAT) {
         return;
@@ -542,15 +583,14 @@ void apply_keyboard_input(TextEditModel* model, KeyState* key_state) {
     if (key_state->key == keyboard::KEY_C && (key_state->mods & keyboard::MOD_SUPER)) {
         if (range_is_selected) {
             auto copied_string = get_text_content(model, model->selection);
-            app::set_clipboard_string(copied_string);
-            delete[] copied_string;
+            app::set_clipboard_string(copied_string.get());
         }
     }
     
     model->version_count++;
 }
 
-void delete_range(TextEditModel* model, TextEditModel::Selection sel) {
+void delete_range(Model* model, TextEditModel::Selection sel) {
     if (sel.a_line == sel.b_line) {
         if (sel.a_index == sel.b_index) {
             return; // Nothing to delete
@@ -612,7 +652,7 @@ void delete_range(TextEditModel* model, TextEditModel::Selection sel) {
         // Update the character indices
         from_line.characters.erase(from_line.characters.begin() + from_index, from_line.characters.end());
         for (auto it = to_line.characters.begin() + to_index; it < to_line.characters.end(); ++it) {
-            it->index = it->index - to_index + from_index;
+            it->index = it->index - ch_to + ch_from;
             from_line.characters.push_back(*it);
         }
         
@@ -626,7 +666,7 @@ void delete_range(TextEditModel* model, TextEditModel::Selection sel) {
     }
 }
 
-void insert_character(TextEditModel* model, int lineno, int index, const char* character) {
+void insert_character(Model* model, int lineno, int index, const char* character) {
     auto length = strlen(character);
     
     auto& line = model->lines[lineno];
@@ -661,7 +701,7 @@ void insert_character(TextEditModel* model, int lineno, int index, const char* c
     }
 }
 
-void insert_line_break(TextEditModel* model, int lineno, int index) {
+void insert_line_break(Model* model, int lineno, int index) {
     auto& line = model->lines[lineno];
     
     auto ch_index = index == 0 ? 0 : line.characters[index - 1].index + line.characters[index - 1].num_bytes;

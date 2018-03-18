@@ -20,17 +20,31 @@ namespace TextEdit {
 struct TextEditState {
     TextEditState();
 
-    TextEditModel* model;
+    TextEditModel::Model* model;
 
     // Private data
     int current_version_count;
-    std::vector<LineMeasurements> measurements;
+    TextMeasurements::Measurements measurements;
 
     // UI info
+    bool is_mouse_dragging;
     int content_width;
     int content_height;
     ScrollArea::ScrollAreaState scroll_area_state;
 };
+
+void draw_content(Context ctx,
+                  float offset_x, float offset_y,
+                  const TextEditModel::Model* model,
+                  const TextMeasurements::Measurements* measurements,
+                  std::function<void(Context,int)> update_entity);
+
+void draw_selection(Context ctx,
+                    float offset_x, float offset_y,
+                    const TextEditModel::Model* model,
+                    const TextMeasurements::Measurements* measurements,
+                    NVGcolor cursor_color,
+                    NVGcolor selection_color);
 
 void update(TextEditState* state,
             Context ctx,

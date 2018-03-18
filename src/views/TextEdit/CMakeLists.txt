@@ -5,5 +5,7 @@ list(APPEND ddui_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/TextEditModel.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/TextMeasurements.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/TextMeasurements.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/TextEditCaret.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/TextEditCaret.cpp
 )
 set(ddui_SOURCES ${ddui_SOURCES} PARENT_SCOPE)

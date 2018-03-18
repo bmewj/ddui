@@ -8,30 +8,64 @@
 
 #include "TextMeasurements.hpp"
 
-namespace TextEdit {
+namespace TextMeasurements {
+
+Measurements measure(Context ctx,
+                     const TextEditModel::Model* model,
+                     std::function<void(Context,int,int*,int*)> measure_entity) {
+
+    float y = 0.0;
+
+    Measurements output;
+    output.lines.reserve(model->lines.size());
+
+    for (auto& line : model->lines) {
+        auto measurements = measure(ctx, model, &line, measure_entity);
+        measurements.y = y;
+        y += measurements.height;
+        if (!measurements.characters.empty() && output.width < measurements.characters.back().max_x) {
+            output.width = measurements.characters.back().max_x;
+        }
+        output.lines.push_back(std::move(measurements));
+    }
+
+    output.height = y;
+    return output;
+}
 
 LineMeasurements measure(Context ctx,
+                         const TextEditModel::Model* model,
                          const TextEditModel::Line* line,
-                         float min_line_height,
-                         const char* regular_font,
-                         const char* bold_font,
                          std::function<void(Context,int,int*,int*)> measure_entity) {
     
     auto& characters = line->characters;
     char* content = line->content.get();
+
+    auto regular_font = model->regular_font;
+    auto bold_font    = model->bold_font;
     
     LineMeasurements output;
-    output.line_height = min_line_height;
-    output.height = min_line_height;
+    output.line_height = 0.0;
+    output.height = 0.0;
     output.max_ascender = 0.0;
     
     output.characters.reserve(characters.size());
-    LineMeasurements::Character empty_character = { 0 };
+    Character empty_character = { 0 };
     for (int i = 0; i < characters.size(); ++i) {
         output.characters.push_back(empty_character);
     }
     
     float ascender, descender, line_height;
+
+    if (characters.empty()) {
+        nvgFontSize(ctx.vg, line->style.text_size);
+        nvgFontFace(ctx.vg, line->style.font_bold ? bold_font : regular_font);
+        nvgTextMetrics(ctx.vg, &ascender, &descender, &line_height);
+        
+        output.line_height = output.height = line_height;
+        output.max_ascender = ascender;
+        return output;
+    }
     
     float x = 0.0;
     
@@ -45,10 +79,11 @@ LineMeasurements measure(Context ctx,
             
             // Save so that we only call measure_entity() once.
             output.characters[i].x = x;
-            output.characters[i].max_x = x + width;
-            output.characters[i].line_height = height;
             output.characters[i].width = width;
             output.characters[i].height = height;
+            output.characters[i].max_x = x + width;
+            output.characters[i].line_height = height;
+            output.characters[i].ascender = 0.0;
             
             if (output.height < height) {
                 output.height = height;
@@ -104,10 +139,11 @@ LineMeasurements measure(Context ctx,
         for (int j = 0; j < num_chars; ++j) {
             auto& measurement = output.characters[i + j];
             measurement.x = x + positions[j].x;
+            measurement.width = positions[j].maxx - positions[j].x;
+            measurement.height = line_height;
             measurement.max_x = x + positions[j].maxx;
             measurement.line_height = line_height;
-            measurement.width = positions[j].maxx - positions[j].x;
-            measurement.height = ascender;
+            measurement.ascender = ascender;
         }
         
         x += positions[num_chars - 1].maxx;
@@ -115,12 +151,13 @@ LineMeasurements measure(Context ctx,
     }
     
     // Second pass: update baselines for all characters
-    float baseline = (output.height - output.max_ascender) / 2 + output.max_ascender;
+    float baseline = (output.height - output.line_height) / 2 + output.max_ascender;
     
     for (int i = 0; i < characters.size(); ++i) {
         auto& measurement = output.characters[i];
+        measurement.baseline = baseline;
         if (characters[i].entity_id == -1) {
-            measurement.y = baseline;
+            measurement.y = baseline - measurement.ascender;
         } else if (measurement.height < output.max_ascender) {
             measurement.y = baseline - measurement.height;
         } else {
@@ -131,27 +168,30 @@ LineMeasurements measure(Context ctx,
     return output;
 }
 
-void locate_selection_point(const std::vector<LineMeasurements>* measurements, int x, int y, int* lineno, int* index) {
+void locate_selection_point(const Measurements* measurements, int x, int y, int* lineno, int* index) {
+
+    auto& lines = measurements->lines;
+
     if (y < 0.0) {
         *lineno = 0;
         *index = 0;
         return;
     }
     
-    if (y >= measurements->back().y + measurements->back().height) {
-        *lineno = measurements->size() - 1;
-        *index = measurements->back().characters.size();
+    if (y >= lines.back().y + lines.back().height) {
+        *lineno = lines.size() - 1;
+        *index = lines.back().characters.size();
         return;
     }
     
-    for (int i = 0; i < measurements->size(); ++i) {
-        if (y < measurements->at(i).y + measurements->at(i).height) {
+    for (int i = 0; i < lines.size(); ++i) {
+        if (y < lines[i].y + lines[i].height) {
             *lineno = i;
             break;
         }
     }
     
-    auto& line = measurements->at(*lineno);
+    auto& line = lines[*lineno];
     
     float prev_max_x = 0.0;
     
