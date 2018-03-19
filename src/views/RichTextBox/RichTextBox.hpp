@@ -1,13 +1,13 @@
 //
-//  PlainTextBox.hpp
+//  RichTextBox.hpp
 //  ddui
 //
-//  Created by Bartholomew Joyce on 18/03/2018.
+//  Created by Bartholomew Joyce on 19/03/2018.
 //  Copyright © 2018 Bartholomew Joyce All rights reserved.
 //
 
-#ifndef ddui_PlainTextBox_hpp
-#define ddui_PlainTextBox_hpp
+#ifndef ddui_RichTextBox_hpp
+#define ddui_RichTextBox_hpp
 
 #include <ddui/Context>
 #include <ddui/views/ScrollArea>
@@ -16,10 +16,10 @@
 #include "../TextEdit/TextMeasurements.hpp"
 #include <vector>
 
-namespace PlainTextBox {
+namespace RichTextBox {
 
-struct PlainTextBoxState {
-    PlainTextBoxState();
+struct RichTextBoxState {
+    RichTextBoxState();
 
     TextEditModel::Model* model;
     bool multiline = false;
@@ -46,7 +46,7 @@ struct PlainTextBoxState {
     bool selection_in_foreground = true;
 };
 
-void update(PlainTextBoxState* state, Context ctx);
+void update(RichTextBoxState* state, Context ctx);
 
 }
 

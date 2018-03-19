@@ -28,6 +28,7 @@ NVGcontext* vg = NULL;
 MouseState mouse = { 0 };
 FocusState focus;
 KeyState key_state = { 0 };
+std::vector<KeyState> key_state_queue;
 char key_character[7];
 Cursor current_cursor = CURSOR_ARROW;
 NSCursor* cursors[CURSOR_COUNT];
@@ -146,6 +147,21 @@ void app::update(std::function<void(Context)> update_function) {
     Cursor cursor = CURSOR_ARROW;
     bool must_repaint = false;
 
+    if (!key_state_queue.empty()) {
+        key_state = key_state_queue.front();
+        key_state_queue.erase(key_state_queue.begin());
+    } else {
+        key_state.action = 0;
+        if (key_state.character) {
+            delete[] key_state.character;
+            key_state.character = NULL;    
+        }
+        key_state.key = 0;
+    }
+
+    focus.action = FocusState::NO_CHANGE;
+    focus.groups.clear();
+
     Context ctx;
     ctx.vg = vg;
     ctx.mouse = &mouse;
@@ -164,9 +180,6 @@ void app::update(std::function<void(Context)> update_function) {
     ctx.clip.x2 = winWidth;
     ctx.clip.y2 = winHeight;
     
-    focus.action = FocusState::NO_CHANGE;
-    focus.groups.clear();
-    
     update_function(ctx);
 
     mouse.scroll_dx = 0;
@@ -182,10 +195,6 @@ void app::update(std::function<void(Context)> update_function) {
             keyboard::consume_key_event(ctx);
         }
     }
-    
-    key_state.character = NULL;
-    key_state.action = 0;
-    key_state.key = 0;
     
     focus.focus_old = focus.focus_new;
     focus.focus_new = NULL;
@@ -244,7 +253,7 @@ void app::update(std::function<void(Context)> update_function) {
 
     glfwSwapBuffers(window);
 
-    if (must_repaint) {
+    if (must_repaint || !key_state_queue.empty()) {
         glfwPostEmptyEvent();
     }
 }
@@ -341,9 +350,13 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, GL_TRUE);
     }
+
+    KeyState key_state;
     key_state.action = action;
     key_state.key = key;
     key_state.mods = mods;
+    key_state.character = NULL;
+    key_state_queue.push_back(key_state);
 }
 
 void character_callback(GLFWwindow* window, unsigned int codepoint) {
@@ -357,6 +370,7 @@ void character_callback(GLFWwindow* window, unsigned int codepoint) {
     else if (cp < 0x4000000) n = 5;
     else if (cp <= 0x7fffffff) n = 6;
 
+    auto key_character = new char[7];
     key_character[n] = '\0';
 
     switch (n) {
@@ -368,8 +382,17 @@ void character_callback(GLFWwindow* window, unsigned int codepoint) {
         case 1: key_character[0] = cp;
     }
 
-    key_state.character = key_character;
-    key_state.key = 0;
+    if (key_state_queue.empty()) {
+        KeyState key_state;
+        key_state.action = keyboard::ACTION_PRESS;
+        key_state.key = 0;
+        key_state.mods = 0;
+        key_state.character = key_character;
+        key_state_queue.push_back(key_state);
+    } else {
+        key_state_queue.back().key = 0;
+        key_state_queue.back().character = key_character;
+    }
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {

@@ -587,6 +587,26 @@ void apply_keyboard_input(Model* model, KeyState* key_state) {
         }
     }
     
+    if (key_state->key == keyboard::KEY_X && (key_state->mods & keyboard::MOD_SUPER)) {
+        if (range_is_selected) {
+            auto& sel = model->selection;
+            
+            auto copied_string = get_text_content(model, sel);
+            app::set_clipboard_string(copied_string.get());
+            
+            delete_range(model, sel);
+            
+            auto min_line  = sel.a_line < sel.b_line ? sel.a_line  : sel.b_line;
+            auto min_index = sel.a_line < sel.b_line ? sel.a_index : sel.b_index;
+            if (sel.a_line == sel.b_line) {
+                min_index = sel.a_index < sel.b_index ? sel.a_index : sel.b_index;
+            }
+            
+            sel.a_line  = sel.b_line  = min_line;
+            sel.a_index = sel.b_index = min_index;
+        }
+    }
+    
     model->version_count++;
 }
 

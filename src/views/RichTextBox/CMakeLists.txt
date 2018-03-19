@@ -1,0 +1,5 @@
+list(APPEND ddui_SOURCES
+  ${CMAKE_CURRENT_SOURCE_DIR}/RichTextBox.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/RichTextBox.cpp
+)
+set(ddui_SOURCES ${ddui_SOURCES} PARENT_SCOPE)

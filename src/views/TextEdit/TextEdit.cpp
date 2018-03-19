@@ -34,29 +34,59 @@ void draw_content(Context ctx,
 
         char* content = line.content.get();
         
-        for (int i = 0; i < line.characters.size(); ++i) {
+//        if (!line.characters.empty()) {
+//            auto& character = line.characters.front();
+//            auto& measurement = line_measurements.characters.front();
+//
+//            nvgFontFace(ctx.vg, character.style.font_bold ? model->bold_font : model->regular_font);
+//            nvgFontSize(ctx.vg, character.style.text_size);
+//            nvgFillColor(ctx.vg, character.style.text_color);
+//            nvgText(ctx.vg, offset_x + measurement.x, y + measurement.baseline,
+//                            &content[character.index], 0);
+//        }
+        
+        int i = 0;
+        while (i < line.characters.size()) {
             auto& character = line.characters[i];
             auto& measurement = line_measurements.characters[i];
             
-            if (ctx.key->mods & keyboard::MOD_ALT) {
-                outline_box(ctx.vg, offset_x + measurement.x, y + measurement.y, measurement.width, measurement.height);
-                continue;
-            }
-            
+            // Handle special entity characters
             if (character.entity_id != -1) {
                 auto child_ctx = child_context(ctx, offset_x + measurement.x, y + measurement.y,
                                                     measurement.width, measurement.height);
                 update_entity(child_ctx, character.entity_id);
                 nvgRestore(ctx.vg);
+                ++i;
                 continue;
             }
             
+            auto style = character.style;
+            
+            // Get number of characters in the current segment.
+            int num_chars = 1;
+            while (i + num_chars < line.characters.size()) {
+                auto& character = line.characters[i + num_chars];
+                if (character.entity_id != -1 ||
+                    memcmp(&character.style, &style, sizeof(TextEditModel::Style)) != 0) {
+                    break;
+                }
+                ++num_chars;
+            }
+            
+            // Apply segment-styles
+            nvgFontSize(ctx.vg, style.text_size);
+            nvgFontFace(ctx.vg, style.font_bold ? model->bold_font : model->regular_font);
+            nvgFillColor(ctx.vg, style.text_color);
+            
+            // Compose string start and end
+            auto string_start = &content[character.index];
+            
+            auto& last_char = line.characters[i + num_chars - 1];
+            auto string_end = &content[last_char.index + last_char.num_bytes];
 
-            nvgFontFace(ctx.vg, character.style.font_bold ? model->bold_font : model->regular_font);
-            nvgFontSize(ctx.vg, character.style.text_size);
-            nvgFillColor(ctx.vg, character.style.text_color);
-            nvgText(ctx.vg, offset_x + measurement.x, y + measurement.baseline,
-                            &content[character.index], &content[character.index + character.num_bytes]);
+            nvgText(ctx.vg, offset_x + measurement.x, y + measurement.baseline, string_start, string_end);
+            
+            i += num_chars;
         }
         
         y = offset_y + line_measurements.y + line_measurements.height;
@@ -69,8 +99,6 @@ void draw_selection(Context ctx,
                     const TextMeasurements::Measurements* measurements,
                     NVGcolor cursor_color,
                     NVGcolor selection_color) {
-
-    *ctx.cursor = CURSOR_IBEAM;
     
     nvgSave(ctx.vg);
     nvgTranslate(ctx.vg, offset_x, offset_y);

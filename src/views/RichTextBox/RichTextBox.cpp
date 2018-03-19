@@ -1,24 +1,26 @@
 //
-//  PlainTextBox.cpp
+//  RichTextBox.cpp
 //  ddui
 //
-//  Created by Bartholomew Joyce on 18/03/2018.
+//  Created by Bartholomew Joyce on 19/03/2018.
 //  Copyright © 2018 Bartholomew Joyce All rights reserved.
 //
 
-#include "PlainTextBox.hpp"
+#include "RichTextBox.hpp"
 #include <ddui/views/TextEdit>
 #include <ddui/keyboard>
 #include "../TextEdit/TextEditCaret.hpp"
 #include <cstdlib>
 
-namespace PlainTextBox {
+namespace RichTextBox {
 
-PlainTextBoxState::PlainTextBoxState() {
+RichTextBoxState::RichTextBoxState() {
     current_version_count = -1;
 }
 
-void update(PlainTextBoxState* state, Context ctx) {
+static void apply_rich_text_commands(TextEditModel::Model* model, KeyState* key);
+
+void update(RichTextBoxState* state, Context ctx) {
 
     keyboard::register_focus_group(ctx, state);
     
@@ -27,6 +29,7 @@ void update(PlainTextBoxState* state, Context ctx) {
         if (state->multiline || ctx.key->key != keyboard::KEY_ENTER) {
             TextEditModel::apply_keyboard_input(state->model, ctx.key);
         }
+        apply_rich_text_commands(state->model, ctx.key);
     }
     
     // When tabbing in to focus, select the entire content
@@ -166,6 +169,58 @@ void update(PlainTextBoxState* state, Context ctx) {
         *ctx.cursor = CURSOR_IBEAM;
     }
 
+}
+
+void apply_rich_text_commands(TextEditModel::Model* model, KeyState* key) {
+
+    if (key->action != keyboard::ACTION_PRESS) {
+        return;
+    }
+
+    auto& sel = model->selection;
+
+    auto min_line  = sel.a_line < sel.b_line ? sel.a_line  : sel.b_line;
+    auto min_index = sel.a_line < sel.b_line ? sel.a_index : sel.b_index;
+    if (sel.a_line == sel.b_line) {
+        min_index = sel.a_index < sel.b_index ? sel.a_index : sel.b_index;
+    }
+
+    if ((key->mods & keyboard::MOD_SUPER) &&
+        (key->key == keyboard::KEY_B)) {
+        
+        auto& line = model->lines[min_line];
+        if (min_index < line.characters.size()) {
+            TextEditModel::StyleCommand style;
+            style.type = TextEditModel::StyleCommand::BOLD;
+            style.bool_value = !line.characters[min_index].style.font_bold;
+            TextEditModel::apply_style(model, sel, style);
+        }
+    }
+
+    if ((key->mods & keyboard::MOD_SUPER) &&
+        (key->mods & keyboard::MOD_SHIFT) &&
+        (key->key == keyboard::KEY_EQUAL)) {
+        
+        auto& line = model->lines[min_line];
+        if (min_index < line.characters.size()) {
+            TextEditModel::StyleCommand style;
+            style.type = TextEditModel::StyleCommand::SIZE;
+            style.float_value = line.characters[min_index].style.text_size * 1.1;
+            TextEditModel::apply_style(model, sel, style);
+        }
+    }
+
+    if ((key->mods & keyboard::MOD_SUPER) &&
+        (key->key == keyboard::KEY_MINUS)) {
+        
+        auto& line = model->lines[min_line];
+        if (min_index < line.characters.size()) {
+            TextEditModel::StyleCommand style;
+            style.type = TextEditModel::StyleCommand::SIZE;
+            style.float_value = line.characters[min_index].style.text_size * (1 / 1.1);
+            TextEditModel::apply_style(model, sel, style);
+        }
+    }
 }
 
 }
