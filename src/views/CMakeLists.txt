@@ -1,6 +1,5 @@
 add_subdirectory(ContextMenu)
 add_subdirectory(ScrollArea)
-add_subdirectory(TextEdit)
 add_subdirectory(PlainTextBox)
 add_subdirectory(RichTextBox)
 set(ddui_SOURCES ${ddui_SOURCES} PARENT_SCOPE)

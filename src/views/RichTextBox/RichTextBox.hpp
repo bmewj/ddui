@@ -10,10 +10,7 @@
 #define ddui_RichTextBox_hpp
 
 #include <ddui/Context>
-#include <ddui/views/ScrollArea>
-#include <string>
-#include "../TextEdit/TextEditModel.hpp"
-#include "../TextEdit/TextMeasurements.hpp"
+#include <ddui/models/TextEdit>
 #include <vector>
 
 namespace RichTextBox {
@@ -21,12 +18,12 @@ namespace RichTextBox {
 struct RichTextBoxState {
     RichTextBoxState();
 
-    TextEditModel::Model* model;
+    TextEdit::Model* model;
     bool multiline = false;
 
     // Text edit state
     int current_version_count;
-    TextMeasurements::Measurements measurements;
+    TextEdit::Measurements measurements;
 
     // UI info
     bool is_mouse_dragging;

@@ -1,19 +1,19 @@
 //
-//  TextEditModel.hpp
+//  TextEdit.hpp
 //  ddui
 //
-//  Created by Bartholomew Joyce on 12/03/2018.
+//  Created by Bartholomew Joyce on 19/03/2018.
 //  Copyright © 2018 Bartholomew Joyce All rights reserved.
 //
 
-#include "TextEditModel.hpp"
+#include "Model.hpp"
 #include <ddui/keyboard>
 #include <ddui/app>
 #include <cstdlib>
 #include <algorithm>
 #include <string.h>
 
-namespace TextEditModel {
+namespace TextEdit {
 
 Model::Model() {
     auto empty_content = new char[1];
@@ -43,7 +43,7 @@ void set_text_content(Model* model, const char* content) {
     // Copy over current
     const char* ptr = content;
     const char* line_start = content;
-    TextEditModel::Line current_line;
+    Line current_line;
     
     while (*ptr != '\0') {
         if (*ptr == '\n') {
@@ -59,7 +59,7 @@ void set_text_content(Model* model, const char* content) {
             continue;
         }
         
-        TextEditModel::Character character;
+        Character character;
         character.index = ptr - line_start;
         character.num_bytes = (
             !(*ptr & 0x80) ? 1 :
@@ -91,15 +91,15 @@ void set_text_content(Model* model, const char* content) {
 
 void insert_text_content(Model* model, int* lineno, int* index, const char* content) {
     
-    std::vector<TextEditModel::Line> lines;
+    std::vector<Line> lines;
     
     // Copy over current
     const char* ptr = content;
     const char* line_start = content;
-    TextEditModel::Line current_line;
+    Line current_line;
     
     // Get basic styles
-    TextEditModel::Style style;
+    Style style;
     if (*index == 0) {
         style = model->lines[*lineno].style;
     } else {
@@ -121,7 +121,7 @@ void insert_text_content(Model* model, int* lineno, int* index, const char* cont
             continue;
         }
         
-        TextEditModel::Character character;
+        Character character;
         character.index = ptr - line_start;
         character.num_bytes = (
             !(*ptr & 0x80) ? 1 :
@@ -222,7 +222,7 @@ void insert_text_content(Model* model, int* lineno, int* index, const char* cont
     
 }
 
-std::unique_ptr<char[]> get_text_content(Model* model, TextEditModel::Selection selection) {
+std::unique_ptr<char[]> get_text_content(Model* model, Selection selection) {
     
     if (selection.a_line == selection.b_line) {
         // Single-line copy string
@@ -297,30 +297,30 @@ std::unique_ptr<char[]> get_text_content(Model* model, TextEditModel::Selection 
 #define MAX(a, b) (a > b ? a : b)
 #define MIN(a, b) (a < b ? a : b)
 
-static void apply_style_to_line(TextEditModel::Line* line, int a_index, int b_index, TextEditModel::StyleCommand style);
+static void apply_style_to_line(Line* line, int a_index, int b_index, StyleCommand style);
 
 void set_style(Model* model, bool font_bold, float text_size, NVGcolor text_color) {
 
-    TextEditModel::Selection selection = { 0 };
+    Selection selection = { 0 };
     selection.b_line = model->lines.size();
 
-    TextEditModel::StyleCommand command;
+    StyleCommand command;
     
-    command.type = TextEditModel::StyleCommand::BOLD;
+    command.type = StyleCommand::BOLD;
     command.bool_value = font_bold;
     apply_style(model, selection, command);
     
-    command.type = TextEditModel::StyleCommand::SIZE;
+    command.type = StyleCommand::SIZE;
     command.float_value = text_size;
     apply_style(model, selection, command);
     
-    command.type = TextEditModel::StyleCommand::COLOR;
+    command.type = StyleCommand::COLOR;
     command.color_value = text_color;
     apply_style(model, selection, command);
     
 }
 
-void apply_style(Model* model, TextEditModel::Selection selection, TextEditModel::StyleCommand style) {
+void apply_style(Model* model, Selection selection, StyleCommand style) {
 
     // Single-line selection
     if (selection.a_line == selection.b_line) {
@@ -354,19 +354,19 @@ void apply_style(Model* model, TextEditModel::Selection selection, TextEditModel
     
 }
 
-void apply_style_to_line(TextEditModel::Line* line, int a_index, int b_index, TextEditModel::StyleCommand style) {
+void apply_style_to_line(Line* line, int a_index, int b_index, StyleCommand style) {
     int min_i = MAX(MIN(a_index, b_index), 0);
     int max_i = MIN(MAX(a_index, b_index), line->characters.size());
     
     if (min_i == 0) {
         switch (style.type) {
-            case TextEditModel::StyleCommand::BOLD:
+            case StyleCommand::BOLD:
                 line->style.font_bold  = style.bool_value;
                 break;
-            case TextEditModel::StyleCommand::SIZE:
+            case StyleCommand::SIZE:
                 line->style.text_size  = style.float_value;
                 break;
-            case TextEditModel::StyleCommand::COLOR:
+            case StyleCommand::COLOR:
                 line->style.text_color = style.color_value;
                 break;
         }
@@ -374,13 +374,13 @@ void apply_style_to_line(TextEditModel::Line* line, int a_index, int b_index, Te
 
     for (int i = min_i; i < max_i; ++i) {
         switch (style.type) {
-            case TextEditModel::StyleCommand::BOLD:
+            case StyleCommand::BOLD:
                 line->characters[i].style.font_bold  = style.bool_value;
                 break;
-            case TextEditModel::StyleCommand::SIZE:
+            case StyleCommand::SIZE:
                 line->characters[i].style.text_size  = style.float_value;
                 break;
-            case TextEditModel::StyleCommand::COLOR:
+            case StyleCommand::COLOR:
                 line->characters[i].style.text_color = style.color_value;
                 break;
         }
@@ -392,14 +392,14 @@ void create_entity(Model* model, int lineno, int from, int to, int entity_id) {
         throw "Entity range must be greater than 1.";
     }
     if (!(lineno >= 0 && lineno < model->lines.size())) {
-        printf("TextEdit::TextEditModel::create_entity() on line that doesn't exist.");
+        printf("TextEdit::create_entity() on line that doesn't exist.");
         return; // Invalid line ranges are not thrown.
     }
 
     auto& line = model->lines[lineno];
     if (!(from >= 0 && from <  line.characters.size() &&
             to >  0 &&   to <= line.characters.size())) {
-        printf("TextEdit::TextEditModel::create_entity() on index range that doesn't exist.");
+        printf("TextEdit::create_entity() on index range that doesn't exist.");
         return; // Invalid index ranges are not thrown.
     }
     
@@ -610,7 +610,7 @@ void apply_keyboard_input(Model* model, KeyState* key_state) {
     model->version_count++;
 }
 
-void delete_range(Model* model, TextEditModel::Selection sel) {
+void delete_range(Model* model, Selection sel) {
     if (sel.a_line == sel.b_line) {
         if (sel.a_index == sel.b_index) {
             return; // Nothing to delete
@@ -703,7 +703,7 @@ void insert_character(Model* model, int lineno, int index, const char* character
     line.num_bytes = new_num_bytes;
     
     // Insert the new character
-    TextEditModel::Character character_entry;
+    Character character_entry;
     character_entry.index = ch_index;
     character_entry.num_bytes = length;
     character_entry.entity_id = -1;
@@ -739,12 +739,12 @@ void insert_line_break(Model* model, int lineno, int index) {
     line.content = std::unique_ptr<char[]>(a_content);
     line.num_bytes = a_num_bytes;
     
-    TextEditModel::Line new_line;
+    Line new_line;
     new_line.content = std::unique_ptr<char[]>(b_content);
     new_line.num_bytes = b_num_bytes;
     
     // Move the characters over to the new line
-    new_line.characters = std::vector<TextEditModel::Character>(line.characters.begin() + index, line.characters.end());
+    new_line.characters = std::vector<Character>(line.characters.begin() + index, line.characters.end());
     line.characters.erase(line.characters.begin() + index, line.characters.end());
     for (auto& character : new_line.characters) {
         character.index -= ch_index;

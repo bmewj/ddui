@@ -3,5 +3,7 @@ list(APPEND ddui_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/draw_text_in_box.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/entypo.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/entypo.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/caret_flicker.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/caret_flicker.cpp
 )
 set(ddui_SOURCES ${ddui_SOURCES} PARENT_SCOPE)

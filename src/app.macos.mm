@@ -8,7 +8,7 @@
 
 #include "app.hpp"
 #include "keyboard.hpp"
-#include "views/TextEdit/TextEditCaret.hpp"
+#include "util/caret_flicker.hpp"
 
 #include <AppKit/AppKit.h>
 #include <GL3/gl3w.h>
@@ -29,7 +29,6 @@ MouseState mouse = { 0 };
 FocusState focus;
 KeyState key_state = { 0 };
 std::vector<KeyState> key_state_queue;
-char key_character[7];
 Cursor current_cursor = CURSOR_ARROW;
 NSCursor* cursors[CURSOR_COUNT];
 
@@ -109,7 +108,7 @@ bool app::init(const char* title_bar) {
     focus.focus_new = NULL;
   
     app::load_font_face("entypo", "assets/Entypo.ttf");
-    TextEditCaret::init();
+    caret_flicker::init();
 
     return true;
 }

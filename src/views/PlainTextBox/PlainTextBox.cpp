@@ -7,9 +7,8 @@
 //
 
 #include "PlainTextBox.hpp"
-#include <ddui/views/TextEdit>
 #include <ddui/keyboard>
-#include "../TextEdit/TextEditCaret.hpp"
+#include <ddui/util/caret_flicker>
 #include <cstdlib>
 
 namespace PlainTextBox {
@@ -25,7 +24,7 @@ void update(PlainTextBoxState* state, Context ctx) {
     // Process key input
     if (keyboard::has_key_event(ctx, state)) {
         if (state->multiline || ctx.key->key != keyboard::KEY_ENTER) {
-            TextEditModel::apply_keyboard_input(state->model, ctx.key);
+            TextEdit::apply_keyboard_input(state->model, ctx.key);
         }
     }
     
@@ -44,12 +43,12 @@ void update(PlainTextBoxState* state, Context ctx) {
     
     // Reset the flickering caret to ON whenever the model has changed
     if (keyboard::has_focus(ctx, state) && state->current_version_count != state->model->version_count) {
-        TextEditCaret::reset_phase();
+        caret_flicker::reset_phase();
     }
 
     // Refresh the model measurements
     if (state->model->version_count != state->current_version_count) {
-        state->measurements = TextMeasurements::measure(ctx, state->model, std::function<void(Context,int,int*,int*)>());
+        state->measurements = TextEdit::measure(ctx, state->model, std::function<void(Context,int,int*,int*)>());
         state->current_version_count = state->model->version_count;
     }
     
@@ -59,7 +58,7 @@ void update(PlainTextBoxState* state, Context ctx) {
     // Focus the box on a mouse click
     if (!keyboard::has_focus(ctx, state) && mouse_hit(ctx, 0, 0, ctx.width, state->height)) {
         keyboard::focus(ctx, state);
-        TextEditCaret::reset_phase();
+        caret_flicker::reset_phase();
     }
     
     // Update selection by mouse dragging (it's initiated at the end of this function)
@@ -70,9 +69,9 @@ void update(PlainTextBoxState* state, Context ctx) {
         *ctx.cursor = CURSOR_IBEAM;
         int x = ctx.mouse->x - ctx.x - state->margin + state->scroll_x;
         int y = ctx.mouse->y - ctx.y - state->margin;
-        TextMeasurements::locate_selection_point(&state->measurements, x, y,
-                                                 &state->model->selection.b_line,
-                                                 &state->model->selection.b_index);
+        TextEdit::locate_selection_point(&state->measurements, x, y,
+                                         &state->model->selection.b_line,
+                                         &state->model->selection.b_index);
     }
 
     // Background
@@ -130,7 +129,7 @@ void update(PlainTextBoxState* state, Context ctx) {
     
     // Selection
     if (keyboard::has_focus(ctx, state)) {
-        auto cursor_color = (state->is_mouse_dragging || TextEditCaret::get_phase()) ? state->cursor_color : nvgRGBA(0, 0, 0, 0);
+        auto cursor_color = (state->is_mouse_dragging || caret_flicker::get_phase()) ? state->cursor_color : nvgRGBA(0, 0, 0, 0);
         TextEdit::draw_selection(child_ctx,
                                  state->margin, state->margin,
                                  state->model, &state->measurements,
@@ -160,7 +159,7 @@ void update(PlainTextBoxState* state, Context ctx) {
         locate_selection_point(&state->measurements, x, y, &state->model->selection.a_line, &state->model->selection.a_index);
         state->model->selection.b_line = state->model->selection.a_line;
         state->model->selection.b_index = state->model->selection.a_index;
-        TextEditCaret::reset_phase();
+        caret_flicker::reset_phase();
     }
     if (mouse_over(ctx, 0, 0, ctx.width, state->height)) {
         *ctx.cursor = CURSOR_IBEAM;

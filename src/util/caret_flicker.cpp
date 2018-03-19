@@ -1,18 +1,18 @@
 //
-//  TextEditCaret.hpp
+//  caret_flicker.hpp
 //  ddui
 //
-//  Created by Bartholomew Joyce on 18/03/2018.
+//  Created by Bartholomew Joyce on 19/03/2018.
 //  Copyright © 2018 Bartholomew Joyce All rights reserved.
 //
 
-#include "TextEditCaret.hpp"
+#include "caret_flicker.hpp"
 #include <thread>
 #include <mutex>
 #include <chrono>
 #include <ddui/app>
 
-namespace TextEditCaret {
+namespace caret_flicker {
 
 static std::mutex phase_mutex;
 static bool phase;

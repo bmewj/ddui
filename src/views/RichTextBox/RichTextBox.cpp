@@ -7,9 +7,8 @@
 //
 
 #include "RichTextBox.hpp"
-#include <ddui/views/TextEdit>
 #include <ddui/keyboard>
-#include "../TextEdit/TextEditCaret.hpp"
+#include <ddui/util/caret_flicker>
 #include <cstdlib>
 
 namespace RichTextBox {
@@ -18,7 +17,7 @@ RichTextBoxState::RichTextBoxState() {
     current_version_count = -1;
 }
 
-static void apply_rich_text_commands(TextEditModel::Model* model, KeyState* key);
+static void apply_rich_text_commands(TextEdit::Model* model, KeyState* key);
 
 void update(RichTextBoxState* state, Context ctx) {
 
@@ -27,7 +26,7 @@ void update(RichTextBoxState* state, Context ctx) {
     // Process key input
     if (keyboard::has_key_event(ctx, state)) {
         if (state->multiline || ctx.key->key != keyboard::KEY_ENTER) {
-            TextEditModel::apply_keyboard_input(state->model, ctx.key);
+            TextEdit::apply_keyboard_input(state->model, ctx.key);
         }
         apply_rich_text_commands(state->model, ctx.key);
     }
@@ -47,12 +46,12 @@ void update(RichTextBoxState* state, Context ctx) {
     
     // Reset the flickering caret to ON whenever the model has changed
     if (keyboard::has_focus(ctx, state) && state->current_version_count != state->model->version_count) {
-        TextEditCaret::reset_phase();
+        caret_flicker::reset_phase();
     }
 
     // Refresh the model measurements
     if (state->model->version_count != state->current_version_count) {
-        state->measurements = TextMeasurements::measure(ctx, state->model, std::function<void(Context,int,int*,int*)>());
+        state->measurements = TextEdit::measure(ctx, state->model, std::function<void(Context,int,int*,int*)>());
         state->current_version_count = state->model->version_count;
     }
     
@@ -62,7 +61,7 @@ void update(RichTextBoxState* state, Context ctx) {
     // Focus the box on a mouse click
     if (!keyboard::has_focus(ctx, state) && mouse_hit(ctx, 0, 0, ctx.width, state->height)) {
         keyboard::focus(ctx, state);
-        TextEditCaret::reset_phase();
+        caret_flicker::reset_phase();
     }
     
     // Update selection by mouse dragging (it's initiated at the end of this function)
@@ -73,9 +72,9 @@ void update(RichTextBoxState* state, Context ctx) {
         *ctx.cursor = CURSOR_IBEAM;
         int x = ctx.mouse->x - ctx.x - state->margin + state->scroll_x;
         int y = ctx.mouse->y - ctx.y - state->margin;
-        TextMeasurements::locate_selection_point(&state->measurements, x, y,
-                                                 &state->model->selection.b_line,
-                                                 &state->model->selection.b_index);
+        TextEdit::locate_selection_point(&state->measurements, x, y,
+                                         &state->model->selection.b_line,
+                                         &state->model->selection.b_index);
     }
 
     // Background
@@ -133,7 +132,7 @@ void update(RichTextBoxState* state, Context ctx) {
     
     // Selection
     if (keyboard::has_focus(ctx, state)) {
-        auto cursor_color = (state->is_mouse_dragging || TextEditCaret::get_phase()) ? state->cursor_color : nvgRGBA(0, 0, 0, 0);
+        auto cursor_color = (state->is_mouse_dragging || caret_flicker::get_phase()) ? state->cursor_color : nvgRGBA(0, 0, 0, 0);
         TextEdit::draw_selection(child_ctx,
                                  state->margin, state->margin,
                                  state->model, &state->measurements,
@@ -163,7 +162,7 @@ void update(RichTextBoxState* state, Context ctx) {
         locate_selection_point(&state->measurements, x, y, &state->model->selection.a_line, &state->model->selection.a_index);
         state->model->selection.b_line = state->model->selection.a_line;
         state->model->selection.b_index = state->model->selection.a_index;
-        TextEditCaret::reset_phase();
+        caret_flicker::reset_phase();
     }
     if (mouse_over(ctx, 0, 0, ctx.width, state->height)) {
         *ctx.cursor = CURSOR_IBEAM;
@@ -171,7 +170,7 @@ void update(RichTextBoxState* state, Context ctx) {
 
 }
 
-void apply_rich_text_commands(TextEditModel::Model* model, KeyState* key) {
+void apply_rich_text_commands(TextEdit::Model* model, KeyState* key) {
 
     if (key->action != keyboard::ACTION_PRESS) {
         return;
@@ -190,10 +189,10 @@ void apply_rich_text_commands(TextEditModel::Model* model, KeyState* key) {
         
         auto& line = model->lines[min_line];
         if (min_index < line.characters.size()) {
-            TextEditModel::StyleCommand style;
-            style.type = TextEditModel::StyleCommand::BOLD;
+            TextEdit::StyleCommand style;
+            style.type = TextEdit::StyleCommand::BOLD;
             style.bool_value = !line.characters[min_index].style.font_bold;
-            TextEditModel::apply_style(model, sel, style);
+            TextEdit::apply_style(model, sel, style);
         }
     }
 
@@ -203,10 +202,10 @@ void apply_rich_text_commands(TextEditModel::Model* model, KeyState* key) {
         
         auto& line = model->lines[min_line];
         if (min_index < line.characters.size()) {
-            TextEditModel::StyleCommand style;
-            style.type = TextEditModel::StyleCommand::SIZE;
+            TextEdit::StyleCommand style;
+            style.type = TextEdit::StyleCommand::SIZE;
             style.float_value = line.characters[min_index].style.text_size * 1.1;
-            TextEditModel::apply_style(model, sel, style);
+            TextEdit::apply_style(model, sel, style);
         }
     }
 
@@ -215,10 +214,10 @@ void apply_rich_text_commands(TextEditModel::Model* model, KeyState* key) {
         
         auto& line = model->lines[min_line];
         if (min_index < line.characters.size()) {
-            TextEditModel::StyleCommand style;
-            style.type = TextEditModel::StyleCommand::SIZE;
+            TextEdit::StyleCommand style;
+            style.type = TextEdit::StyleCommand::SIZE;
             style.float_value = line.characters[min_index].style.text_size * (1 / 1.1);
-            TextEditModel::apply_style(model, sel, style);
+            TextEdit::apply_style(model, sel, style);
         }
     }
 }

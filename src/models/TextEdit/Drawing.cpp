@@ -1,29 +1,22 @@
 //
-//  TextEdit.cpp
+//  Drawing.hpp
 //  ddui
 //
-//  Created by Bartholomew Joyce on 12/03/2018.
+//  Created by Bartholomew Joyce on 19/03/2018.
 //  Copyright © 2018 Bartholomew Joyce All rights reserved.
 //
 
-#include "TextEdit.hpp"
-#include "TextMeasurements.hpp"
+#include "Drawing.hpp"
+#include "Measurements.hpp"
 #include <ddui/keyboard>
 #include <cstdlib>
 
 namespace TextEdit {
 
-TextEditState::TextEditState() {
-    
-}
-
-static void refresh_model(TextEditState* state, Context ctx, std::function<void(Context,int,int*,int*)> measure_entity);
-static void outline_box(NVGcontext* vg, int x, int y, int width, int height);
-
 void draw_content(Context ctx,
                   float offset_x, float offset_y,
-                  const TextEditModel::Model* model,
-                  const TextMeasurements::Measurements* measurements,
+                  const Model* model,
+                  const Measurements* measurements,
                   std::function<void(Context,int)> update_entity) {
 
     float y = offset_y;
@@ -32,18 +25,7 @@ void draw_content(Context ctx,
         auto& line = model->lines[lineno];
         auto& line_measurements = measurements->lines[lineno];
 
-        char* content = line.content.get();
-        
-//        if (!line.characters.empty()) {
-//            auto& character = line.characters.front();
-//            auto& measurement = line_measurements.characters.front();
-//
-//            nvgFontFace(ctx.vg, character.style.font_bold ? model->bold_font : model->regular_font);
-//            nvgFontSize(ctx.vg, character.style.text_size);
-//            nvgFillColor(ctx.vg, character.style.text_color);
-//            nvgText(ctx.vg, offset_x + measurement.x, y + measurement.baseline,
-//                            &content[character.index], 0);
-//        }
+        auto content = line.content.get();
         
         int i = 0;
         while (i < line.characters.size()) {
@@ -67,7 +49,7 @@ void draw_content(Context ctx,
             while (i + num_chars < line.characters.size()) {
                 auto& character = line.characters[i + num_chars];
                 if (character.entity_id != -1 ||
-                    memcmp(&character.style, &style, sizeof(TextEditModel::Style)) != 0) {
+                    memcmp(&character.style, &style, sizeof(Style)) != 0) {
                     break;
                 }
                 ++num_chars;
@@ -95,8 +77,8 @@ void draw_content(Context ctx,
 
 void draw_selection(Context ctx,
                     float offset_x, float offset_y,
-                    const TextEditModel::Model* model,
-                    const TextMeasurements::Measurements* measurements,
+                    const Model* model,
+                    const Measurements* measurements,
                     NVGcolor cursor_color,
                     NVGcolor selection_color) {
     
@@ -191,74 +173,6 @@ void draw_selection(Context ctx,
     }
     
     nvgRestore(ctx.vg);
-}
-
-void update(TextEditState* state,
-            Context ctx,
-            std::function<void(Context,int,int*,int*)> measure_entity,
-            std::function<void(Context,int)> update_entity) {
-
-    keyboard::register_focus_group(ctx, state);
-    
-    if (keyboard::has_key_event(ctx, state)) {
-        TextEditModel::apply_keyboard_input(state->model, ctx.key);
-    }
-
-    refresh_model(state, ctx, measure_entity);
-
-    if (!keyboard::has_focus(ctx, state) && mouse_hit(ctx, 0, 0, ctx.width, ctx.height)) {
-        keyboard::focus(ctx, state);
-    }
-    
-    if (state->is_mouse_dragging && !ctx.mouse->pressed) {
-        state->is_mouse_dragging = false;
-    }
-    if (state->is_mouse_dragging) {
-        int x = ctx.mouse->x - ctx.x;
-        int y = ctx.mouse->y - ctx.y;
-        locate_selection_point(&state->measurements, x, y, &state->model->selection.b_line, &state->model->selection.b_index);
-    }
-
-    // White background
-    nvgBeginPath(ctx.vg);
-    nvgFillColor(ctx.vg, nvgRGB(0xff, 0xff, 0xff));
-    nvgRect(ctx.vg, 0, 0, state->measurements.width, state->measurements.height);
-    nvgFill(ctx.vg);
-    
-    // Text
-    draw_content(ctx, 0, 0, state->model, &state->measurements, update_entity);
-    
-    // Selection
-    draw_selection(ctx, 0, 0, state->model, &state->measurements, nvgRGB(50, 100, 255), nvgRGBA(50, 100, 255, 100));
-
-    if (mouse_hit(ctx, 0, 0, ctx.width, ctx.height)) {
-        ctx.mouse->accepted = true;
-        state->is_mouse_dragging = true;
-        
-        int x = ctx.mouse->x - ctx.x;
-        int y = ctx.mouse->y - ctx.y;
-    
-        locate_selection_point(&state->measurements, x, y, &state->model->selection.a_line, &state->model->selection.a_index);
-        state->model->selection.b_line = state->model->selection.a_line;
-        state->model->selection.b_index = state->model->selection.a_index;
-    }
-
-}
-
-void refresh_model(TextEditState* state, Context ctx, std::function<void(Context,int,int*,int*)> measure_entity) {
-    if (state->model->version_count == state->current_version_count) {
-        return; // Model up-to-date
-    }
-
-    state->measurements = TextMeasurements::measure(ctx, state->model, measure_entity);
-    state->current_version_count = state->model->version_count;
-}
-
-void outline_box(NVGcontext* vg, int x, int y, int width, int height) {
-    nvgBeginPath(vg);
-    nvgStrokeColor(vg, nvgRGB(255, 0, 0));
-    nvgRect(vg, x, y, width, height);
-    nvgStroke(vg);
 }
 
 }

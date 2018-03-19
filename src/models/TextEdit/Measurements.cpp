@@ -1,17 +1,17 @@
 //
-//  TextMeasurements.cpp
+//  Measurements.cpp
 //  ddui
 //
-//  Created by Bartholomew Joyce on 13/03/2018.
+//  Created by Bartholomew Joyce on 19/03/2018.
 //  Copyright © 2018 Bartholomew Joyce All rights reserved.
 //
 
-#include "TextMeasurements.hpp"
+#include "Measurements.hpp"
 
-namespace TextMeasurements {
+namespace TextEdit {
 
 Measurements measure(Context ctx,
-                     const TextEditModel::Model* model,
+                     const Model* model,
                      std::function<void(Context,int,int*,int*)> measure_entity) {
 
     float y = 0.0;
@@ -34,8 +34,8 @@ Measurements measure(Context ctx,
 }
 
 LineMeasurements measure(Context ctx,
-                         const TextEditModel::Model* model,
-                         const TextEditModel::Line* line,
+                         const Model* model,
+                         const Line* line,
                          std::function<void(Context,int,int*,int*)> measure_entity) {
     
     auto& characters = line->characters;
@@ -50,7 +50,7 @@ LineMeasurements measure(Context ctx,
     output.max_ascender = 0.0;
     
     output.characters.reserve(characters.size());
-    Character empty_character = { 0 };
+    CharacterMeasurements empty_character = { 0 };
     for (int i = 0; i < characters.size(); ++i) {
         output.characters.push_back(empty_character);
     }

@@ -10,10 +10,8 @@
 #define ddui_PlainTextBox_hpp
 
 #include <ddui/Context>
-#include <ddui/views/ScrollArea>
+#include <ddui/models/TextEdit>
 #include <string>
-#include "../TextEdit/TextEditModel.hpp"
-#include "../TextEdit/TextMeasurements.hpp"
 #include <vector>
 
 namespace PlainTextBox {
@@ -21,12 +19,12 @@ namespace PlainTextBox {
 struct PlainTextBoxState {
     PlainTextBoxState();
 
-    TextEditModel::Model* model;
+    TextEdit::Model* model;
     bool multiline = false;
 
     // Text edit state
     int current_version_count;
-    TextMeasurements::Measurements measurements;
+    TextEdit::Measurements measurements;
 
     // UI info
     bool is_mouse_dragging;

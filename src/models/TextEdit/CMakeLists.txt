@@ -1,0 +1,10 @@
+list(APPEND ddui_SOURCES
+  ${CMAKE_CURRENT_SOURCE_DIR}/TextEdit.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Model.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Model.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Measurements.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Measurements.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Drawing.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Drawing.cpp
+)
+set(ddui_SOURCES ${ddui_SOURCES} PARENT_SCOPE)
