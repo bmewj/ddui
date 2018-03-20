@@ -68,7 +68,8 @@ void update(PasswordTextBoxState* state, Context ctx) {
     int dot_bounding_width  = dot_bounding_height * 0.6;
     int dot_diameter        = dot_bounding_width * 0.8;
     int dot_margin          = (dot_bounding_width - dot_diameter) / 2;
-    int num_dots = state->model->lines.front().characters.size();
+    int num_dots            = state->model->lines.front().characters.size();
+    int total_width         = num_dots * dot_bounding_width;
     
     // Update selection by mouse dragging (it's initiated at the end of this function)
     if (state->is_mouse_dragging && !ctx.mouse->pressed) {
@@ -101,17 +102,15 @@ void update(PasswordTextBoxState* state, Context ctx) {
     nvgStroke(ctx.vg);
     
     // Update scrolling
-    int caret_x = (state->model->selection.b_index == 0 ? 0 :
-                   state->measurements.lines[state->model->selection.b_line]
-                                 .characters[state->model->selection.b_index - 1].max_x);
+    int caret_x = state->model->selection.b_index * dot_bounding_width;
     while (caret_x < state->scroll_x) {
         state->scroll_x -= 50;
     }
     while (caret_x > state->scroll_x + ctx.width - 2 * state->margin) {
         state->scroll_x += 50;
     }
-    if (state->scroll_x > state->measurements.width - ctx.width + 2 * state->margin) {
-        state->scroll_x = state->measurements.width - ctx.width + 2 * state->margin;
+    if (state->scroll_x > total_width - ctx.width + 2 * state->margin) {
+        state->scroll_x = total_width - ctx.width + 2 * state->margin;
     }
     if (state->scroll_x < 0) {
         state->scroll_x = 0;
@@ -122,7 +121,7 @@ void update(PasswordTextBoxState* state, Context ctx) {
     nvgScissor(ctx.vg, 0, 0, ctx.width, state->height);
     nvgTranslate(ctx.vg, -state->scroll_x, 0);
     
-    auto inner_width = state->measurements.width + 2 * state->margin;
+    auto inner_width = total_width + 2 * state->margin;
     
     auto child_ctx = ctx;
     child_ctx.x -= state->scroll_x;
