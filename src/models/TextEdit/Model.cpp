@@ -684,6 +684,8 @@ void delete_range(Model* model, Selection sel) {
             from_line.style = from_line.characters.front().style;
         }
     }
+    
+    model->version_count++;
 }
 
 void insert_character(Model* model, int lineno, int index, const char* character) {
@@ -719,6 +721,8 @@ void insert_character(Model* model, int lineno, int index, const char* character
     for (auto it = line.characters.begin() + index + 1; it < line.characters.end(); ++it) {
         it->index += length;
     }
+    
+    model->version_count++;
 }
 
 void insert_line_break(Model* model, int lineno, int index) {
@@ -761,6 +765,62 @@ void insert_line_break(Model* model, int lineno, int index) {
     
     // Insert the new line
     model->lines.insert(model->lines.begin() + lineno + 1, std::move(new_line));
+    model->version_count++;
+}
+
+void remove_line_breaks(Model* model) {
+    if (model->lines.size() <= 1) {
+        return;
+    }
+
+    // Step 1. Make the selection single-line
+    int a_index = 0;
+    for (int lineno = 0; lineno < model->selection.a_line; ++lineno) {
+        a_index += model->lines[lineno].characters.size();
+    }
+    a_index += model->selection.a_index;
+
+    int b_index = 0;
+    for (int lineno = 0; lineno < model->selection.b_line; ++lineno) {
+        b_index += model->lines[lineno].characters.size();
+    }
+    b_index += model->selection.b_index;
+
+    model->selection.a_line = model->selection.b_line = 0;
+    model->selection.a_index = a_index;
+    model->selection.b_index = b_index;
+
+    // Step 2. Create the new line
+    Line single_line;
+    {
+        int num_bytes = 0;
+        for (auto& line : model->lines) {
+            num_bytes += line.num_bytes - 1;
+        }
+        num_bytes += 1;
+        
+        auto content = new char[num_bytes];
+        int offset = 0;
+        
+        for (auto& line : model->lines) {
+            strncpy(content + offset, line.content.get(), line.num_bytes - 1);
+            for (auto character : line.characters) {
+                character.index += offset;
+                single_line.characters.push_back(character);
+            }
+            offset += line.num_bytes - 1;
+        }
+        
+        content[num_bytes - 1] = '\0';
+        
+        single_line.num_bytes = num_bytes;
+        single_line.content = std::unique_ptr<char[]>(content);
+    }
+    
+    // Done.
+    model->lines.clear();
+    model->lines.push_back(std::move(single_line));
+    model->version_count++;
 }
 
 }

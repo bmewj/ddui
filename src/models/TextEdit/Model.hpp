@@ -81,6 +81,7 @@ void apply_keyboard_input(Model* model, KeyState* key_state);
 void delete_range(Model* model, Selection selection);
 void insert_character(Model* model, int line, int index, const char* character);
 void insert_line_break(Model* model, int line, int index);
+void remove_line_breaks(Model* model);
 
 }
 

@@ -1,32 +1,31 @@
 //
-//  PlainTextBox.cpp
+//  PasswordTextBox.cpp
 //  ddui
 //
-//  Created by Bartholomew Joyce on 18/03/2018.
+//  Created by Bartholomew Joyce on 20/03/2018.
 //  Copyright © 2018 Bartholomew Joyce All rights reserved.
 //
 
-#include "PlainTextBox.hpp"
+#include "PasswordTextBox.hpp"
 #include <ddui/keyboard>
 #include <ddui/util/caret_flicker>
 #include <cstdlib>
 
-namespace PlainTextBox {
+namespace PasswordTextBox {
 
-PlainTextBoxState::PlainTextBoxState() {
+PasswordTextBoxState::PasswordTextBoxState() {
     current_version_count = -1;
 }
 
-void update(PlainTextBoxState* state, Context ctx) {
+void update(PasswordTextBoxState* state, Context ctx) {
 
     keyboard::register_focus_group(ctx, state);
     
     // Process key input
     if (keyboard::has_key_event(ctx, state)) {
-        if (state->multiline || ctx.key->key != keyboard::KEY_ENTER) {
+        if (!(ctx.key->key == keyboard::KEY_ENTER) &&
+            !(ctx.key->key == keyboard::KEY_C && ctx.key->mods == keyboard::MOD_SUPER)) {
             TextEdit::apply_keyboard_input(state->model, ctx.key);
-        }
-        if (!state->multiline) {
             TextEdit::remove_line_breaks(state->model);
         }
     }
@@ -64,6 +63,13 @@ void update(PlainTextBoxState* state, Context ctx) {
         caret_flicker::reset_phase();
     }
     
+    // Calculate the dot size
+    int dot_bounding_height = state->measurements.height;
+    int dot_bounding_width  = dot_bounding_height * 0.6;
+    int dot_diameter        = dot_bounding_width * 0.8;
+    int dot_margin          = (dot_bounding_width - dot_diameter) / 2;
+    int num_dots = state->model->lines.front().characters.size();
+    
     // Update selection by mouse dragging (it's initiated at the end of this function)
     if (state->is_mouse_dragging && !ctx.mouse->pressed) {
         state->is_mouse_dragging = false;
@@ -71,10 +77,14 @@ void update(PlainTextBoxState* state, Context ctx) {
     if (state->is_mouse_dragging) {
         *ctx.cursor = CURSOR_IBEAM;
         int x = ctx.mouse->x - ctx.x - state->margin + state->scroll_x;
-        int y = ctx.mouse->y - ctx.y - state->margin;
-        TextEdit::locate_selection_point(&state->measurements, x, y,
-                                         &state->model->selection.b_line,
-                                         &state->model->selection.b_index);
+        state->model->selection.b_line = 0;
+        if (x < dot_bounding_width / 2) {
+            state->model->selection.b_index = 0;
+        } else if (x > num_dots * dot_bounding_width - dot_bounding_width / 2) {
+            state->model->selection.b_index = num_dots;
+        } else {
+            state->model->selection.b_index = (int)((float)(x + dot_bounding_width / 2) / dot_bounding_width);
+        }
     }
 
     // Background
@@ -124,27 +134,56 @@ void update(PlainTextBoxState* state, Context ctx) {
     
     // Text (when selection in foreground)
     if (state->selection_in_foreground) {
-        TextEdit::draw_content(child_ctx,
-                               state->margin, state->margin,
-                               state->model, &state->measurements,
-                               std::function<void(Context,int)>());
+        float x = state->margin + dot_bounding_width / 2;
+        float y = state->margin + dot_bounding_height / 2;
+        nvgFillColor(ctx.vg, state->model->lines.front().style.text_color);
+        for (int i = 0; i < num_dots; ++i) {
+            nvgBeginPath(ctx.vg);
+            nvgCircle(ctx.vg, x, y, dot_diameter / 2);
+            nvgFill(ctx.vg);
+            x += dot_bounding_width;
+        }
     }
     
     // Selection
     if (keyboard::has_focus(ctx, state)) {
-        auto cursor_color = (state->is_mouse_dragging || caret_flicker::get_phase()) ? state->cursor_color : nvgRGBA(0, 0, 0, 0);
-        TextEdit::draw_selection(child_ctx,
-                                 state->margin, state->margin,
-                                 state->model, &state->measurements,
-                                 cursor_color, state->selection_color);
+        auto& sel = state->model->selection;
+        
+        if (sel.a_index == sel.b_index) {
+            // Cursor
+        
+            auto cursor_color = (state->is_mouse_dragging || caret_flicker::get_phase()) ? state->cursor_color : nvgRGBA(0, 0, 0, 0);
+            nvgBeginPath(ctx.vg);
+            nvgStrokeColor(ctx.vg, cursor_color);
+            nvgStrokeWidth(ctx.vg, 2.0);
+            nvgMoveTo(ctx.vg, state->margin + sel.a_index * dot_bounding_width, state->margin);
+            nvgLineTo(ctx.vg, state->margin + sel.a_index * dot_bounding_width, state->margin + dot_bounding_height);
+            nvgStroke(ctx.vg);
+        } else {
+            // Selection
+            
+            auto from = sel.a_index < sel.b_index ? sel.a_index : sel.b_index;
+            auto to   = sel.a_index > sel.b_index ? sel.a_index : sel.b_index;
+            
+            nvgBeginPath(ctx.vg);
+            nvgFillColor(ctx.vg, state->selection_color);
+            nvgRect(ctx.vg, state->margin + from * dot_bounding_width, state->margin,
+                            (to - from) * dot_bounding_width, dot_bounding_height);
+            nvgFill(ctx.vg);
+        }
     }
-    
+
     // Text (when selection in background)
     if (!state->selection_in_foreground) {
-        TextEdit::draw_content(child_ctx,
-                               state->margin, state->margin,
-                               state->model, &state->measurements,
-                               std::function<void(Context,int)>());
+        float x = state->margin;
+        float y = state->margin + dot_bounding_height / 2;
+        nvgFillColor(ctx.vg, state->model->lines.front().style.text_color);
+        for (int i = 0; i < num_dots; ++i) {
+            nvgBeginPath(ctx.vg);
+            nvgRect(ctx.vg, x + dot_margin, y - dot_diameter / 2, dot_diameter, dot_diameter);
+            nvgFill(ctx.vg);
+            x += dot_bounding_width;
+        }
     }
     
     // Dispose of clip region
@@ -157,9 +196,15 @@ void update(PlainTextBoxState* state, Context ctx) {
         state->is_mouse_dragging = true;
         
         int x = ctx.mouse->x - ctx.x - state->margin + state->scroll_x;
-        int y = ctx.mouse->y - ctx.y - state->margin;
-    
-        locate_selection_point(&state->measurements, x, y, &state->model->selection.a_line, &state->model->selection.a_index);
+        
+        state->model->selection.a_line = 0;
+        if (x < dot_bounding_width / 2) {
+            state->model->selection.a_index = 0;
+        } else if (x > num_dots * dot_bounding_width - dot_bounding_width / 2) {
+            state->model->selection.a_index = num_dots;
+        } else {
+            state->model->selection.a_index = (int)((float)(x + dot_bounding_width / 2) / dot_bounding_width);
+        }
         state->model->selection.b_line = state->model->selection.a_line;
         state->model->selection.b_index = state->model->selection.a_index;
         caret_flicker::reset_phase();
