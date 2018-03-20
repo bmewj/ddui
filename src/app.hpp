@@ -10,15 +10,12 @@
 #define ddui_app_hpp
 
 #include "Context.hpp"
-#include <functional>
 
 namespace app {
 
 bool init(const char* title_bar);
 void load_font_face(const char* name, const char* file_name);
-bool running();
-void update(std::function<void(Context)> update_function);
-void wait_events();
+void run(void (*update_function)(Context));
 void terminate();
 void post_empty_event();
 const char* get_clipboard_string();

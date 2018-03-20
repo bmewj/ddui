@@ -22,15 +22,19 @@
 #define NANOVG_GL3_IMPLEMENTATION
 #include <nanovg_gl.h>
 
-GLFWwindow* window;
-NSWindow* native_window;
-NVGcontext* vg = NULL;
-MouseState mouse = { 0 };
-FocusState focus;
-KeyState key_state = { 0 };
-std::vector<KeyState> key_state_queue;
-Cursor current_cursor = CURSOR_ARROW;
-NSCursor* cursors[CURSOR_COUNT];
+static GLFWwindow* window;
+static NSWindow* native_window;
+static NVGcontext* vg = NULL;
+static MouseState mouse = { 0 };
+static FocusState focus;
+static KeyState key_state = { 0 };
+static std::vector<KeyState> key_state_queue;
+static Cursor current_cursor = CURSOR_ARROW;
+static NSCursor* cursors[CURSOR_COUNT];
+static void (*update_function)(Context ctx) = NULL;
+static bool should_keep_running = false;
+
+static void update();
 
 static void getGlVersion(int *major, int *minor);
 static void getGlslVersion(int *major, int *minor);
@@ -42,6 +46,7 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 static void character_callback(GLFWwindow* window, unsigned int codepoint);
 static void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+static void window_size_callback(GLFWwindow* window, int width, int height);
 
 bool app::init(const char* title_bar) {
     printf("Running macOS\n");
@@ -80,6 +85,7 @@ bool app::init(const char* title_bar) {
     glfwSetCharCallback(window, character_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
     glfwSetScrollCallback(window, scroll_callback);
+    glfwSetWindowSizeCallback(window, window_size_callback);
 
     glfwMakeContextCurrent(window);
     if (!glInit()) {
@@ -117,11 +123,37 @@ void app::load_font_face(const char* name, const char* file_name) {
     nvgCreateFont(vg, name, file_name);
 }
 
-bool app::running() {
-    return !glfwWindowShouldClose(window);
+void app::run(void (*new_update_function)(Context)) {
+    update_function = new_update_function;
+    should_keep_running = true;
+
+    while (should_keep_running && !glfwWindowShouldClose(window)) {
+        update();
+        glfwWaitEvents();
+    }
+
+    nvgDeleteGL3(vg);
+    glfwTerminate();
 }
 
-void app::update(std::function<void(Context)> update_function) {
+void app::terminate() {
+    should_keep_running = false;
+    glfwPostEmptyEvent();
+}
+
+void app::post_empty_event() {
+    glfwPostEmptyEvent();
+}
+
+const char* app::get_clipboard_string() {
+    return glfwGetClipboardString(window);
+}
+
+void app::set_clipboard_string(const char* string) {
+    glfwSetClipboardString(window, string);
+}
+
+void update() {
     int fbWidth, fbHeight;
     int winWidth, winHeight;
     double mouseX, mouseY;
@@ -179,7 +211,9 @@ void app::update(std::function<void(Context)> update_function) {
     ctx.clip.x2 = winWidth;
     ctx.clip.y2 = winHeight;
     
-    update_function(ctx);
+    if (update_function) {
+        update_function(ctx);
+    }
 
     mouse.scroll_dx = 0;
     mouse.scroll_dy = 0;
@@ -255,27 +289,6 @@ void app::update(std::function<void(Context)> update_function) {
     if (must_repaint || !key_state_queue.empty()) {
         glfwPostEmptyEvent();
     }
-}
-
-void app::wait_events() {
-    glfwWaitEvents();
-}
-
-void app::terminate() {
-    nvgDeleteGL3(vg);
-    glfwTerminate();
-}
-
-void app::post_empty_event() {
-    glfwPostEmptyEvent();
-}
-
-const char* app::get_clipboard_string() {
-    return glfwGetClipboardString(window);
-}
-
-void app::set_clipboard_string(const char* string) {
-    glfwSetClipboardString(window, string);
 }
 
 void getGlVersion(int *major, int *minor) {
@@ -419,4 +432,8 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
     mouse.scroll_dx = - (int)(xoffset * 10.0);
     mouse.scroll_dy = - (int)(yoffset * 10.0);
+}
+
+void window_size_callback(GLFWwindow* window, int width, int height) {
+    update();
 }

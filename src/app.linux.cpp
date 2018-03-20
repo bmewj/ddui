@@ -19,14 +19,18 @@
 #define NANOVG_GLES3_IMPLEMENTATION
 #include <nanovg_gl.h>
 
-GLFWwindow* window;
-NVGcontext* vg = NULL;
-MouseState mouse = { 0 };
-FocusState focus;
-KeyState key_state = { 0 };
-std::vector<KeyState> key_state_queue;
-Cursor current_cursor = CURSOR_ARROW;
-GLFWcursor* cursors[CURSOR_COUNT];
+static GLFWwindow* window;
+static NVGcontext* vg = NULL;
+static MouseState mouse = { 0 };
+static FocusState focus;
+static KeyState key_state = { 0 };
+static std::vector<KeyState> key_state_queue;
+static Cursor current_cursor = CURSOR_ARROW;
+static GLFWcursor* cursors[CURSOR_COUNT];
+static void (*update_function)(Context ctx) = NULL;
+static bool should_keep_running = false;
+
+static void update();
 
 static void getGlVersion(int *major, int *minor);
 static void getGlslVersion(int *major, int *minor);
@@ -103,11 +107,37 @@ void app::load_font_face(const char* name, const char* file_name) {
     nvgCreateFont(vg, name, file_name);
 }
 
-bool app::running() {
-    return !glfwWindowShouldClose(window);
+void app::run(void (*new_update_function)(Context)) {
+    update_function = new_update_function;
+    should_keep_running = true;
+
+    while (should_keep_running && !glfwWindowShouldClose(window)) {
+        update();
+        glfwWaitEvents();
+    }
+
+    nvgDeleteGL3(vg);
+    glfwTerminate();
 }
 
-void app::update(std::function<void(Context)> update_function) {
+void app::terminate() {
+    should_keep_running = false;
+    glfwPostEmptyEvent();
+}
+
+void app::post_empty_event() {
+    glfwPostEmptyEvent();
+}
+
+const char* app::get_clipboard_string() {
+    return glfwGetClipboardString(window);
+}
+
+void app::set_clipboard_string(const char* string) {
+    glfwSetClipboardString(window, string);
+}
+
+void update() {
     int fbWidth, fbHeight;
     int winWidth, winHeight;
     double mouseX, mouseY;
@@ -165,7 +195,9 @@ void app::update(std::function<void(Context)> update_function) {
     ctx.clip.x2 = winWidth;
     ctx.clip.y2 = winHeight;
 
-    update_function(ctx);
+    if (update_function) {
+        update_function(ctx);
+    }
 
     mouse.scroll_dx = 0;
     mouse.scroll_dy = 0;
@@ -240,27 +272,6 @@ void app::update(std::function<void(Context)> update_function) {
     if (must_repaint || !key_state_queue.empty()) {
         glfwPostEmptyEvent();
     }
-}
-
-void app::wait_events() {
-    glfwWaitEvents();
-}
-
-void app::terminate() {
-    nvgDeleteGLES3(vg);
-    glfwTerminate();
-}
-
-void app::post_empty_event() {
-    glfwPostEmptyEvent();
-}
-
-const char* app::get_clipboard_string() {
-    return glfwGetClipboardString(window);
-}
-
-void app::set_clipboard_string(const char* string) {
-    glfwSetClipboardString(window, string);
 }
 
 void getGlVersion(int *major, int *minor) {
