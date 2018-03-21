@@ -36,7 +36,7 @@ static constexpr int PADDING_RIGHT = 16;
 
 void update(ContextMenuState* state, Context ctx, std::function<void(Context)> inner_update) {
     // Step 1. Process mouse input
-    void* identifier = state->identifier;;
+    void* identifier = state->identifier;
     int menu_width, menu_height;
     if (state->open) {
         menu_height = PADDING_TOP + ITEM_HEIGHT * state->items.size() + PADDING_BOTTOM;
@@ -152,7 +152,7 @@ void update(ContextMenuState* state, Context ctx, std::function<void(Context)> i
                 if (hover_state > 0) {
                     nvgBeginPath(ctx.vg);
                     nvgFillColor(ctx.vg, hover_state == 2 ? ITEM_PRESS_COLOR : ITEM_HOVER_COLOR);
-                    nvgRect(ctx.vg, state->x, y, menu_width, ITEM_HEIGHT);
+                    nvgRect(ctx.vg, 0, y, menu_width, ITEM_HEIGHT);
                     nvgFill(ctx.vg);
                 }
               
