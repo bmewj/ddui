@@ -116,7 +116,7 @@ void app::run(void (*new_update_function)(Context)) {
         glfwWaitEvents();
     }
 
-    nvgDeleteGL3(vg);
+    nvgDeleteGLES3(vg);
     glfwTerminate();
 }
 

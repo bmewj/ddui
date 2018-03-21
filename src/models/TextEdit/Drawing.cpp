@@ -10,6 +10,7 @@
 #include "Measurements.hpp"
 #include <ddui/keyboard>
 #include <cstdlib>
+#include <cstring>
 
 namespace TextEdit {
 
