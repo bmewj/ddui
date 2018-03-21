@@ -68,7 +68,7 @@ bool app::init(const char* title_bar) {
     }
 
     glfwSetKeyCallback(window, key_callback);
-    glfwSetCharacterCallback(window, character_callback);
+    glfwSetCharCallback(window, character_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
     glfwSetScrollCallback(window, scroll_callback);
 
