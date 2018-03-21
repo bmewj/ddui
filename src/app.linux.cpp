@@ -390,6 +390,28 @@ void character_callback(GLFWwindow* window, unsigned int codepoint) {
     }
 }
 
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
+    if (action == GLFW_PRESS) {
+        mouse.accepted = false;
+        mouse.pressed = false;
+        mouse.pressed_secondary = false;
+        mouse.initial_x = mouse.x;
+        mouse.initial_y = mouse.y;
+
+        if (button == GLFW_MOUSE_BUTTON_LEFT) {
+            mouse.pressed = true;
+        } else {
+            mouse.pressed_secondary = true;
+        }
+    }
+
+    if (action == GLFW_RELEASE) {
+        mouse.accepted = false;
+        mouse.pressed = false;
+        mouse.pressed_secondary = false;
+    }
+}
+
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
     mouse.scroll_dx = (int)(10.0 * xoffset);
     mouse.scroll_dy = (int)(10.0 * yoffset);
