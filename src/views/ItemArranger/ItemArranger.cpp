@@ -22,7 +22,9 @@ void update(State* state, Context ctx) {
     }
   
     // Correct scroll_x
-    state->scroll_x += ctx.mouse->scroll_dx + ctx.mouse->scroll_dy;
+    if (mouse_over(ctx, 0, 0, ctx.width, state->content_height)) {
+        state->scroll_x += ctx.mouse->scroll_dx + ctx.mouse->scroll_dy;
+    }
     if (state->scroll_x > state->content_width - ctx.width) {
         state->scroll_x = state->content_width - ctx.width;
     }
@@ -112,7 +114,7 @@ void update(State* state, Context ctx) {
             // Draw dragged block
             {
                 nvgGlobalAlpha(ctx.vg, 0.8);
-                auto label = state->model->label(state->active_index).c_str();
+                auto label = state->model->label(state->active_index);
                 auto enabled = state->model->get_enabled(state->active_index);
               
                 auto bg = enabled ? state->color_background_enabled : state->color_background_disabled;
@@ -129,7 +131,7 @@ void update(State* state, Context ctx) {
               
                 // Text
                 nvgFillColor(ctx.vg, fg);
-                nvgText(ctx.vg, x + state->h_padding, state->v_padding + ascender, label, 0);
+                nvgText(ctx.vg, x + state->h_padding, state->v_padding + ascender, label.c_str(), 0);
                 nvgGlobalAlpha(ctx.vg, 1.0);
             }
         }
@@ -139,12 +141,12 @@ void update(State* state, Context ctx) {
 }
 
 void button(State* state, Context ctx, int* x, int ascender, int button_height, int index) {
-    auto label = state->model->label(index).c_str();
+    auto label = state->model->label(index);
     auto enabled = state->model->get_enabled(index);
 
     // Measure button size
     float bounds[4];
-    nvgTextBounds(ctx.vg, 0, 0, label, 0, bounds);
+    nvgTextBounds(ctx.vg, 0, 0, label.c_str(), 0, bounds);
     int text_width = bounds[2];
     int button_width = text_width + 2 * state->h_padding;
   
@@ -179,7 +181,7 @@ void button(State* state, Context ctx, int* x, int ascender, int button_height, 
   
     // Text
     nvgFillColor(ctx.vg, fg);
-    nvgText(ctx.vg, *x + state->h_padding, state->v_padding + ascender, label, 0);
+    nvgText(ctx.vg, *x + state->h_padding, state->v_padding + ascender, label.c_str(), 0);
   
     // Hover highlight
     if (mouse_over(ctx, *x, 0, button_width, button_height)) {
