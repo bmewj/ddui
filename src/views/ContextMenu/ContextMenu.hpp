@@ -9,16 +9,21 @@
 #ifndef ddui_ContextMenu_hpp
 #define ddui_ContextMenu_hpp
 
-#include "ContextMenuState.hpp"
 #include <ddui/Context>
-#include <functional>
+#include <string>
+#include <vector>
 
 namespace ContextMenu {
 
-void update(ContextMenuState* state, Context ctx, std::function<void(Context)> inner_update);
+struct Item {
+    std::string label;
+    bool enabled = true;
+    bool checked = false;
+    bool is_separator = false;
+};
 
 int process_action(Context ctx, void* identifier);
-void show(Context ctx, void* identifier, int x, int y, std::vector<Item> items);
+void show(Context ctx, void* identifier, std::vector<Item> items);
 
 }
 

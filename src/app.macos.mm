@@ -23,7 +23,7 @@
 #include <nanovg_gl.h>
 
 static GLFWwindow* window;
-static NSWindow* native_window;
+NSWindow* native_window;
 static NVGcontext* vg = NULL;
 static MouseState mouse = { 0 };
 static FocusState focus;

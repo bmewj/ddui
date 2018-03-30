@@ -8,6 +8,7 @@
 
 #include "PlainTextBox.hpp"
 #include <ddui/keyboard>
+#include <ddui/views/ContextMenu>
 #include <ddui/util/caret_flicker>
 #include <cstdlib>
 
@@ -75,6 +76,42 @@ void update(PlainTextBoxState* state, Context ctx) {
         TextEdit::locate_selection_point(&state->measurements, x, y,
                                          &state->model->selection.b_line,
                                          &state->model->selection.b_index);
+    }
+    
+    // Handle context menu
+    {
+        int action = ContextMenu::process_action(ctx, state);
+        if (action == 0) printf("CUT\n");
+        if (action == 1) printf("COPY\n");
+        if (action == 2) printf("PASTE\n");
+        
+        if (mouse_hit_secondary(ctx, 0, 0, ctx.width, state->height)) {
+            // If we haven't selected any text, select the whole line
+            if (state->model->selection.a_line  == state->model->selection.b_line &&
+                state->model->selection.a_index == state->model->selection.b_index) {
+                state->model->selection.a_index = 0;
+                state->model->selection.b_index = state->model->lines[state->model->selection.a_line].characters.size();
+            }
+        
+            // Create the context menu
+            std::vector<ContextMenu::Item> items;
+            {
+                ContextMenu::Item item;
+                item.label = "Cut";
+                items.push_back(std::move(item));
+            }
+            {
+                ContextMenu::Item item;
+                item.label = "Copy";
+                items.push_back(std::move(item));
+            }
+            {
+                ContextMenu::Item item;
+                item.label = "Paste";
+                items.push_back(std::move(item));
+            }
+            ContextMenu::show(ctx, state, std::move(items));
+        }
     }
 
     // Background

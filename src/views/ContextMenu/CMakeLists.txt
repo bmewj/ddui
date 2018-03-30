@@ -1,6 +1,5 @@
 list(APPEND ddui_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/ContextMenu.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/ContextMenuState.hpp
 )
 
 if(APPLE)
