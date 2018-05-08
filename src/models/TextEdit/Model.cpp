@@ -626,7 +626,7 @@ void delete_range(Model* model, Selection sel) {
         auto ch_num  = ch_to - ch_from;
 
         // Update the content array
-        auto new_num_bytes = line.num_bytes - (ch_from - ch_to);
+        auto new_num_bytes = line.num_bytes - (ch_to - ch_from);
         auto new_content = new char[new_num_bytes];
         strncpy(new_content, line.content.get(), ch_from);
         strncpy(new_content + ch_from, line.content.get() + ch_to, line.num_bytes - ch_to);

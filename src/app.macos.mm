@@ -69,7 +69,7 @@ bool app::init(const char* title_bar) {
     glfwWindowHint(GLFW_SAMPLES, 4);
 #endif
 
-    window = glfwCreateWindow(600, 400, title_bar, NULL, NULL);
+    window = glfwCreateWindow(717, 590, title_bar, NULL, NULL);
     if (!window) {
         glfwTerminate();
         return false;

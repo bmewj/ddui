@@ -25,10 +25,10 @@ bool mouse_hit(Context ctx, int x1, int y1, int width, int height) {
     int y2 = y1 + height;
     return (
         ctx.mouse->pressed && !ctx.mouse->accepted &&
-        (ctx.clip.x1 < ctx.mouse->initial_x) && (ctx.mouse->initial_x < ctx.clip.x2) &&
-        (ctx.clip.y1 < ctx.mouse->initial_y) && (ctx.mouse->initial_y < ctx.clip.y2) &&
-        (ctx.x + x1 < ctx.mouse->initial_x) && (ctx.mouse->initial_x < ctx.x + x2) &&
-        (ctx.y + y1 < ctx.mouse->initial_y) && (ctx.mouse->initial_y < ctx.y + y2)
+        (ctx.clip.x1 < ctx.mouse->initial_x) && (ctx.mouse->initial_x <= ctx.clip.x2) &&
+        (ctx.clip.y1 < ctx.mouse->initial_y) && (ctx.mouse->initial_y <= ctx.clip.y2) &&
+        (ctx.x + x1 < ctx.mouse->initial_x) && (ctx.mouse->initial_x <= ctx.x + x2) &&
+        (ctx.y + y1 < ctx.mouse->initial_y) && (ctx.mouse->initial_y <= ctx.y + y2)
     );
 }
 
@@ -37,10 +37,10 @@ bool mouse_hit_secondary(Context ctx, int x1, int y1, int width, int height) {
     int y2 = y1 + height;
     return (
         ctx.mouse->pressed_secondary && !ctx.mouse->accepted &&
-        (ctx.clip.x1 < ctx.mouse->initial_x) && (ctx.mouse->initial_x < ctx.clip.x2) &&
-        (ctx.clip.y1 < ctx.mouse->initial_y) && (ctx.mouse->initial_y < ctx.clip.y2) &&
-        (ctx.x + x1 < ctx.mouse->initial_x) && (ctx.mouse->initial_x < ctx.x + x2) &&
-        (ctx.y + y1 < ctx.mouse->initial_y) && (ctx.mouse->initial_y < ctx.y + y2)
+        (ctx.clip.x1 < ctx.mouse->initial_x) && (ctx.mouse->initial_x <= ctx.clip.x2) &&
+        (ctx.clip.y1 < ctx.mouse->initial_y) && (ctx.mouse->initial_y <= ctx.clip.y2) &&
+        (ctx.x + x1 < ctx.mouse->initial_x) && (ctx.mouse->initial_x <= ctx.x + x2) &&
+        (ctx.y + y1 < ctx.mouse->initial_y) && (ctx.mouse->initial_y <= ctx.y + y2)
     );
 }
 
@@ -49,9 +49,9 @@ bool mouse_over(Context ctx, int x1, int y1, int width, int height) {
     int y2 = y1 + height;
     return (
         !ctx.mouse->pressed && !ctx.mouse->pressed_secondary &&
-        (ctx.clip.x1 < ctx.mouse->x) && (ctx.mouse->x < ctx.clip.x2) &&
-        (ctx.clip.y1 < ctx.mouse->y) && (ctx.mouse->y < ctx.clip.y2) &&
-        (ctx.x + x1 < ctx.mouse->x) && (ctx.mouse->x < ctx.x + x2) &&
-        (ctx.y + y1 < ctx.mouse->y) && (ctx.mouse->y < ctx.y + y2)
+        (ctx.clip.x1 < ctx.mouse->x) && (ctx.mouse->x <= ctx.clip.x2) &&
+        (ctx.clip.y1 < ctx.mouse->y) && (ctx.mouse->y <= ctx.clip.y2) &&
+        (ctx.x + x1 < ctx.mouse->x) && (ctx.mouse->x <= ctx.x + x2) &&
+        (ctx.y + y1 < ctx.mouse->y) && (ctx.mouse->y <= ctx.y + y2)
     );
 }
