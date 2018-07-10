@@ -12,7 +12,6 @@
 #include <nanovg.h>
 #include <functional>
 #include <vector>
-#include "views/ContextMenu/ContextMenuState.hpp"
 
 struct MouseState {
     int x, y;
@@ -65,7 +64,6 @@ struct Context {
     KeyState* key;
     Cursor* cursor;
     bool* must_repaint;
-    ContextMenu::ContextMenuState* context_menu_state;
 
     int x, y;
     int width, height;

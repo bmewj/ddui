@@ -10,16 +10,16 @@
 #include <string.h>
 
 void draw_text_in_box(NVGcontext* vg, int x, int y, int width, int height, const char* content) {
-    int margin = 2;
+    constexpr int MARGIN = 2;
   
     int length = strlen(content);
     char new_content[length + 4];
-    int text_width = truncate_text(vg, width - 2 * margin, length, new_content, content);
+    int text_width = truncate_text(vg, width - 2 * MARGIN, length, new_content, content);
   
     float ascender, descender, line_height;
     nvgTextMetrics(vg, &ascender, &descender, &line_height);
   
-    int text_x = x + (width - text_width) / 2 + margin;
+    int text_x = x + (width - text_width) / 2 + MARGIN;
     int text_y = y + (height - (int)line_height) / 2 + (int)ascender;
 
     nvgText(vg, text_x, text_y, new_content, 0);
