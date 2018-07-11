@@ -12,6 +12,7 @@
 #include <nanovg.h>
 
 void draw_text_in_box(NVGcontext* vg, int x, int y, int width, int height, const char* content);
+void draw_centered_text_in_box(NVGcontext* vg, int x, int y, int width, int height, const char* content);
 int truncate_text(NVGcontext* vg, int width, int strlen, char* dst, const char* src);
 
 #endif
