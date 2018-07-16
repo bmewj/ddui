@@ -8,6 +8,7 @@
 
 #include "app.hpp"
 #include "keyboard.hpp"
+#include "animation.hpp"
 #include "util/caret_flicker.hpp"
 
 #include <GL3/gl3w.h>
@@ -114,7 +115,11 @@ void app::run(void (*new_update_function)(Context)) {
 
     while (should_keep_running && !glfwWindowShouldClose(window)) {
         update();
-        glfwWaitEvents();
+        if (animation::is_animating()) {
+            glfwPollEvents();
+        } else {
+            glfwWaitEvents();
+        }
     }
 
     nvgDeleteGLES3(vg);
@@ -147,6 +152,9 @@ void update() {
     glfwGetWindowSize(window, &winWidth, &winHeight);
     glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
     glfwGetCursorPos(window, &mouseX, &mouseY);
+
+    // Let the animation system know that a new frame is being generated
+    animation::update_animation();
 
     // Calculate pixel ration for hi-dpi devices.
     pxRatio = (float)fbWidth / (float)winWidth;
@@ -343,10 +351,6 @@ void error_callback(int error, const char* desc) {
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     NVG_NOTUSED(scancode);
     NVG_NOTUSED(mods);
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-        glfwSetWindowShouldClose(window, GL_TRUE);
-    }
-
     KeyState key_state;
     key_state.action = action;
     key_state.key = key;

@@ -4,6 +4,8 @@ list(APPEND ddui_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/Context.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/keyboard.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/keyboard.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/animation.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/animation.cpp
 )
 
 if (APPLE)

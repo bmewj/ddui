@@ -20,7 +20,7 @@ static std::chrono::high_resolution_clock::time_point last_update;
 
 static void run_thread();
 
-static constexpr double flicker_rate = 1.5;
+static constexpr double FLICKER_RATE = 1.5;
 
 void init() {
     phase = true;
@@ -38,7 +38,7 @@ void run_thread() {
 
         double time_elapsed = std::chrono::duration_cast<std::chrono::duration<double>>(current_time - last_update).count();
 
-        if (time_elapsed > 1.0 / flicker_rate) {
+        if (time_elapsed > 1.0 / FLICKER_RATE) {
             // Enough time has elapsed. Change the phase.
             phase = !phase;
             updated_phase = true;
@@ -51,7 +51,7 @@ void run_thread() {
         if (updated_phase) {
             app::post_empty_event();
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds((int)(1000 * (1.0 / flicker_rate - time_elapsed))));
+        std::this_thread::sleep_for(std::chrono::milliseconds((int)(1000 * (1.0 / FLICKER_RATE - time_elapsed))));
     }
 }
 
