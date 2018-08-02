@@ -7,6 +7,7 @@
 //
 
 #include "Overlay.hpp"
+#include <vector>
 
 namespace Overlay {
 
@@ -17,54 +18,65 @@ struct OverlayState {
     std::function<void(Context)> inner_update;
 };
 
-static OverlayState state;
+static std::vector<OverlayState> overlay_stack;
 static MouseState empty_mouse = { 0 };
 static FocusState empty_focus = { 0 };
 static KeyState empty_key = { 0 };
 
 void update(Context ctx, std::function<void(Context)> inner_update) {
 
-    state.active = false;
+    // All overlays start out inactive (to detect closes of overlays)
+    for (auto& overlay : overlay_stack) {
+        overlay.active = false;
+    }
 
     // Block user input to background content when an overlay is open
     auto child_ctx = ctx;
-    if (state.identifier != NULL) {
+    if (!overlay_stack.empty()) {
         child_ctx.mouse = &empty_mouse;
         child_ctx.focus = &empty_focus;
         child_ctx.key = &empty_key;
     }
 
+    // Save current identifiers to compare
+    auto old_size = overlay_stack.size();
+    void* old_identifiers[old_size];
+    for (int i = 0; i < overlay_stack.size(); ++i) {
+        old_identifiers[i] = overlay_stack[i].identifier;
+    }
+    
     // Update background content
-    auto old_identifier = state.identifier;
     inner_update(child_ctx);
-
-    // The overlay has changed, repaint
-    if (state.identifier != old_identifier) {
-        *ctx.must_repaint = true;
-        return;
+    
+    // Draw all the overlays in order
+    for (int i = 0; i < overlay_stack.size(); ++i) {
+        auto& overlay = overlay_stack[i];
+        
+        // The overlay has changed, repaint
+        if (i >= old_size || overlay.identifier != old_identifiers[i]) {
+            *ctx.must_repaint = true;
+            return;
+        }
+        
+        // The overlay hasn't got a handler, so close it
+        if (!overlay.active) {
+            overlay_stack.erase(overlay_stack.begin() + i, overlay_stack.end());
+            *ctx.must_repaint = true;
+            return;
+        }
+        
+        // Draw the overlay
+        auto is_top_most_overlay = (i == overlay_stack.size() - 1);
+        overlay.inner_update(is_top_most_overlay ? ctx : child_ctx);
+        overlay.inner_update = std::function<void(Context)>();
+        
     }
-
-    // Overlay hasn't changed AND is null, so do nothing
-    if (state.identifier == NULL) {
-        return;
-    }
-
-    // Overlay is open, but hasn't got a handler, so close it
-    if (!state.active) {
-        state.identifier = NULL;
-        *ctx.must_repaint = true;
-        return;
-    }
-
-    // Draw overlay
-    state.inner_update(ctx);
-    state.inner_update = std::function<void(Context)>();
 
     // Unhandled mouse clicks trigger overlay close
-    if (mouse_hit(ctx, 0, 0, ctx.width, ctx.height)) {
+    if (!overlay_stack.empty() && mouse_hit(ctx, 0, 0, ctx.width, ctx.height)) {
         ctx.mouse->accepted = true;
 
-        state.identifier = NULL;
+        overlay_stack.pop_back();
         *ctx.must_repaint = true;
     }
 
@@ -72,32 +84,43 @@ void update(Context ctx, std::function<void(Context)> inner_update) {
 
 void handle_overlay(void* identifier, std::function<void(Context)> inner_update) {
 
-    if (state.identifier == identifier) {
-        state.active = true;
-        state.inner_update = std::move(inner_update);
+    for (auto& overlay : overlay_stack) {
+        if (overlay.identifier == identifier) {
+            overlay.active = true;
+            overlay.inner_update = std::move(inner_update);
+            break;
+        }
     }
 
 }
 
 void open(void* identifier) {
 
-    if (state.identifier != identifier) {
-        state.identifier = identifier;
-        state.active = false;
-    }
+    OverlayState overlay;
+    overlay.identifier = identifier;
+    overlay.active = false;
+    overlay_stack.push_back(overlay);
 
 }
 
 void close(void* identifier) {
 
-    if (state.identifier == identifier) {
-        state.identifier = NULL;
+    for (int i = 0; i < overlay_stack.size(); ++i) {
+        if (overlay_stack[i].identifier == identifier) {
+            overlay_stack.erase(overlay_stack.begin() + i, overlay_stack.end());
+            return;
+        }
     }
 
 }
 
 bool is_open(void* identifier) {
-    return state.identifier == identifier;
+    for (auto& overlay : overlay_stack) {
+        if (overlay.identifier == identifier) {
+            return true;
+        }
+    }
+    return false;
 }
 
 }
