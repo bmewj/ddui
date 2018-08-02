@@ -18,6 +18,10 @@ void stop(void* identifier);
 bool is_animating(void* identifier);
 double get_time_elapsed(void* identifier);
 
+double ease_in(double completion);
+double ease_out(double completion);
+double ease_in_out(double completion);
+
 void update_animation(); // called internally by ddui
 bool is_animating();     // called internally by ddui
 

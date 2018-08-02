@@ -73,6 +73,22 @@ double get_time_elapsed(void* identifier) {
     return time_elapsed;
 }
 
+double ease_in(double completion) {
+    return completion * completion;
+}
+
+double ease_out(double completion) {
+    return 1 - (1 - completion) * (1 - completion);
+}
+
+double ease_in_out(double completion) {
+    if (completion < 0.5) {
+        return 0.5 * ease_in(2.0 * completion);
+    } else {
+        return 0.5 + 0.5 * ease_out(2.0 * completion - 1.0);
+    }
+}
+
 void update_animation() {
 
     // Update the current time
