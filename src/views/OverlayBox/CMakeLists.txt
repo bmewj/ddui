@@ -1,0 +1,5 @@
+list(APPEND ddui_SOURCES
+  ${CMAKE_CURRENT_SOURCE_DIR}/OverlayBox.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/OverlayBox.cpp
+)
+set(ddui_SOURCES ${ddui_SOURCES} PARENT_SCOPE)

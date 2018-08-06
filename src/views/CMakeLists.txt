@@ -1,5 +1,7 @@
 add_subdirectory(ContextMenu)
 add_subdirectory(Overlay)
+add_subdirectory(OverlayBox)
+add_subdirectory(MessageBox)
 add_subdirectory(ScrollArea)
 add_subdirectory(PlainTextBox)
 add_subdirectory(RichTextBox)
