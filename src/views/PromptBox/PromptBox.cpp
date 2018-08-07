@@ -1,34 +1,52 @@
 //
-//  MessageBox.cpp
+//  PromptBox.cpp
 //  ddui
 //
 //  Created by Bartholomew Joyce on 06/08/2018.
 //  Copyright © 2018 Bartholomew Joyce All rights reserved.
 //
 
-#include "MessageBox.hpp"
+#include "PromptBox.hpp"
+#include <ddui/keyboard>
+#include <ddui/animation>
+#include <ddui/views/Overlay>
 
-namespace MessageBox {
+namespace PromptBox {
 
-static void update_content(MessageBoxState* state, Context ctx);
+static void update_content(PromptBoxState* state, Context ctx);
 static bool draw_button(Context ctx, int y, int* x, const char* text, bool disabled);
 
-MessageBoxState::MessageBoxState() {
+PromptBoxState::PromptBoxState() {
+    opened = false;
     overlay_box.max_width = 350;
-    overlay_box.max_height = 150;
+    overlay_box.max_height = 180;
     action = -1;
+
+    text_box_model.regular_font = "regular";
+    
+    text_box.model = &text_box_model;
+    text_box.multiline = false;
+    
+    TextEdit::set_style(&text_box_model, false, 18.0, nvgRGB(0xff, 0xff, 0xff));
+    
+    text_box.bg_color = nvgRGB(0x28, 0x28, 0x28);
+    text_box.bg_color_focused = nvgRGB(0x28, 0x28, 0x28);
+    text_box.border_color = nvgRGB(0x60, 0x60, 0x60);
+    text_box.border_color_focused = nvgRGB(0xaa, 0xaa, 0xaa);
+    text_box.cursor_color = nvgRGB(0xff, 0xff, 0xff);
+    text_box.selection_color = nvgRGBA(0xff, 0xff, 0xff, 0x80);
 }
 
-void open(MessageBoxState* state) {
+void open(PromptBoxState* state) {
     state->action = -1;
     OverlayBox::open(&state->overlay_box);
 }
 
-void close(MessageBoxState* state) {
+void close(PromptBoxState* state) {
     OverlayBox::close(&state->overlay_box);
 }
 
-void update(MessageBoxState* state) {
+void update(PromptBoxState* state) {
     OverlayBox::update(&state->overlay_box, [state](Context ctx) {
         update_content(state, ctx);
     });
@@ -40,7 +58,21 @@ constexpr auto MESSAGE_SIZE = 18;
 static auto TITLE_TEXT_COLOR = nvgRGB(0xcc, 0xcc, 0xcc);
 static auto MESSAGE_TEXT_COLOR = nvgRGB(0xff, 0xff, 0xff);
 
-void update_content(MessageBoxState* state, Context ctx) {
+void update_content(PromptBoxState* state, Context ctx) {
+
+    // Detect opening and closing
+    auto ANIMATION_IN_ID = (void*)(&state->overlay_box + 1);
+    auto ANIMATION_OUT_ID = (void*)(&state->overlay_box + 2);
+    if (!state->opened &&
+        !animation::is_animating(ANIMATION_IN_ID) &&
+        !animation::is_animating(ANIMATION_OUT_ID)) {
+        state->opened = true;
+        keyboard::focus(ctx, &state->text_box);
+    }
+    if (state->opened &&
+        animation::is_animating(ANIMATION_OUT_ID)) {
+        state->opened = false;
+    }
 
     auto y = 0;
     
@@ -60,6 +92,21 @@ void update_content(MessageBoxState* state, Context ctx) {
     nvgTextAlign(ctx.vg, NVG_ALIGN_TOP | NVG_ALIGN_LEFT);
     nvgTextBox(ctx.vg, PADDING, y, ctx.width - 2 * PADDING, state->message.c_str(), NULL);
     nvgTextAlign(ctx.vg, NVG_ALIGN_LEFT);
+
+    // Submit Key (ENTER)
+    if (keyboard::has_key_event(ctx, &state->text_box) &&
+        ctx.key->key == keyboard::KEY_ENTER) {
+        if (ctx.key->action == keyboard::ACTION_PRESS) {
+            close(state);
+            state->action = 0;
+        }
+        keyboard::consume_key_event(ctx);
+    }
+
+    // Plain Text Box
+    auto child_ctx = child_context(ctx, PADDING, y + MESSAGE_SIZE * 3, ctx.width - 2 * PADDING, ctx.height);
+    PlainTextBox::update(&state->text_box, child_ctx);
+    nvgRestore(child_ctx.vg);
 
     // Buttons
     auto x = ctx.width - PADDING;
