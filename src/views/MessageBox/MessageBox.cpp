@@ -7,11 +7,12 @@
 //
 
 #include "MessageBox.hpp"
+#include <ddui/keyboard>
 
 namespace MessageBox {
 
 static void update_content(MessageBoxState* state, Context ctx);
-static bool draw_button(Context ctx, int y, int* x, const char* text, bool disabled);
+static bool draw_button(Context ctx, void* identifier, int y, int* x, const char* text, bool disabled);
 
 MessageBoxState::MessageBoxState() {
     overlay_box.max_width = 350;
@@ -61,12 +62,18 @@ void update_content(MessageBoxState* state, Context ctx) {
     nvgTextBox(ctx.vg, PADDING, y, ctx.width - 2 * PADDING, state->message.c_str(), NULL);
     nvgTextAlign(ctx.vg, NVG_ALIGN_LEFT);
 
-    // Buttons
+    // Register Buttons as Focus Groups
+    for (auto& button : state->button_set) {
+        keyboard::register_focus_group(ctx, &button);
+    }
+
+    // Draw Buttons
     auto x = ctx.width - PADDING;
     y = ctx.height - PADDING;
 
     for (int i = state->button_set.size() - 1; i >= 0; --i) {
-        if (draw_button(ctx, y, &x, state->button_set[i].c_str(), false)) {
+        void* id = &state->button_set[i];
+        if (draw_button(ctx, id, y, &x, state->button_set[i].c_str(), false)) {
             close(state);
             state->action = i;
         }
@@ -84,8 +91,8 @@ constexpr auto BUTTON_V_PADDING = 4;
 constexpr auto BUTTON_SPACING = 4;
 constexpr auto BUTTON_BORDER_RADIUS = 4;
 
-bool draw_button(Context ctx, int y, int* x, const char* text, bool disabled) {
-    
+bool draw_button(Context ctx, void* identifier, int y, int* x, const char* text, bool disabled) {
+
     nvgFontFace(ctx.vg, "regular");
     nvgFontSize(ctx.vg, BUTTON_TEXT_SIZE);
     
@@ -106,7 +113,8 @@ bool draw_button(Context ctx, int y, int* x, const char* text, bool disabled) {
     if (hovering) {
         *ctx.cursor = CURSOR_POINTING_HAND;
     }
-    
+    hovering |= keyboard::has_focus(ctx, identifier);
+
     // Background
     nvgBeginPath(ctx.vg);
     nvgRoundedRect(ctx.vg, *x, y, button_width, button_height, BUTTON_BORDER_RADIUS);
@@ -123,6 +131,14 @@ bool draw_button(Context ctx, int y, int* x, const char* text, bool disabled) {
     }
 
     *x -= BUTTON_SPACING;
+
+    // Enter to Submit
+    if (keyboard::has_key_event(ctx, identifier) &&
+        ctx.key->action == keyboard::ACTION_PRESS &&
+        ctx.key->key == keyboard::KEY_ENTER) {
+        keyboard::consume_key_event(ctx);
+        clicked = true;
+    }
 
     return clicked;
 }
