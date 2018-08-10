@@ -24,6 +24,8 @@ ScrollAreaState::ScrollAreaState() {
     initial_scroll_y = 0;
     is_dragging_horizontal_bar = false;
     is_dragging_vertical_bar = false;
+
+    scroll_into_view.x = -1;
 }
 
 void update(ScrollAreaState* state, Context ctx, int inner_width, int inner_height, std::function<void(Context)> update_inner) {
@@ -43,6 +45,19 @@ void update(ScrollAreaState* state, Context ctx, int inner_width, int inner_heig
     if (ctx.mouse->pressed && state->is_dragging_vertical_bar) {
         int dy = ctx.mouse->y - ctx.mouse->initial_y;
         state->scroll_y = state->initial_scroll_y + (dy * inner_height) / container_height;
+    }
+
+    // Scroll into view
+    if (state->scroll_into_view.x != -1) {
+        int x1 = state->scroll_into_view.x;
+        int y1 = state->scroll_into_view.y;
+        int x2 = x1 + state->scroll_into_view.width;
+        int y2 = y1 + state->scroll_into_view.height;
+
+        LIMIT(x2 - container_width,  state->scroll_x, x1);
+        LIMIT(y2 - container_height, state->scroll_y, y1);
+
+        state->scroll_into_view.x = -1;
     }
 
     // Prevent scrolling past frame boundaries
@@ -124,6 +139,16 @@ void update(ScrollAreaState* state, Context ctx, int inner_width, int inner_heig
         nvgRect(ctx.vg, v_bar_x, v_bar_y, v_bar_w, v_bar_h);
         nvgFill(ctx.vg);
     }
+}
+
+void scroll_into_view(ScrollAreaState* state, Context ctx, int x, int y, int width, int height) {
+
+    state->scroll_into_view.x = x;
+    state->scroll_into_view.y = y;
+    state->scroll_into_view.width = width;
+    state->scroll_into_view.height = height;
+    *ctx.must_repaint = true;
+
 }
 
 }

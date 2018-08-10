@@ -20,6 +20,10 @@ struct ScrollAreaState {
     int initial_scroll_y;
     bool is_dragging_horizontal_bar;
     bool is_dragging_vertical_bar;
+
+    struct {
+        int x, y, width, height;
+    } scroll_into_view;
 };
 
 }
