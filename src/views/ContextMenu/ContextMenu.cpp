@@ -52,7 +52,7 @@ static ContextMenuState state;
 void update(Context ctx, std::function<void(Context)> inner_update) {
     // Step 1. Process mouse input
     void* identifier = state.identifier;
-    int menu_width, menu_height;
+    int menu_width, menu_height, x;
     if (state.open) {
         menu_height = PADDING_TOP + ITEM_HEIGHT * state.items.size() + PADDING_BOTTOM;
 
@@ -70,10 +70,16 @@ void update(Context ctx, std::function<void(Context)> inner_update) {
         }
       
         menu_width = PADDING_LEFT + max_text_width + PADDING_RIGHT;
+        
+        // Adjust menu position to fit in screen
+        x = state.x;
+        if (x + menu_width > ctx.width && menu_width < ctx.width) {
+            x = ctx.width - menu_width;
+        }
 
         // Handle context menu dismissal
         if (mouse_hit(ctx, 0, 0, ctx.width, ctx.height) &&
-            !mouse_hit(ctx, state.x, state.y, menu_width, menu_height)) {
+            !mouse_hit(ctx, x, state.y, menu_width, menu_height)) {
             ctx.mouse->accepted = true;
             state.open = false;
             state.action = -1;
@@ -82,7 +88,7 @@ void update(Context ctx, std::function<void(Context)> inner_update) {
         // Handle item press
         int y = state.y + PADDING_TOP;
         for (int i = 0; i < state.items.size(); ++i) {
-            if (mouse_hit(ctx, state.x, y, menu_width, ITEM_HEIGHT)) {
+            if (mouse_hit(ctx, x, y, menu_width, ITEM_HEIGHT)) {
                 ctx.mouse->accepted = true;
                 state.action_pressing = i;
                 break;
@@ -96,7 +102,7 @@ void update(Context ctx, std::function<void(Context)> inner_update) {
             state.open = false;
 
             int y = state.y + PADDING_TOP + state.action_pressing * ITEM_HEIGHT;
-            if (mouse_over(ctx, state.x, y, menu_width, ITEM_HEIGHT)) {
+            if (mouse_over(ctx, x, y, menu_width, ITEM_HEIGHT)) {
                 state.action = state.action_pressing;
             } else {
                 state.action = -1;
@@ -104,7 +110,7 @@ void update(Context ctx, std::function<void(Context)> inner_update) {
         }
       
         // Handle border clicking
-        if (mouse_hit(ctx, state.x, state.y, menu_width, menu_height)) {
+        if (mouse_hit(ctx, x, state.y, menu_width, menu_height)) {
             ctx.mouse->accepted = true;
             state.action_pressing = -1;
         }
@@ -118,7 +124,7 @@ void update(Context ctx, std::function<void(Context)> inner_update) {
     // Step 3. Draw context menu
     if (state.open && identifier == state.identifier) {
 
-        int width = ctx.width - state.x;
+        int width = ctx.width - x;
         if (width > menu_width) {
             width = menu_width;
         }
@@ -128,7 +134,7 @@ void update(Context ctx, std::function<void(Context)> inner_update) {
             height = menu_height;
         }
       
-        auto child_ctx = child_context(ctx, state.x, state.y, width, height);
+        auto child_ctx = child_context(ctx, x, state.y, width, height);
         ScrollArea::update(&state.scroll_area_state, child_ctx, menu_width, menu_height, [&](Context ctx) {
         
             // Background
@@ -157,7 +163,7 @@ void update(Context ctx, std::function<void(Context)> inner_update) {
                 if (state.action_pressing == i) {
                     hover_state = 2;
                   
-                    if (ctx.mouse->x < state.x || ctx.mouse->x > state.x + menu_width ||
+                    if (ctx.mouse->x < x || ctx.mouse->x > x + menu_width ||
                         ctx.mouse->y < y || ctx.mouse->y > y + ITEM_HEIGHT) {
                         --hover_state;
                     }
