@@ -7,66 +7,30 @@
 //
 
 #include "caret_flicker.hpp"
-#include <thread>
-#include <mutex>
-#include <chrono>
-#include <ddui/app>
+#include <ddui/timer>
 
 namespace caret_flicker {
 
-static std::mutex phase_mutex;
 static bool phase;
-static std::chrono::high_resolution_clock::time_point last_update;
+static int interval_id = -1;
 
-static void run_thread();
-
-static constexpr double FLICKER_RATE = 1.5;
-
-void init() {
-    phase = true;
-    last_update = std::chrono::high_resolution_clock::now();
-
-    new std::thread(run_thread);
-}
-
-void run_thread() {
-    while (true) {
-        bool updated_phase = false;
-        auto current_time = std::chrono::high_resolution_clock::now();
-
-        phase_mutex.lock();
-
-        double time_elapsed = std::chrono::duration_cast<std::chrono::duration<double>>(current_time - last_update).count();
-
-        if (time_elapsed > 1.0 / FLICKER_RATE) {
-            // Enough time has elapsed. Change the phase.
-            phase = !phase;
-            updated_phase = true;
-            last_update = current_time;
-            time_elapsed = 0.0;
-        }
-
-        phase_mutex.unlock();
-
-        if (updated_phase) {
-            app::post_empty_event();
-        }
-        std::this_thread::sleep_for(std::chrono::milliseconds((int)(1000 * (1.0 / FLICKER_RATE - time_elapsed))));
-    }
-}
+static constexpr auto FLICKER_RATE = 1.5;
+static constexpr auto FLICKER_TIME = (long)(1000.0 / FLICKER_RATE);
 
 bool get_phase() {
-    phase_mutex.lock();
-    auto the_phase = phase;
-    phase_mutex.unlock();
-    return the_phase;
+    if (interval_id == -1) {
+        reset_phase();
+    }
+
+    return phase;
 }
 
 void reset_phase() {
-    phase_mutex.lock();
+    timer::clear_interval(interval_id);
     phase = true;
-    last_update = std::chrono::high_resolution_clock::now();
-    phase_mutex.unlock();
+    interval_id = timer::set_interval([]() {
+        phase = !phase;
+    }, FLICKER_TIME);
 }
 
 }

@@ -9,7 +9,6 @@
 #include "app.hpp"
 #include "keyboard.hpp"
 #include "animation.hpp"
-#include "util/caret_flicker.hpp"
 
 #include <GL3/gl3w.h>
 
@@ -19,6 +18,8 @@
 #include <nanovg.h>
 #define NANOVG_GLES3_IMPLEMENTATION
 #include <nanovg_gl.h>
+
+#include <mutex>
 
 static GLFWwindow* window;
 static NVGcontext* vg = NULL;
@@ -30,6 +31,9 @@ static Cursor current_cursor = CURSOR_ARROW;
 static GLFWcursor* cursors[CURSOR_COUNT];
 static void (*update_function)(Context ctx) = NULL;
 static bool should_keep_running = false;
+
+static std::mutex set_immediate_mutex;
+static std::vector<std::function<void()>> set_immediate_callbacks;
 
 static void update();
 
@@ -100,7 +104,7 @@ bool app::init(const char* title_bar) {
     focus.focus_new = NULL;
   
     app::load_font_face("entypo", "assets/Entypo.ttf");
-    caret_flicker::init();
+    timer::init();
 
     return true;
 }
@@ -135,6 +139,13 @@ void app::post_empty_event() {
     glfwPostEmptyEvent();
 }
 
+void app::set_immediate(std::function<void()> callback) {
+    set_immediate_mutex.lock();
+    set_immediate_callbacks.push_back(std::move(callback));
+    set_immediate_mutex.unlock();
+    glfwPostEmptyEvent();
+}
+
 const char* app::get_clipboard_string() {
     return glfwGetClipboardString(window);
 }
@@ -152,6 +163,16 @@ void update() {
     glfwGetWindowSize(window, &winWidth, &winHeight);
     glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
     glfwGetCursorPos(window, &mouseX, &mouseY);
+
+    // Process all set_immediate callbacks
+    {
+        set_immediate_mutex.lock();
+        auto callbacks = std::move(set_immediate_callbacks);
+        set_immediate_mutex.unlock();
+        for (auto& callback : callbacks) {
+            callback();
+        }
+    }
 
     // Let the animation system know that a new frame is being generated
     animation::update_animation();

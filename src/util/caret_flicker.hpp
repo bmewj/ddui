@@ -11,8 +11,6 @@
 
 namespace caret_flicker {
 
-void init();
-
 bool get_phase();
 void reset_phase();
 
