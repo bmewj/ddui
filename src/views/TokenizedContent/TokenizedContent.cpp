@@ -18,11 +18,11 @@ void set_font_settings(State* state, NVGcolor font_color, float font_size, const
     state->settings.font_face = font_face;
 }
 
-void tokenize_and_append_text(State* state, std::string text) {
-    tokenize_and_append_text(state, SPACE_WIDTH, SPACE_WIDTH, std::move(text));
+void tokenize_and_append_text(State* state, std::string text, int action_id) {
+    tokenize_and_append_text(state, SPACE_WIDTH, SPACE_WIDTH, std::move(text), action_id);
 }
 
-void tokenize_and_append_text(State* state, float space_before, float space_after, std::string text) {
+void tokenize_and_append_text(State* state, float space_before, float space_after, std::string text, int action_id) {
 
     int start_index = 0;
     int index = 0;
@@ -64,6 +64,7 @@ void tokenize_and_append_text(State* state, float space_before, float space_afte
         token.type = Token::TEXT;
         token.space_before = (&part == &parts.front()) ? space_before : SPACE_WIDTH;
         token.space_after  = (&part == &parts.back())  ? space_after  : SPACE_WIDTH;
+        token.action_id = action_id;
         token.text.font_color = state->settings.font_color;
         token.text.font_size = state->settings.font_size;
         token.text.font_face = state->settings.font_face;
@@ -73,22 +74,23 @@ void tokenize_and_append_text(State* state, float space_before, float space_afte
 
 }
 
-void append_object(State* state, float width, float height, std::function<void(Context ctx)> update) {
-    append_object(state, SPACE_WIDTH, SPACE_WIDTH, width, height, std::move(update));
+void append_object(State* state, float width, float height, std::function<void(Context ctx)> update, int action_id) {
+    append_object(state, SPACE_WIDTH, SPACE_WIDTH, width, height, std::move(update), action_id);
 }
 
-void append_object(State* state, float space_before, float space_after, float width, float height, std::function<void(Context ctx)> update) {
+void append_object(State* state, float space_before, float space_after, float width, float height, std::function<void(Context ctx)> update, int action_id) {
     Token token;
     token.type = Token::OBJECT;
     token.space_before = space_before;
     token.space_after  = space_after;
+    token.action_id = action_id;
     token.object.width = width;
     token.object.height = height;
     token.object.update = std::move(update);
     state->content_tokens.push_back(std::move(token));
 }
 
-static float measure_content(State* state, NVGcontext* vg, float total_width, float* xs, float* ys) {
+static float measure_content(State* state, NVGcontext* vg, float total_width, float* xs, float* ys, float* ws, float* hs) {
     float y = 0;
 
     int i = 0;
@@ -127,6 +129,7 @@ static float measure_content(State* state, NVGcontext* vg, float total_width, fl
                     }
 
                     xs[i] = x;
+                    ws[i] = width;
 
                     if (max_line_height < line_height) {
                         max_line_height = line_height;
@@ -157,6 +160,7 @@ static float measure_content(State* state, NVGcontext* vg, float total_width, fl
                     }
 
                     xs[i] = x;
+                    ws[i] = token.object.width;
 
                     if (max_height < token.object.height) {
                         max_height = token.object.height;
@@ -196,6 +200,7 @@ static float measure_content(State* state, NVGcontext* vg, float total_width, fl
             switch (token.type) {
                 case Token::TEXT: {
                     ys[j] = y + baseline;
+                    hs[j] = max_ascender;
                     break;
                 }
                 case Token::OBJECT: {
@@ -205,6 +210,7 @@ static float measure_content(State* state, NVGcontext* vg, float total_width, fl
                     } else {
                         ys[j] = y + (max_height - height) / 2;
                     }
+                    hs[j] = max_height;
                     break;
                 }
                 case Token::LINE_BREAK: {
@@ -222,15 +228,20 @@ static float measure_content(State* state, NVGcontext* vg, float total_width, fl
 float measure_content_height(State* state, Context ctx, float total_width) {
     float xs[state->content_tokens.size()];
     float ys[state->content_tokens.size()];
-    return measure_content(state, ctx.vg, total_width, xs, ys);
+    float ws[state->content_tokens.size()];
+    float hs[state->content_tokens.size()];
+    return measure_content(state, ctx.vg, total_width, xs, ys, ws, hs);
 }
 
 void update(State* state, Context ctx) {
     float xs[state->content_tokens.size()];
     float ys[state->content_tokens.size()];
-    measure_content(state, ctx.vg, ctx.width, xs, ys);
+    float ws[state->content_tokens.size()];
+    float hs[state->content_tokens.size()];
+    measure_content(state, ctx.vg, ctx.width, xs, ys, ws, hs);
 
     nvgTextAlign(ctx.vg, NVG_ALIGN_BASELINE | NVG_ALIGN_LEFT);
+    state->action = -1;
 
     for (int i = 0; i < state->content_tokens.size(); ++i) {
         auto& token = state->content_tokens[i];
@@ -242,6 +253,15 @@ void update(State* state, Context ctx) {
                 nvgFontSize(ctx.vg, token.text.font_size);
                 nvgFillColor(ctx.vg, token.text.font_color);
                 nvgText(ctx.vg, xs[i], ys[i], token.text.content.c_str(), NULL);
+                if (token.action_id != -1) {
+                    if (mouse_over(ctx, xs[i], ys[i] - hs[i], ws[i], hs[i])) {
+                        *ctx.cursor = CURSOR_POINTING_HAND;
+                    }
+                    if (mouse_hit(ctx, xs[i], ys[i] - hs[i], ws[i], hs[i])) {
+                        ctx.mouse->accepted = true;
+                        state->action = token.action_id;
+                    }
+                }
                 break;
             }
             
@@ -250,12 +270,25 @@ void update(State* state, Context ctx) {
                                                token.object.width, token.object.height);
                 token.object.update(child_ctx);
                 nvgRestore(ctx.vg);
+                if (token.action_id != -1) {
+                    if (mouse_over(ctx, xs[i], ys[i], ws[i], hs[i])) {
+                        *ctx.cursor = CURSOR_POINTING_HAND;
+                    }
+                    if (mouse_hit(ctx, xs[i], ys[i], ws[i], hs[i])) {
+                        ctx.mouse->accepted = true;
+                        state->action = token.action_id;
+                    }
+                }
                 break;
             }
             
             case Token::LINE_BREAK: {
                 break;
             }
+            
+        }
+        
+        if (token.action_id != -1) {
             
         }
     }

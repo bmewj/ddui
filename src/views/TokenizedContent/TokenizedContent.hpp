@@ -26,6 +26,7 @@ struct Token {
 
     Type type;
     float space_before, space_after;
+    int action_id;
 
     // type = TEXT
     struct {
@@ -46,6 +47,7 @@ struct Token {
 
 struct State {
     std::vector<Token> content_tokens;
+    int action;
 
     struct {
         NVGcolor font_color;
@@ -55,10 +57,10 @@ struct State {
 };
 
 void set_font_settings(State* state, NVGcolor font_color, float font_size, const char* font_face);
-void tokenize_and_append_text(State* state, std::string text);
-void tokenize_and_append_text(State* state, float space_before, float space_after, std::string text);
-void append_object(State* state, float width, float height, std::function<void(Context ctx)> update);
-void append_object(State* state, float space_before, float space_after, float width, float height, std::function<void(Context ctx)> update);
+void tokenize_and_append_text(State* state, std::string text, int action_id = -1);
+void tokenize_and_append_text(State* state, float space_before, float space_after, std::string text, int action_id = -1);
+void append_object(State* state, float width, float height, std::function<void(Context ctx)> update, int action_id = -1);
+void append_object(State* state, float space_before, float space_after, float width, float height, std::function<void(Context ctx)> update, int action_id = -1);
 
 float measure_content_height(State* state, Context ctx, float total_width);
 void update(State* state, Context ctx);

@@ -20,6 +20,8 @@ void draw_content(Context ctx,
                   const Measurements* measurements,
                   std::function<void(Context,int)> update_entity) {
 
+    nvgTextAlign(ctx.vg, NVG_ALIGN_LEFT | NVG_ALIGN_BASELINE);
+
     float y = offset_y;
     for (int lineno = 0; lineno < model->lines.size(); ++lineno) {
     

@@ -26,6 +26,7 @@ void blur(Context ctx);
 bool has_key_event(Context ctx);
 bool has_key_event(Context ctx, void* identifier);
 void consume_key_event(Context ctx);
+void repeat_key_event(Context ctx);
 
 constexpr int ACTION_PRESS   = 1;
 constexpr int ACTION_RELEASE = 0;

@@ -433,6 +433,11 @@ void character_callback(GLFWwindow* window, unsigned int codepoint) {
     }
 }
 
+void keyboard::repeat_key_event(Context ctx) {
+    key_state_queue.insert(key_state_queue.begin(), key_state);
+    key_state = { 0 };
+}
+
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
     if (action == GLFW_PRESS) {
         mouse.accepted = false;

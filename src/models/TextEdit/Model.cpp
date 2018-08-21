@@ -12,6 +12,7 @@
 #include <cstdlib>
 #include <algorithm>
 #include <string.h>
+#include <stdio.h>
 
 namespace TextEdit {
 
@@ -445,6 +446,8 @@ void apply_keyboard_input(Model* model, KeyState* key_state) {
         }
         
         sel.desired_index = sel.b_index;
+        
+        *key_state = { 0 };
     }
     
     if (key_state->key == keyboard::KEY_RIGHT) {
@@ -471,6 +474,8 @@ void apply_keyboard_input(Model* model, KeyState* key_state) {
         }
         
         sel.desired_index = sel.b_index;
+        
+        *key_state = { 0 };
     }
     
     if (key_state->key == keyboard::KEY_UP) {
@@ -485,6 +490,8 @@ void apply_keyboard_input(Model* model, KeyState* key_state) {
             sel.a_index = sel.b_index;
             sel.a_line = sel.b_line;
         }
+        
+        *key_state = { 0 };
     }
     
     if (key_state->key == keyboard::KEY_DOWN) {
@@ -499,6 +506,8 @@ void apply_keyboard_input(Model* model, KeyState* key_state) {
             sel.a_index = sel.b_index;
             sel.a_line = sel.b_line;
         }
+        
+        *key_state = { 0 };
     }
     
     if (key_state->key == keyboard::KEY_ENTER) {
@@ -516,6 +525,8 @@ void apply_keyboard_input(Model* model, KeyState* key_state) {
         sel.a_line = sel.b_line = line + 1;
         sel.a_index = sel.b_index = 0;
         sel.desired_index = sel.b_index;
+        
+        *key_state = { 0 };
     }
     
     if (key_state->key == keyboard::KEY_BACKSPACE) {
@@ -541,6 +552,8 @@ void apply_keyboard_input(Model* model, KeyState* key_state) {
         sel.a_line  = sel.b_line  = line;
         sel.a_index = sel.b_index = index;
         sel.desired_index = sel.b_index;
+        
+        *key_state = { 0 };
     }
     
     if (key_state->character) {
@@ -558,6 +571,8 @@ void apply_keyboard_input(Model* model, KeyState* key_state) {
         sel.a_line  = sel.b_line  = line;
         sel.a_index = sel.b_index = index + 1;
         sel.desired_index = sel.b_index;
+        
+        *key_state = { 0 };
     }
     
     if (key_state->key == keyboard::KEY_V && (key_state->mods & keyboard::MOD_SUPER)) {
@@ -578,12 +593,16 @@ void apply_keyboard_input(Model* model, KeyState* key_state) {
         sel.a_line  = sel.b_line  = line;
         sel.a_index = sel.b_index = index;
         sel.desired_index = index;
+        
+        *key_state = { 0 };
     }
     
     if (key_state->key == keyboard::KEY_C && (key_state->mods & keyboard::MOD_SUPER)) {
         if (range_is_selected) {
             auto copied_string = get_text_content(model, model->selection);
             app::set_clipboard_string(copied_string.get());
+            
+            *key_state = { 0 };
         }
     }
     
@@ -604,6 +623,8 @@ void apply_keyboard_input(Model* model, KeyState* key_state) {
             
             sel.a_line  = sel.b_line  = min_line;
             sel.a_index = sel.b_index = min_index;
+
+            *key_state = { 0 };
         }
     }
     

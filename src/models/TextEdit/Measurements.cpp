@@ -14,6 +14,8 @@ Measurements measure(Context ctx,
                      const Model* model,
                      std::function<void(Context,int,int*,int*)> measure_entity) {
 
+    nvgTextAlign(ctx.vg, NVG_ALIGN_LEFT | NVG_ALIGN_BASELINE);
+
     float y = 0.0;
 
     Measurements output;

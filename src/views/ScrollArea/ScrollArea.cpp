@@ -63,7 +63,15 @@ void update(ScrollAreaState* state, Context ctx, int inner_width, int inner_heig
     // Prevent scrolling past frame boundaries
     LIMIT(0, state->scroll_x, inner_width - container_width);
     LIMIT(0, state->scroll_y, inner_height - container_height);
-  
+
+    // Division by 0 failsafe
+    if (inner_width == 0) {
+        inner_width = 1;
+    }
+    if (inner_height == 0) {
+        inner_height = 1;
+    }
+
     // Calculate scrollbar sizes
     bool show_h_bar = (container_width < inner_width);
     int h_bar_x = (state->scroll_x * container_width) / inner_width;
