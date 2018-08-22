@@ -20,6 +20,7 @@ struct OverlayBoxState {
     int max_width;
     int max_height;
     std::function<void(Context)> update_content;
+
 };
 
 void open(OverlayBoxState* state);

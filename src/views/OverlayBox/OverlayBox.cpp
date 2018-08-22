@@ -7,6 +7,7 @@
 //
 
 #include "OverlayBox.hpp"
+#include "style.hpp"
 #include <ddui/app>
 #include <ddui/views/Overlay>
 #include <ddui/animation>
@@ -17,8 +18,6 @@ static void update_overlay(OverlayBoxState* state, Context ctx);
 
 constexpr auto DURATION_FADE_IN = 0.35;
 constexpr auto DURATION_FADE_OUT = 0.35;
-
-static auto BORDER_COLOR = nvgRGB(0x88, 0x88, 0x88);
 
 OverlayBoxState::OverlayBoxState() {
     max_width = 400;
@@ -72,21 +71,22 @@ void update_overlay(OverlayBoxState* state, Context ctx) {
         }
     }
 
+    auto screen_fill_color = style::SCREEN_FILL_COLOR;
+    screen_fill_color.a *= (is_closing ? 1 - completion : completion);
+
     nvgBeginPath(ctx.vg);
     nvgRect(ctx.vg, 0, 0, ctx.width, ctx.height);
-    nvgFillColor(ctx.vg, nvgRGBAf(0.4, 0.4, 0.4, 0.4 * (is_closing ? 1 - completion : completion)));
+    nvgFillColor(ctx.vg, screen_fill_color);
     nvgFill(ctx.vg);
 
-    constexpr auto MARGIN = 5;
-
     auto overlay_width = state->max_width;
-    if (overlay_width > ctx.width - 2 * MARGIN) {
-        overlay_width = ctx.width - 2 * MARGIN;
+    if (overlay_width > ctx.width - 2 * style::BOX_MARGIN) {
+        overlay_width = ctx.width - 2 * style::BOX_MARGIN;
     }
 
     auto overlay_height = state->max_height;
-    if (overlay_height > ctx.height - 2 * MARGIN) {
-        overlay_height = ctx.height - 2 * MARGIN;
+    if (overlay_height > ctx.height - 2 * style::BOX_MARGIN) {
+        overlay_height = ctx.height - 2 * style::BOX_MARGIN;
     }
 
     double x  = (ctx.width  - overlay_width)  / 2;
@@ -102,13 +102,13 @@ void update_overlay(OverlayBoxState* state, Context ctx) {
 
         // Background
         nvgBeginPath(ctx.vg);
-        nvgRoundedRect(ctx.vg, 0, 0, overlay_width, overlay_height, 4);
-        nvgFillColor(ctx.vg, nvgRGB(0x11, 0x11, 0x11));
+        nvgRoundedRect(ctx.vg, 0, 0, overlay_width, overlay_height, style::BORDER_RADIUS);
+        nvgFillColor(ctx.vg, style::BACKGROUND_COLOR);
         nvgFill(ctx.vg);
         
         // Border outline
-        nvgStrokeColor(ctx.vg, BORDER_COLOR);
-        nvgStrokeWidth(ctx.vg, 1.0);
+        nvgStrokeColor(ctx.vg, style::BORDER_COLOR);
+        nvgStrokeWidth(ctx.vg, style::BORDER_WIDTH);
         nvgStroke(ctx.vg);
 
         // Content
