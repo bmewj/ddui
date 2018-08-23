@@ -7,14 +7,14 @@
 //
 
 #include "PromptBox.hpp"
-#include <ddui/keyboard>
-#include <ddui/animation>
 #include <ddui/views/Overlay>
 
 namespace PromptBox {
 
-static void update_content(PromptBoxState* state, Context ctx);
-static bool draw_button(Context ctx, void* identifier, int y, int* x, const char* text, bool disabled);
+using namespace ddui;
+
+static void update_content(PromptBoxState* state);
+static bool draw_button(void* identifier, float y, float* x, const char* text, bool disabled);
 
 PromptBoxState::PromptBoxState() {
     opened = false;
@@ -27,14 +27,14 @@ PromptBoxState::PromptBoxState() {
     text_box.model = &text_box_model;
     text_box.multiline = false;
     
-    TextEdit::set_style(&text_box_model, false, 18.0, nvgRGB(0xff, 0xff, 0xff));
+    TextEdit::set_style(&text_box_model, false, 18.0, rgb(0xffffff));
     
-    text_box.bg_color = nvgRGB(0x28, 0x28, 0x28);
-    text_box.bg_color_focused = nvgRGB(0x28, 0x28, 0x28);
-    text_box.border_color = nvgRGB(0x60, 0x60, 0x60);
-    text_box.border_color_focused = nvgRGB(0xaa, 0xaa, 0xaa);
-    text_box.cursor_color = nvgRGB(0xff, 0xff, 0xff);
-    text_box.selection_color = nvgRGBA(0xff, 0xff, 0xff, 0x80);
+    text_box.bg_color = rgb(0x282828);
+    text_box.bg_color_focused = rgb(0x282828);
+    text_box.border_color = rgb(0x606060);
+    text_box.border_color_focused = rgb(0xaaaaaa);
+    text_box.cursor_color = rgb(0xffffff);
+    text_box.selection_color = rgba(0xffffff, 0.5);
 }
 
 void open(PromptBoxState* state) {
@@ -47,18 +47,18 @@ void close(PromptBoxState* state) {
 }
 
 void update(PromptBoxState* state) {
-    OverlayBox::update(&state->overlay_box, [state](Context ctx) {
-        update_content(state, ctx);
+    OverlayBox::update(&state->overlay_box, [state]() {
+        update_content(state);
     });
 }
 
 constexpr auto PADDING = 10;
 constexpr auto TITLE_SIZE = 20;
 constexpr auto MESSAGE_SIZE = 18;
-static auto TITLE_TEXT_COLOR = nvgRGB(0xcc, 0xcc, 0xcc);
-static auto MESSAGE_TEXT_COLOR = nvgRGB(0xff, 0xff, 0xff);
+static auto TITLE_TEXT_COLOR = rgb(0xcccccc);
+static auto MESSAGE_TEXT_COLOR = rgb(0xffffff);
 
-void update_content(PromptBoxState* state, Context ctx) {
+void update_content(PromptBoxState* state) {
 
     // Detect opening and closing
     auto ANIMATION_IN_ID = (void*)(&state->overlay_box + 1);
@@ -67,7 +67,7 @@ void update_content(PromptBoxState* state, Context ctx) {
         !animation::is_animating(ANIMATION_IN_ID) &&
         !animation::is_animating(ANIMATION_OUT_ID)) {
         state->opened = true;
-        keyboard::focus(ctx, &state->text_box);
+        focus(&state->text_box);
     }
     if (state->opened &&
         animation::is_animating(ANIMATION_OUT_ID)) {
@@ -77,56 +77,55 @@ void update_content(PromptBoxState* state, Context ctx) {
     auto y = 0;
     
     // Title
-    nvgFontFace(ctx.vg, "regular");
-    nvgFontSize(ctx.vg, TITLE_SIZE);
-    nvgFillColor(ctx.vg, TITLE_TEXT_COLOR);
-    nvgTextAlign(ctx.vg, NVG_ALIGN_TOP | NVG_ALIGN_CENTER);
-    nvgText(ctx.vg, ctx.width / 2, y + PADDING, state->title.c_str(), NULL);
-    nvgTextAlign(ctx.vg, NVG_ALIGN_LEFT);
+    font_face("regular");
+    font_size(TITLE_SIZE);
+    fill_color(TITLE_TEXT_COLOR);
+    text_align(align::TOP | align::CENTER);
+    text(view.width / 2, y + PADDING, state->title.c_str(), NULL);
+    text_align(align::LEFT);
     y += TITLE_SIZE + 2 * PADDING;
 
     // Message
-    nvgFontFace(ctx.vg, "regular");
-    nvgFontSize(ctx.vg, MESSAGE_SIZE);
-    nvgFillColor(ctx.vg, MESSAGE_TEXT_COLOR);
-    nvgTextAlign(ctx.vg, NVG_ALIGN_TOP | NVG_ALIGN_LEFT);
-    nvgTextBox(ctx.vg, PADDING, y, ctx.width - 2 * PADDING, state->message.c_str(), NULL);
-    nvgTextAlign(ctx.vg, NVG_ALIGN_LEFT);
+    font_face("regular");
+    font_size(MESSAGE_SIZE);
+    fill_color(MESSAGE_TEXT_COLOR);
+    text_align(align::TOP | align::LEFT);
+    text_box(PADDING, y, view.width - 2 * PADDING, state->message.c_str(), NULL);
+    text_align(align::LEFT);
 
     // Submit Key (ENTER)
-    if (keyboard::has_key_event(ctx, &state->text_box) &&
-        ctx.key->key == keyboard::KEY_ENTER) {
-        if (ctx.key->action == keyboard::ACTION_PRESS) {
+    if (has_key_event(&state->text_box) &&
+        key_state.key == keyboard::KEY_ENTER) {
+        if (key_state.action == keyboard::ACTION_PRESS) {
             close(state);
             state->action = 0;
         }
-        keyboard::consume_key_event(ctx);
+        consume_key_event();
     }
 
     // Plain Text Box
-    auto child_ctx = child_context(ctx, PADDING, y + MESSAGE_SIZE * 3, ctx.width - 2 * PADDING, ctx.height);
-    PlainTextBox::update(&state->text_box, child_ctx);
-    nvgRestore(child_ctx.vg);
+    sub_view(PADDING, y + MESSAGE_SIZE * 3, view.width - 2 * PADDING, view.height);
+    PlainTextBox::update(&state->text_box);
 
     // Register Buttons as Focus Groups
     for (auto& button : state->button_set) {
-        keyboard::register_focus_group(ctx, &button);
+        register_focus_group(&button);
     }
 
     // Draw Buttons
-    auto x = ctx.width - PADDING;
-    y = ctx.height - PADDING;
+    auto x = view.width - PADDING;
+    y = view.height - PADDING;
 
     for (int i = state->button_set.size() - 1; i >= 0; --i) {
         void* id = &state->button_set[i];
-        if (draw_button(ctx, id, y, &x, state->button_set[i].c_str(), false)) {
+        if (draw_button(id, y, &x, state->button_set[i].c_str(), false)) {
             close(state);
             state->action = i;
         }
     }
     
-    if (mouse_hit(ctx, 0, 0, ctx.width, ctx.height)) {
-        ctx.mouse->accepted = true;
+    if (mouse_hit(0, 0, view.width, view.height)) {
+        mouse_hit_accept();
     }
 
 }
@@ -137,52 +136,52 @@ constexpr auto BUTTON_V_PADDING = 4;
 constexpr auto BUTTON_SPACING = 4;
 constexpr auto BUTTON_BORDER_RADIUS = 4;
 
-bool draw_button(Context ctx, void* identifier, int y, int* x, const char* text, bool disabled) {
+bool draw_button(void* identifier, float y, float* x, const char* text, bool disabled) {
     
-    nvgFontFace(ctx.vg, "regular");
-    nvgFontSize(ctx.vg, BUTTON_TEXT_SIZE);
+    font_face("regular");
+    font_size(BUTTON_TEXT_SIZE);
     
     float ascender, descender, line_height;
-    nvgTextMetrics(ctx.vg, &ascender, &descender, &line_height);
+    text_metrics(&ascender, &descender, &line_height);
     auto button_height = 2 * BUTTON_V_PADDING + line_height;
     y -= button_height;
     
     float bounds[4];
-    nvgTextBounds(ctx.vg, 0, 0, text, NULL, bounds);
+    text_bounds(0, 0, text, NULL, bounds);
     
     auto text_width = bounds[2] - bounds[0];
     auto button_width = 2 * BUTTON_H_PADDING + text_width;
     
     *x -= button_width;
     
-    auto hovering = mouse_over(ctx, *x, y, button_width, button_height);
+    auto hovering = mouse_over(*x, y, button_width, button_height);
     if (hovering) {
-        *ctx.cursor = CURSOR_POINTING_HAND;
+        set_cursor(CURSOR_POINTING_HAND);
     }
-    hovering |= keyboard::has_focus(ctx, identifier);
+    hovering |= has_focus(identifier);
     
     // Background
-    nvgBeginPath(ctx.vg);
-    nvgRoundedRect(ctx.vg, *x, y, button_width, button_height, BUTTON_BORDER_RADIUS);
-    nvgFillColor(ctx.vg, disabled ? nvgRGB(0x28, 0x28, 0x28) : hovering ? nvgRGB(0x66, 0x66, 0x66) : nvgRGB(0x34, 0x34, 0x34));
-    nvgFill(ctx.vg);
+    begin_path();
+    rounded_rect(*x, y, button_width, button_height, BUTTON_BORDER_RADIUS);
+    fill_color(disabled ? rgb(0x282828) : hovering ? rgb(0x666666) : rgb(0x343434));
+    fill();
     
     // Text
-    nvgFillColor(ctx.vg, disabled ? nvgRGB(0x66, 0x66, 0x66) : nvgRGB(0xff, 0xff, 0xff));
-    nvgText(ctx.vg, *x + BUTTON_H_PADDING, y + BUTTON_V_PADDING + ascender, text, NULL);
+    fill_color(disabled ? rgb(0x666666) : rgb(0xffffff));
+    ddui::text(*x + BUTTON_H_PADDING, y + BUTTON_V_PADDING + ascender, text, NULL);
     
-    bool clicked = mouse_hit(ctx, *x, y, button_width, button_height);
+    bool clicked = mouse_hit(*x, y, button_width, button_height);
     if (clicked) {
-        ctx.mouse->accepted = true;
+        mouse_hit_accept();
     }
 
     *x -= BUTTON_SPACING;
 
     // Enter to Submit
-    if (keyboard::has_key_event(ctx, identifier) &&
-        ctx.key->action == keyboard::ACTION_PRESS &&
-        ctx.key->key == keyboard::KEY_ENTER) {
-        keyboard::consume_key_event(ctx);
+    if (has_key_event(identifier) &&
+        key_state.action == keyboard::ACTION_PRESS &&
+        key_state.key == keyboard::KEY_ENTER) {
+        consume_key_event();
         clicked = true;
     }
 

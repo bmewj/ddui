@@ -8,19 +8,19 @@
 
 #include "Drawing.hpp"
 #include "Measurements.hpp"
-#include <ddui/keyboard>
 #include <cstdlib>
 #include <cstring>
 
 namespace TextEdit {
 
-void draw_content(Context ctx,
-                  float offset_x, float offset_y,
+using namespace ddui;
+
+void draw_content(float offset_x, float offset_y,
                   const Model* model,
                   const Measurements* measurements,
-                  std::function<void(Context,int)> update_entity) {
+                  std::function<void(int)> update_entity) {
 
-    nvgTextAlign(ctx.vg, NVG_ALIGN_LEFT | NVG_ALIGN_BASELINE);
+    text_align(align::LEFT | align::BASELINE);
 
     float y = offset_y;
     for (int lineno = 0; lineno < model->lines.size(); ++lineno) {
@@ -37,10 +37,10 @@ void draw_content(Context ctx,
             
             // Handle special entity characters
             if (character.entity_id != -1) {
-                auto child_ctx = child_context(ctx, offset_x + measurement.x, y + measurement.y,
-                                                    measurement.width, measurement.height);
-                update_entity(child_ctx, character.entity_id);
-                nvgRestore(ctx.vg);
+                sub_view(offset_x + measurement.x, y + measurement.y,
+                         measurement.width, measurement.height);
+                update_entity(character.entity_id);
+                restore();
                 ++i;
                 continue;
             }
@@ -59,9 +59,9 @@ void draw_content(Context ctx,
             }
             
             // Apply segment-styles
-            nvgFontSize(ctx.vg, style.text_size);
-            nvgFontFace(ctx.vg, style.font_bold ? model->bold_font : model->regular_font);
-            nvgFillColor(ctx.vg, style.text_color);
+            font_size(style.text_size);
+            font_face(style.font_bold ? model->bold_font : model->regular_font);
+            fill_color(style.text_color);
             
             // Compose string start and end
             auto string_start = &content[character.index];
@@ -69,7 +69,7 @@ void draw_content(Context ctx,
             auto& last_char = line.characters[i + num_chars - 1];
             auto string_end = &content[last_char.index + last_char.num_bytes];
 
-            nvgText(ctx.vg, offset_x + measurement.x, y + measurement.baseline, string_start, string_end);
+            text(offset_x + measurement.x, y + measurement.baseline, string_start, string_end);
             
             i += num_chars;
         }
@@ -78,15 +78,14 @@ void draw_content(Context ctx,
     }
 }
 
-void draw_selection(Context ctx,
-                    float offset_x, float offset_y,
+void draw_selection(float offset_x, float offset_y,
                     const Model* model,
                     const Measurements* measurements,
-                    NVGcolor cursor_color,
-                    NVGcolor selection_color) {
+                    Color cursor_color,
+                    Color selection_color) {
     
-    nvgSave(ctx.vg);
-    nvgTranslate(ctx.vg, offset_x, offset_y);
+    save();
+    translate(offset_x, offset_y);
 
     auto selection = model->selection;
     
@@ -103,12 +102,12 @@ void draw_selection(Context ctx,
             x = line.characters[selection.a_index - 1].max_x;
         }
 
-        nvgBeginPath(ctx.vg);
-        nvgStrokeColor(ctx.vg, cursor_color);
-        nvgStrokeWidth(ctx.vg, 2.0);
-        nvgMoveTo(ctx.vg, x, line.y);
-        nvgLineTo(ctx.vg, x, line.y + line.height);
-        nvgStroke(ctx.vg);
+        begin_path();
+        stroke_color(cursor_color);
+        stroke_width(2.0);
+        move_to(x, line.y);
+        line_to(x, line.y + line.height);
+        stroke();
         
     } else {
         // Selection
@@ -142,8 +141,8 @@ void draw_selection(Context ctx,
             x2 = (i2 == 0) ? 0.0 : line.characters[i2 - 1].max_x;
         }
         
-        nvgBeginPath(ctx.vg);
-        nvgFillColor(ctx.vg, selection_color);
+        begin_path();
+        fill_color(selection_color);
         
         if (l1 == l2) {
             // Single-line selection
@@ -151,31 +150,31 @@ void draw_selection(Context ctx,
             float y = height1 > height2 ? y1 : y2;
             float height = height1 > height2 ? height1 : height2;
             
-            nvgRect(ctx.vg, x1, y, x2 - x1, height);
+            rect(x1, y, x2 - x1, height);
             
         } else if (l2 - l1 == 1 && x1 > x2) {
             // Broken multi-line selection
 
-            nvgRect(ctx.vg, x1, y1, ctx.width - x1 - offset_x, height1);
-            nvgRect(ctx.vg, -offset_x, y2, x2 + offset_x, height2);
+            rect(x1, y1, view.width - x1 - offset_x, height1);
+            rect(-offset_x, y2, x2 + offset_x, height2);
         } else {
             // Full multi-line selection
 
-            nvgMoveTo(ctx.vg, x1, y1);
-            nvgLineTo(ctx.vg, ctx.width - offset_x, y1);
-            nvgLineTo(ctx.vg, ctx.width - offset_x, y2);
-            nvgLineTo(ctx.vg, x2, y2);
-            nvgLineTo(ctx.vg, x2, y2 + height2);
-            nvgLineTo(ctx.vg, -offset_x, y2 + height2);
-            nvgLineTo(ctx.vg, -offset_x, y1 + height1);
-            nvgLineTo(ctx.vg, x1, y1 + height1);
-            nvgClosePath(ctx.vg);
+            move_to(x1, y1);
+            line_to(view.width - offset_x, y1);
+            line_to(view.width - offset_x, y2);
+            line_to(x2, y2);
+            line_to(x2, y2 + height2);
+            line_to(-offset_x, y2 + height2);
+            line_to(-offset_x, y1 + height1);
+            line_to(x1, y1 + height1);
+            fill();
         }
         
-        nvgFill(ctx.vg);
+        fill();
     }
     
-    nvgRestore(ctx.vg);
+    restore();
 }
 
 }

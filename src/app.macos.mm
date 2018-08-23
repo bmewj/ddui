@@ -230,12 +230,12 @@ void update() {
     ctx.key = &key_state;
     ctx.cursor = &cursor;
     ctx.must_repaint = &must_repaint;
-    ctx.x = 0;
-    ctx.y = 0;
+    view.x = 0;
+    view.y = 0;
     ctx.global_x = 0;
     ctx.global_y = 0;
-    ctx.width = winWidth;
-    ctx.height = winHeight;
+    view.width = winWidth;
+    view.height = winHeight;
     ctx.clip.x1 = 0;
     ctx.clip.y1 = 0;
     ctx.clip.x2 = winWidth;
@@ -255,7 +255,7 @@ void update() {
             } else {
                 keyboard::tab_forward(ctx);
             }
-            keyboard::consume_key_event(ctx);
+            consume_key_event();
         }
     }
     

@@ -11,6 +11,7 @@
 
 #include <ddui/views/OverlayBox>
 #include <string>
+#include <vector>
 
 namespace MessageBox {
 

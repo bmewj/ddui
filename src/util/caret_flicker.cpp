@@ -7,9 +7,11 @@
 //
 
 #include "caret_flicker.hpp"
-#include <ddui/timer>
+#include <ddui/ddui>
 
 namespace caret_flicker {
+
+using namespace ddui;
 
 static bool phase;
 static int interval_id = -1;

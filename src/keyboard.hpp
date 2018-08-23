@@ -160,29 +160,6 @@ constexpr int KEY_RIGHT_SUPER = 347;
 constexpr int KEY_MENU = 348;
 constexpr int KEY_LAST = KEY_MENU;
 
-// struct KeyEvent {
-
-//     enum EventType {
-//         NO_EVENT,
-//         KEY_PRESS,
-//         KEY_RELEASE,
-//         ACTION_PRESS,
-//         ACTION_RELEASE
-//     };
-
-//     enum Modifier {
-//         MODIFIER_CONTROL,
-//         MODIFIER_SHIFT,
-//         MODIFIER_ALT,
-
-//         MODIFIER_COUNT
-//     };
-
-//     EventType type;
-//     bool modifiers[MODIFIER_COUNT];
-
-// };
-
 }
 
 #endif

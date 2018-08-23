@@ -7,9 +7,10 @@
 //
 
 #include "ScrollArea.hpp"
-#include <nanovg.h>
 
 namespace ScrollArea {
+
+using namespace ddui;
 
 constexpr int BAR_WIDTH = 10;
 
@@ -24,40 +25,39 @@ ScrollAreaState::ScrollAreaState() {
     initial_scroll_y = 0;
     is_dragging_horizontal_bar = false;
     is_dragging_vertical_bar = false;
-
-    scroll_into_view.x = -1;
+    scroll_into_view.requested = false;
 }
 
-void update(ScrollAreaState* state, Context ctx, int inner_width, int inner_height, std::function<void(Context)> update_inner) {
+void update(ScrollAreaState* state, float inner_width, float inner_height, std::function<void()> update_inner) {
 
-    int container_width = ctx.width;
-    int container_height = ctx.height;
+    auto container_width = view.width;
+    auto container_height = view.height;
 
     // Update the scroll position
-    if (mouse_over(ctx, 0, 0, ctx.width, ctx.height)) {
-        state->scroll_x += ctx.mouse->scroll_dx;
-        state->scroll_y += ctx.mouse->scroll_dy;
+    if (mouse_over(0, 0, view.width, view.height)) {
+        state->scroll_x += mouse_state.scroll_dx;
+        state->scroll_y += mouse_state.scroll_dy;
     }
-    if (ctx.mouse->pressed && state->is_dragging_horizontal_bar) {
-        int dx = ctx.mouse->x - ctx.mouse->initial_x;
+    if (mouse_state.pressed && state->is_dragging_horizontal_bar) {
+        auto dx = mouse_state.x - mouse_state.initial_x;
         state->scroll_x = state->initial_scroll_x + (dx * inner_width) / container_width;
     }
-    if (ctx.mouse->pressed && state->is_dragging_vertical_bar) {
-        int dy = ctx.mouse->y - ctx.mouse->initial_y;
+    if (mouse_state.pressed && state->is_dragging_vertical_bar) {
+        auto dy = mouse_state.y - mouse_state.initial_y;
         state->scroll_y = state->initial_scroll_y + (dy * inner_height) / container_height;
     }
 
     // Scroll into view
-    if (state->scroll_into_view.x != -1) {
-        int x1 = state->scroll_into_view.x;
-        int y1 = state->scroll_into_view.y;
-        int x2 = x1 + state->scroll_into_view.width;
-        int y2 = y1 + state->scroll_into_view.height;
+    if (state->scroll_into_view.requested) {
+        auto x1 = state->scroll_into_view.x;
+        auto y1 = state->scroll_into_view.y;
+        auto x2 = x1 + state->scroll_into_view.width;
+        auto y2 = y1 + state->scroll_into_view.height;
 
         LIMIT(x2 - container_width,  state->scroll_x, x1);
         LIMIT(y2 - container_height, state->scroll_y, y1);
 
-        state->scroll_into_view.x = -1;
+        state->scroll_into_view.requested = false;
     }
 
     // Prevent scrolling past frame boundaries
@@ -86,76 +86,69 @@ void update(ScrollAreaState* state, Context ctx, int inner_width, int inner_heig
     int v_bar_h = (container_height * container_height) / inner_height;
   
     // Scroll bar hovering/dragging
-    if (show_h_bar && mouse_hit(ctx, h_bar_x, h_bar_y, h_bar_w, h_bar_h)) {
-        ctx.mouse->accepted = true;
+    if (show_h_bar && mouse_hit(h_bar_x, h_bar_y, h_bar_w, h_bar_h)) {
+        mouse_hit_accept();
         state->is_dragging_horizontal_bar = true;
         state->initial_scroll_x = state->scroll_x;
     }
-    if (state->is_dragging_horizontal_bar && !ctx.mouse->pressed) {
+    if (state->is_dragging_horizontal_bar && !mouse_state.pressed) {
         state->is_dragging_horizontal_bar = false;
     }
   
-    if (show_v_bar && mouse_hit(ctx, v_bar_x, v_bar_y, v_bar_w, v_bar_h)) {
-        ctx.mouse->accepted = true;
+    if (show_v_bar && mouse_hit(v_bar_x, v_bar_y, v_bar_w, v_bar_h)) {
+        mouse_hit_accept();
         state->is_dragging_vertical_bar = true;
         state->initial_scroll_y = state->scroll_y;
     }
-    if (state->is_dragging_vertical_bar && !ctx.mouse->pressed) {
+    if (state->is_dragging_vertical_bar && !mouse_state.pressed) {
         state->is_dragging_vertical_bar = false;
     }
   
     // Draw the content
-    nvgSave(ctx.vg);
-    nvgScissor(ctx.vg, 0, 0, container_width, container_height);
-    nvgTranslate(ctx.vg, -state->scroll_x, -state->scroll_y);
-  
-    auto child_ctx = ctx;
-    child_ctx.x -= state->scroll_x;
-    child_ctx.y -= state->scroll_y;
-    child_ctx.width = container_width > inner_width ? container_width : inner_width;
-    child_ctx.height = container_height > inner_height ? container_height : inner_height;
-    child_ctx.clip.x1 = ctx.x;
-    child_ctx.clip.y1 = ctx.y;
-    child_ctx.clip.x2 = ctx.x + container_width;
-    child_ctx.clip.y2 = ctx.y + container_height;
-    update_inner(child_ctx);
-  
-    nvgRestore(ctx.vg);
+    save();
+    scissor(0, 0, container_width, container_height);
+    sub_view(-state->scroll_x, -state->scroll_y,
+             container_width  > inner_width  ? container_width  : inner_width,
+             container_height > inner_height ? container_height : inner_height);
+    update_inner();
+    restore();
+    restore();
   
     // Draw scroll bars
     if (show_h_bar) {
-        NVGcolor color = nvgRGBA(0, 0, 0, 76);
+        auto color = rgba(0x000000, 0.3);
         if (state->is_dragging_horizontal_bar) {
-            color = nvgRGBA(42, 159, 214, 205); // #2a9fd6
-        } else if (mouse_over(ctx, h_bar_x, h_bar_y, h_bar_w, h_bar_h)) {
-            color = nvgRGBA(100, 100, 100, 205);
+            color = rgba(0x2a9fd6, 0.8);
+        } else if (mouse_over(h_bar_x, h_bar_y, h_bar_w, h_bar_h)) {
+            color = rgba(0x646464, 0.8);
         }
-        nvgBeginPath(ctx.vg);
-        nvgFillColor(ctx.vg, color);
-        nvgRect(ctx.vg, h_bar_x, h_bar_y, h_bar_w, h_bar_h);
-        nvgFill(ctx.vg);
+        begin_path();
+        fill_color(color);
+        rect(h_bar_x, h_bar_y, h_bar_w, h_bar_h);
+        fill();
     }
     if (show_v_bar) {
-        NVGcolor color = nvgRGBA(0, 0, 0, 76);
+        auto color = rgba(0x000000, 0.3);
         if (state->is_dragging_vertical_bar) {
-            color = nvgRGBA(42, 159, 214, 205); // #2a9fd6
-        } else if (mouse_over(ctx, v_bar_x, v_bar_y, v_bar_w, v_bar_h)) {
-            color = nvgRGBA(100, 100, 100, 205);
+            color = rgba(0x2a9fd6, 0.8);
+        } else if (mouse_over(v_bar_x, v_bar_y, v_bar_w, v_bar_h)) {
+            color = rgba(0x646464, 0.8);
         }
-        nvgBeginPath(ctx.vg);
-        nvgFillColor(ctx.vg, color);
-        nvgRect(ctx.vg, v_bar_x, v_bar_y, v_bar_w, v_bar_h);
-        nvgFill(ctx.vg);
+        begin_path();
+        fill_color(color);
+        rect(v_bar_x, v_bar_y, v_bar_w, v_bar_h);
+        fill();
     }
 }
 
-void scroll_into_view(ScrollAreaState* state, Context ctx, int x, int y, int width, int height) {
+void scroll_into_view(ScrollAreaState* state, float x, float y, float width, float height) {
 
+    state->scroll_into_view.requested = true;
     state->scroll_into_view.x = x;
     state->scroll_into_view.y = y;
     state->scroll_into_view.width = width;
     state->scroll_into_view.height = height;
-    *ctx.must_repaint = true;
+    post_empty_message();
 
 }
 

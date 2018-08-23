@@ -7,11 +7,12 @@
 //
 
 #include "RichTextBox.hpp"
-#include <ddui/keyboard>
 #include <ddui/util/caret_flicker>
 #include <cstdlib>
 
 namespace RichTextBox {
+
+using namespace ddui;
 
 RichTextBoxState::RichTextBoxState() {
     current_version_count = -1;
@@ -19,20 +20,20 @@ RichTextBoxState::RichTextBoxState() {
 
 static void apply_rich_text_commands(TextEdit::Model* model, KeyState* key);
 
-void update(RichTextBoxState* state, Context ctx) {
+void update(RichTextBoxState* state) {
 
-    keyboard::register_focus_group(ctx, state);
+    register_focus_group(state);
     
     // Process key input
-    if (keyboard::has_key_event(ctx, state)) {
-        if (state->multiline || ctx.key->key != keyboard::KEY_ENTER) {
-            TextEdit::apply_keyboard_input(state->model, ctx.key);
+    if (has_key_event(state)) {
+        if (state->multiline || key_state.key != keyboard::KEY_ENTER) {
+            TextEdit::apply_keyboard_input(state->model, &key_state);
         }
-        apply_rich_text_commands(state->model, ctx.key);
+        apply_rich_text_commands(state->model, &key_state);
     }
     
     // When tabbing in to focus, select the entire content
-    if (keyboard::did_focus(ctx, state) && !state->is_mouse_dragging) {
+    if (did_focus(state) && !state->is_mouse_dragging) {
         auto& selection = state->model->selection;
         if (selection.a_line  == selection.b_line &&
             selection.a_index == selection.b_index) {
@@ -45,13 +46,13 @@ void update(RichTextBoxState* state, Context ctx) {
     }
     
     // Reset the flickering caret to ON whenever the model has changed
-    if (keyboard::has_focus(ctx, state) && state->current_version_count != state->model->version_count) {
+    if (has_focus(state) && state->current_version_count != state->model->version_count) {
         caret_flicker::reset_phase();
     }
 
     // Refresh the model measurements
     if (state->model->version_count != state->current_version_count) {
-        state->measurements = TextEdit::measure(ctx, state->model, std::function<void(Context,int,int*,int*)>());
+        state->measurements = TextEdit::measure(state->model, std::function<void(int,float*,float*)>());
         state->current_version_count = state->model->version_count;
     }
     
@@ -59,36 +60,36 @@ void update(RichTextBoxState* state, Context ctx) {
     state->height = state->measurements.height + 2 * state->margin;
 
     // Focus the box on a mouse click
-    if (!keyboard::has_focus(ctx, state) && mouse_hit(ctx, 0, 0, ctx.width, state->height)) {
-        keyboard::focus(ctx, state);
+    if (!has_focus(state) && mouse_hit(0, 0, view.width, state->height)) {
+        focus(state);
         caret_flicker::reset_phase();
     }
     
     // Update selection by mouse dragging (it's initiated at the end of this function)
-    if (state->is_mouse_dragging && !ctx.mouse->pressed) {
+    if (state->is_mouse_dragging && !mouse_state.pressed) {
         state->is_mouse_dragging = false;
     }
     if (state->is_mouse_dragging) {
-        *ctx.cursor = CURSOR_IBEAM;
-        int x = ctx.mouse->x - ctx.x - state->margin + state->scroll_x;
-        int y = ctx.mouse->y - ctx.y - state->margin;
+        set_cursor(CURSOR_IBEAM);
+        int x = mouse_state.x - view.x - state->margin + state->scroll_x;
+        int y = mouse_state.y - view.y - state->margin;
         TextEdit::locate_selection_point(&state->measurements, x, y,
                                          &state->model->selection.b_line,
                                          &state->model->selection.b_index);
     }
 
     // Background
-    nvgBeginPath(ctx.vg);
-    nvgFillColor(ctx.vg, keyboard::has_focus(ctx, state) ? state->bg_color_focused : state->bg_color);
-    nvgRoundedRect(ctx.vg, 0, 0, ctx.width, state->height, state->border_radius);
-    nvgFill(ctx.vg);
+    begin_path();
+    fill_color(has_focus(state) ? state->bg_color_focused : state->bg_color);
+    rounded_rect(0, 0, view.width, state->height, state->border_radius);
+    fill();
     
     // Border
-    nvgBeginPath(ctx.vg);
-    nvgStrokeColor(ctx.vg, keyboard::has_focus(ctx, state) ? state->border_color_focused : state->border_color);
-    nvgStrokeWidth(ctx.vg, state->border_width);
-    nvgRoundedRect(ctx.vg, 0, 0, ctx.width, state->height, state->border_radius);
-    nvgStroke(ctx.vg);
+    begin_path();
+    stroke_color(has_focus(state) ? state->border_color_focused : state->border_color);
+    stroke_width(state->border_width);
+    rounded_rect(0, 0, view.width, state->height, state->border_radius);
+    stroke();
     
     // Update scrolling
     int caret_x = (state->model->selection.b_index == 0 ? 0 :
@@ -97,75 +98,64 @@ void update(RichTextBoxState* state, Context ctx) {
     while (caret_x < state->scroll_x) {
         state->scroll_x -= 50;
     }
-    while (caret_x > state->scroll_x + ctx.width - 2 * state->margin) {
+    while (caret_x > state->scroll_x + view.width - 2 * state->margin) {
         state->scroll_x += 50;
     }
-    if (state->scroll_x > state->measurements.width - ctx.width + 2 * state->margin) {
-        state->scroll_x = state->measurements.width - ctx.width + 2 * state->margin;
+    if (state->scroll_x > state->measurements.width - view.width + 2 * state->margin) {
+        state->scroll_x = state->measurements.width - view.width + 2 * state->margin;
     }
     if (state->scroll_x < 0) {
         state->scroll_x = 0;
     }
     
     // Prepare clip-region
-    nvgSave(ctx.vg);
-    nvgScissor(ctx.vg, 0, 0, ctx.width, state->height);
-    nvgTranslate(ctx.vg, -state->scroll_x, 0);
-    
     auto inner_width = state->measurements.width + 2 * state->margin;
-    
-    auto child_ctx = ctx;
-    child_ctx.x -= state->scroll_x;
-    child_ctx.width = inner_width > ctx.width ? inner_width : ctx.width;
-    child_ctx.clip.x1 = ctx.x;
-    child_ctx.clip.y1 = ctx.y;
-    child_ctx.clip.x2 = ctx.x + ctx.width;
-    child_ctx.clip.y2 = ctx.y + state->height;
+    save();
+    scissor(0, 0, view.width, state->height);
+    sub_view(-state->scroll_x, 0, inner_width > view.width ? inner_width : view.width, state->height);
     
     // Text (when selection in foreground)
     if (state->selection_in_foreground) {
-        TextEdit::draw_content(child_ctx,
-                               state->margin, state->margin,
+        TextEdit::draw_content(state->margin, state->margin,
                                state->model, &state->measurements,
-                               std::function<void(Context,int)>());
+                               std::function<void(int)>());
     }
     
     // Selection
-    if (keyboard::has_focus(ctx, state)) {
-        auto cursor_color = (state->is_mouse_dragging || caret_flicker::get_phase()) ? state->cursor_color : nvgRGBA(0, 0, 0, 0);
-        TextEdit::draw_selection(child_ctx,
-                                 state->margin, state->margin,
+    if (has_focus(state)) {
+        auto cursor_color = (state->is_mouse_dragging || caret_flicker::get_phase()) ? state->cursor_color : rgba(0x000000, 0.0);
+        TextEdit::draw_selection(state->margin, state->margin,
                                  state->model, &state->measurements,
                                  cursor_color, state->selection_color);
     }
     
     // Text (when selection in background)
     if (!state->selection_in_foreground) {
-        TextEdit::draw_content(child_ctx,
-                               state->margin, state->margin,
+        TextEdit::draw_content(state->margin, state->margin,
                                state->model, &state->measurements,
-                               std::function<void(Context,int)>());
+                               std::function<void(int)>());
     }
     
     // Dispose of clip region
-    nvgRestore(ctx.vg);
+    restore();
+    restore();
 
     // Initiate selection by mouse dragging
-    if (mouse_hit(ctx, 0, 0, ctx.width, state->height)) {
-        *ctx.cursor = CURSOR_IBEAM;
-        ctx.mouse->accepted = true;
+    if (mouse_hit(0, 0, view.width, state->height)) {
+        set_cursor(CURSOR_IBEAM);
+        mouse_hit_accept();
         state->is_mouse_dragging = true;
         
-        int x = ctx.mouse->x - ctx.x - state->margin + state->scroll_x;
-        int y = ctx.mouse->y - ctx.y - state->margin;
+        int x = mouse_state.x - view.x - state->margin + state->scroll_x;
+        int y = mouse_state.y - view.y - state->margin;
     
         locate_selection_point(&state->measurements, x, y, &state->model->selection.a_line, &state->model->selection.a_index);
         state->model->selection.b_line = state->model->selection.a_line;
         state->model->selection.b_index = state->model->selection.a_index;
         caret_flicker::reset_phase();
     }
-    if (mouse_over(ctx, 0, 0, ctx.width, state->height)) {
-        *ctx.cursor = CURSOR_IBEAM;
+    if (mouse_over(0, 0, view.width, state->height)) {
+        set_cursor(CURSOR_IBEAM);
     }
 
 }

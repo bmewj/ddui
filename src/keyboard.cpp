@@ -46,11 +46,11 @@ void blur(Context ctx) {
 }
 
 bool has_key_event(Context ctx) {
-    return (ctx.key->character != NULL || ctx.key->key > 0);
+    return (key_state.character != NULL || key_state.key > 0);
 }
 
 bool has_key_event(Context ctx, void* identifier) {
-    return (ctx.focus->focus_new == identifier) && (ctx.key->character != NULL || ctx.key->key > 0);
+    return (ctx.focus->focus_new == identifier) && (key_state.character != NULL || key_state.key > 0);
 }
 
 void consume_key_event(Context ctx) {

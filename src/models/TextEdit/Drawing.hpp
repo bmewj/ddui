@@ -9,7 +9,6 @@
 #ifndef ddui_TextEdit_Drawing_hpp
 #define ddui_TextEdit_Drawing_hpp
 
-#include <ddui/Context>
 #include <ddui/views/ScrollArea>
 #include "Model.hpp"
 #include "Measurements.hpp"
@@ -17,18 +16,16 @@
 
 namespace TextEdit {
 
-void draw_content(Context ctx,
-                  float offset_x, float offset_y,
+void draw_content(float offset_x, float offset_y,
                   const Model* model,
                   const Measurements* measurements,
-                  std::function<void(Context,int)> update_entity);
+                  std::function<void(int)> update_entity);
 
-void draw_selection(Context ctx,
-                    float offset_x, float offset_y,
+void draw_selection(float offset_x, float offset_y,
                     const Model* model,
                     const Measurements* measurements,
-                    NVGcolor cursor_color,
-                    NVGcolor selection_color);
+                    ddui::Color cursor_color,
+                    ddui::Color selection_color);
 
 }
 

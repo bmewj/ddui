@@ -10,7 +10,7 @@
 #define ddui_TextEdit_Model_hpp
 
 #include <nanovg.h>
-#include <ddui/Context>
+#include <ddui/ddui>
 #include <vector>
 #include <memory>
 
@@ -34,7 +34,7 @@ struct StyleCommand {
     union {
         bool bool_value;
         float float_value;
-        NVGcolor color_value;
+        ddui::Color color_value;
     };
 
 };
@@ -42,7 +42,7 @@ struct StyleCommand {
 struct Style {
     bool font_bold;
     float text_size;
-    NVGcolor text_color;
+    ddui::Color text_color;
 };
 
 struct Character {
@@ -73,10 +73,10 @@ void set_text_content(Model* model, const char* content);
 void insert_text_content(Model* model, int* line, int* index, const char* content);
 std::unique_ptr<char[]> get_text_content(Model* model, Selection selection);
 
-void set_style(Model* model, bool font_bold, float text_size, NVGcolor text_color);
+void set_style(Model* model, bool font_bold, float text_size, ddui::Color text_color);
 void apply_style(Model* model, Selection selection, StyleCommand style);
 void create_entity(Model* model, int line, int from, int to, int entity_id);
-void apply_keyboard_input(Model* model, KeyState* key_state);
+void apply_keyboard_input(Model* model, ddui::KeyState* key_state);
 
 void delete_range(Model* model, Selection selection);
 void insert_character(Model* model, int line, int index, const char* character);

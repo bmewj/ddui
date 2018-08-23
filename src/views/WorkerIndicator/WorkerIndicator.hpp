@@ -9,11 +9,11 @@
 #ifndef WorkerIndicator_hpp
 #define WorkerIndicator_hpp
 
-#include <ddui/Context>
+#include <ddui/ddui>
 
 namespace WorkerIndicator {
 
-void update(Context ctx, NVGcolor color);
+void update(ddui::Color color);
 
 }
 

@@ -11,19 +11,19 @@
 
 namespace Overlay {
 
+using namespace ddui;
+
 struct OverlayState {
     void* identifier = NULL;
-    int bounds[4];
     bool active;
-    std::function<void(Context)> inner_update;
+    std::function<void()> inner_update;
 };
 
 static std::vector<OverlayState> overlay_stack;
 static MouseState empty_mouse = { 0 };
-static FocusState empty_focus = { 0 };
 static KeyState empty_key = { 0 };
 
-void update(Context ctx, std::function<void(Context)> inner_update) {
+void update(std::function<void()> inner_update) {
 
     // All overlays start out inactive (to detect closes of overlays)
     for (auto& overlay : overlay_stack) {
@@ -31,11 +31,11 @@ void update(Context ctx, std::function<void(Context)> inner_update) {
     }
 
     // Block user input to background content when an overlay is open
-    auto child_ctx = ctx;
+    auto original_mouse_state = mouse_state;
+    auto original_key_state = key_state;
     if (!overlay_stack.empty()) {
-        child_ctx.mouse = &empty_mouse;
-        child_ctx.focus = &empty_focus;
-        child_ctx.key = &empty_key;
+        mouse_state = { 0 };
+        key_state = { 0 };
     }
 
     // Save current identifiers to compare
@@ -46,7 +46,7 @@ void update(Context ctx, std::function<void(Context)> inner_update) {
     }
     
     // Update background content
-    inner_update(child_ctx);
+    inner_update();
     
     // Draw all the overlays in order
     for (int i = 0; i < overlay_stack.size(); ++i) {
@@ -54,35 +54,39 @@ void update(Context ctx, std::function<void(Context)> inner_update) {
         
         // The overlay has changed, repaint
         if (i >= old_size || overlay.identifier != old_identifiers[i]) {
-            *ctx.must_repaint = true;
+            post_empty_message();
             return;
         }
         
         // The overlay hasn't got a handler, so close it
         if (!overlay.active) {
             overlay_stack.erase(overlay_stack.begin() + i, overlay_stack.end());
-            *ctx.must_repaint = true;
+            post_empty_message();
             return;
         }
         
         // Draw the overlay
         auto is_top_most_overlay = (i == overlay_stack.size() - 1);
-        overlay.inner_update(is_top_most_overlay ? ctx : child_ctx);
-        overlay.inner_update = std::function<void(Context)>();
+        if (is_top_most_overlay) {
+            mouse_state = original_mouse_state;
+            key_state = original_key_state;
+        }
+        overlay.inner_update();
+        overlay.inner_update = std::function<void()>();
         
     }
 
     // Unhandled mouse clicks trigger overlay close
-    if (!overlay_stack.empty() && mouse_hit(ctx, 0, 0, ctx.width, ctx.height)) {
-        ctx.mouse->accepted = true;
+    if (!overlay_stack.empty() && mouse_hit(0, 0, view.width, view.height)) {
+        mouse_hit_accept();
 
         overlay_stack.pop_back();
-        *ctx.must_repaint = true;
+        post_empty_message();
     }
 
 }
 
-void handle_overlay(void* identifier, std::function<void(Context)> inner_update) {
+void handle_overlay(void* identifier, std::function<void()> inner_update) {
 
     for (auto& overlay : overlay_stack) {
         if (overlay.identifier == identifier) {

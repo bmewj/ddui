@@ -9,14 +9,14 @@
 #ifndef ddui_ScrollArea_hpp
 #define ddui_ScrollArea_hpp
 
-#include <ddui/Context>
+#include <ddui/ddui>
 #include <functional>
 #include "ScrollAreaState.hpp"
 
 namespace ScrollArea {
 
-void update(ScrollAreaState* state, Context ctx, int inner_width, int inner_height, std::function<void(Context)> update_inner);
-void scroll_into_view(ScrollAreaState* state, Context ctx, int x, int y, int width, int height);
+void update(ScrollAreaState* state, float inner_width, float inner_height, std::function<void()> update_inner);
+void scroll_into_view(ScrollAreaState* state, float x, float y, float width, float height);
 
 }
 

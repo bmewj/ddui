@@ -14,15 +14,16 @@ namespace ScrollArea {
 struct ScrollAreaState {
     ScrollAreaState();
 
-    int scroll_x;
-    int scroll_y;
-    int initial_scroll_x;
-    int initial_scroll_y;
+    float scroll_x;
+    float scroll_y;
+    float initial_scroll_x;
+    float initial_scroll_y;
     bool is_dragging_horizontal_bar;
     bool is_dragging_vertical_bar;
 
     struct {
-        int x, y, width, height;
+        bool requested;
+        float x, y, width, height;
     } scroll_into_view;
 };
 

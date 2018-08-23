@@ -10,22 +10,22 @@
 #define OverlayBox_hpp
 
 #include <functional>
-#include <ddui/Context>
+#include <ddui/ddui>
 
 namespace OverlayBox {
 
 struct OverlayBoxState {
     OverlayBoxState();
 
-    int max_width;
-    int max_height;
-    std::function<void(Context)> update_content;
+    float max_width;
+    float max_height;
+    std::function<void()> update_content;
 
 };
 
 void open(OverlayBoxState* state);
 void close(OverlayBoxState* state);
-void update(OverlayBoxState* state, std::function<void(Context)> update_content);
+void update(OverlayBoxState* state, std::function<void()> update_content);
 
 }
 

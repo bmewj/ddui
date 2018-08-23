@@ -7,17 +7,18 @@
 //
 
 #include "WorkerIndicator.hpp"
-#include <ddui/animation>
 #include <cmath>
 
 namespace WorkerIndicator {
 
-void update(Context ctx, NVGcolor color) {
+using namespace ddui;
+
+void update(Color color) {
 
     auto ANIMATION_ID = (void*)0x926492;
 
-    auto cx = 0.5 * ctx.width;
-    auto cy = 0.5 * ctx.height;
+    auto cx = 0.5 * view.width;
+    auto cy = 0.5 * view.height;
     
     constexpr auto pi = 3.1415;
     constexpr auto rs = 0.8 * pi; // ring size
@@ -34,21 +35,21 @@ void update(Context ctx, NVGcolor color) {
     auto elapsed = animation::get_time_elapsed(ANIMATION_ID);
     auto rotation = 2 * pi * (elapsed - cycle_period * (int)(elapsed / cycle_period)) / cycle_period;
     
-    nvgSave(ctx.vg);
-    nvgTranslate(ctx.vg, cx, cy);
-    nvgRotate(ctx.vg, rotation);
+    save();
+    translate(cx, cy);
+    rotate(rotation);
 
-    nvgBeginPath(ctx.vg);
-    nvgMoveTo(ctx.vg, -r1, 0);
-    nvgArc(ctx.vg, 0, 0, r1, -pi, rs - pi, NVG_CW);
-    nvgLineTo(ctx.vg, -r2 * cos(rs), -r2 * sin(rs));
-    nvgArc(ctx.vg, 0, 0, r2, rs - pi, -pi, NVG_CCW);
-    nvgClosePath(ctx.vg);
+    begin_path();
+    move_to(-r1, 0);
+    arc(0, 0, r1, -pi, rs - pi, direction::CLOCKWISE);
+    line_to(-r2 * cos(rs), -r2 * sin(rs));
+    arc(0, 0, r2, rs - pi, -pi, direction::COUNTER_CLOCKWISE);
+    stroke();
 
-    nvgFillColor(ctx.vg, color);
-    nvgFill(ctx.vg);
+    fill_color(color);
+    fill();
     
-    nvgRestore(ctx.vg);
+    restore();
 
 }
 

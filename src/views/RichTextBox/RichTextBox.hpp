@@ -9,7 +9,6 @@
 #ifndef ddui_RichTextBox_hpp
 #define ddui_RichTextBox_hpp
 
-#include <ddui/Context>
 #include <ddui/models/TextEdit>
 #include <vector>
 
@@ -34,16 +33,16 @@ struct RichTextBoxState {
     float margin = 8;
     float border_radius = 4;
     float border_width = 1;
-    NVGcolor border_color = nvgRGB(200, 200, 200);
-    NVGcolor border_color_focused = nvgRGB(50, 100, 255);
-    NVGcolor bg_color = nvgRGB(255, 255, 255);
-    NVGcolor bg_color_focused = nvgRGB(255, 255, 255);
-    NVGcolor cursor_color = nvgRGB(50, 100, 255);
-    NVGcolor selection_color = nvgRGBA(50, 100, 255, 100);
+    ddui::Color border_color = ddui::rgb(200, 200, 200);
+    ddui::Color border_color_focused = ddui::rgb(50, 100, 255);
+    ddui::Color bg_color = ddui::rgb(255, 255, 255);
+    ddui::Color bg_color_focused = ddui::rgb(255, 255, 255);
+    ddui::Color cursor_color = ddui::rgb(50, 100, 255);
+    ddui::Color selection_color = ddui::rgba(50, 100, 255, 100);
     bool selection_in_foreground = true;
 };
 
-void update(RichTextBoxState* state, Context ctx);
+void update(RichTextBoxState* state);
 
 }
 

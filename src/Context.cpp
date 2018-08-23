@@ -12,10 +12,10 @@ Context child_context(Context ctx, int x, int y, int width, int height) {
     auto child_ctx = ctx;
     nvgSave(child_ctx.vg);
     nvgTranslate(child_ctx.vg, x, y);
-    child_ctx.x += x;
-    child_ctx.y += y;
-    child_ctx.width = width;
-    child_ctx.height = height;
+    child_view.x += x;
+    child_view.y += y;
+    child_view.width = width;
+    child_view.height = height;
 
     return child_ctx;
 }
@@ -27,8 +27,8 @@ bool mouse_hit(Context ctx, int x1, int y1, int width, int height) {
         ctx.mouse->pressed && !ctx.mouse->accepted &&
         (ctx.clip.x1 < ctx.mouse->initial_x) && (ctx.mouse->initial_x <= ctx.clip.x2) &&
         (ctx.clip.y1 < ctx.mouse->initial_y) && (ctx.mouse->initial_y <= ctx.clip.y2) &&
-        (ctx.x + x1 < ctx.mouse->initial_x) && (ctx.mouse->initial_x <= ctx.x + x2) &&
-        (ctx.y + y1 < ctx.mouse->initial_y) && (ctx.mouse->initial_y <= ctx.y + y2)
+        (view.x + x1 < ctx.mouse->initial_x) && (ctx.mouse->initial_x <= view.x + x2) &&
+        (view.y + y1 < ctx.mouse->initial_y) && (ctx.mouse->initial_y <= view.y + y2)
     );
 }
 
@@ -39,8 +39,8 @@ bool mouse_hit_secondary(Context ctx, int x1, int y1, int width, int height) {
         ctx.mouse->pressed_secondary && !ctx.mouse->accepted &&
         (ctx.clip.x1 < ctx.mouse->initial_x) && (ctx.mouse->initial_x <= ctx.clip.x2) &&
         (ctx.clip.y1 < ctx.mouse->initial_y) && (ctx.mouse->initial_y <= ctx.clip.y2) &&
-        (ctx.x + x1 < ctx.mouse->initial_x) && (ctx.mouse->initial_x <= ctx.x + x2) &&
-        (ctx.y + y1 < ctx.mouse->initial_y) && (ctx.mouse->initial_y <= ctx.y + y2)
+        (view.x + x1 < ctx.mouse->initial_x) && (ctx.mouse->initial_x <= view.x + x2) &&
+        (view.y + y1 < ctx.mouse->initial_y) && (ctx.mouse->initial_y <= view.y + y2)
     );
 }
 
@@ -51,7 +51,7 @@ bool mouse_over(Context ctx, int x1, int y1, int width, int height) {
         !ctx.mouse->pressed && !ctx.mouse->pressed_secondary &&
         (ctx.clip.x1 < ctx.mouse->x) && (ctx.mouse->x <= ctx.clip.x2) &&
         (ctx.clip.y1 < ctx.mouse->y) && (ctx.mouse->y <= ctx.clip.y2) &&
-        (ctx.x + x1 < ctx.mouse->x) && (ctx.mouse->x <= ctx.x + x2) &&
-        (ctx.y + y1 < ctx.mouse->y) && (ctx.mouse->y <= ctx.y + y2)
+        (view.x + x1 < ctx.mouse->x) && (ctx.mouse->x <= view.x + x2) &&
+        (view.y + y1 < ctx.mouse->y) && (ctx.mouse->y <= view.y + y2)
     );
 }

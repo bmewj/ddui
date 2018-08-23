@@ -9,8 +9,9 @@
 #ifndef ddui_ItemArranger_hpp
 #define ddui_ItemArranger_hpp
 
-#include <ddui/Context>
+#include <ddui/ddui>
 #include <string>
+#include <vector>
 
 namespace ItemArranger {
 
@@ -68,28 +69,28 @@ struct State {
     int drop_point = -1;
   
     // UI info
-    int content_width = 0;
-    int content_height = 0;
-    int scroll_x;
+    float content_width = 0;
+    float content_height = 0;
+    float scroll_x;
   
     // UI style
     const char* font_face = "regular";
     float text_size = 16.0;
-    int h_spacing = 4;
-    int v_padding = 4;
-    int h_padding = 8;
-    int border_radius = 4;
-    int overshoot = 2;
-    NVGcolor color_insertion_point     = nvgRGB(255, 0, 0);
-    NVGcolor color_background_enabled  = nvgRGB(100, 120, 255);
-    NVGcolor color_background_disabled = nvgRGB(64, 64, 64);
-    NVGcolor color_background_vacant   = nvgRGB(200, 200, 200);
-    NVGcolor color_text_enabled        = nvgRGB(255, 255, 255);
-    NVGcolor color_text_disabled       = nvgRGB(150, 150, 150);
+    float h_spacing = 4;
+    float v_padding = 4;
+    float h_padding = 8;
+    float border_radius = 4;
+    float overshoot = 2;
+    ddui::Color color_insertion_point     = ddui::rgb(0xff0000);
+    ddui::Color color_background_enabled  = ddui::rgb(0x6478ff);
+    ddui::Color color_background_disabled = ddui::rgb(0x404040);
+    ddui::Color color_background_vacant   = ddui::rgb(0xc8c8c8);
+    ddui::Color color_text_enabled        = ddui::rgb(0xffffff);
+    ddui::Color color_text_disabled       = ddui::rgb(0xa0a0a0);
     float hover_highlight_opacity = 0.2;
 };
 
-void update(State* state, Context ctx);
+void update(State* state);
 
 }
 

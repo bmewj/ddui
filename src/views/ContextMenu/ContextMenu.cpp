@@ -7,12 +7,14 @@
 //
 
 #include "ContextMenu.hpp"
-#include <ddui/Context>
+#include <ddui/ddui>
 #include <ddui/util/entypo>
 #include <ddui/views/ScrollArea>
 #include <nanovg.h>
 
 namespace ContextMenu {
+
+using namespace ddui;
 
 struct ContextMenuState {
     ContextMenuState();
@@ -36,10 +38,10 @@ static constexpr int ITEM_HEIGHT = 28;
 static constexpr int ITEM_FONT_SIZE = 16;
 static constexpr int CHECK_FONT_SIZE = 32;
 static constexpr const char* ITEM_FONT_FACE = "regular";
-static NVGcolor ITEM_TEXT_COLOR = nvgRGB(0, 0, 0);
-static NVGcolor ITEM_HOVER_COLOR = nvgRGB(200, 200, 200);
-static NVGcolor ITEM_PRESS_COLOR = nvgRGB(150, 150, 150);
-static NVGcolor BG_COLOR = nvgRGB(255, 255, 255);
+static Color ITEM_TEXT_COLOR = rgb(0x000000);
+static Color ITEM_HOVER_COLOR = rgb(0xc8c8c8);
+static Color ITEM_PRESS_COLOR = rgb(0xa0a0a0);
+static Color BG_COLOR = rgb(0xffffff);
 static constexpr int PADDING_TOP = 4;
 static constexpr int PADDING_BOTTOM = 4;
 
@@ -49,20 +51,20 @@ static constexpr int PADDING_RIGHT = 16;
 
 static ContextMenuState state;
 
-void update(Context ctx, std::function<void(Context)> inner_update) {
+void update(std::function<void()> inner_update) {
     // Step 1. Process mouse input
     void* identifier = state.identifier;
     int menu_width, menu_height, x;
     if (state.open) {
         menu_height = PADDING_TOP + ITEM_HEIGHT * state.items.size() + PADDING_BOTTOM;
 
-        nvgFontFace(ctx.vg, ITEM_FONT_FACE);
-        nvgFontSize(ctx.vg, ITEM_FONT_SIZE);
+        font_face(ITEM_FONT_FACE);
+        font_size(ITEM_FONT_SIZE);
 
         float bounds[4];
         int max_text_width = 0;
         for (auto& item : state.items) {
-          nvgTextBounds(ctx.vg, 0, 0, item.label.c_str(), 0, bounds);
+          text_bounds(0, 0, item.label.c_str(), 0, bounds);
           int width = (int)(bounds[2] - bounds[0]);
           if (width > max_text_width) {
               max_text_width = width;
@@ -73,14 +75,14 @@ void update(Context ctx, std::function<void(Context)> inner_update) {
         
         // Adjust menu position to fit in screen
         x = state.x;
-        if (x + menu_width > ctx.width && menu_width < ctx.width) {
-            x = ctx.width - menu_width;
+        if (x + menu_width > view.width && menu_width < view.width) {
+            x = view.width - menu_width;
         }
 
         // Handle context menu dismissal
-        if (mouse_hit(ctx, 0, 0, ctx.width, ctx.height) &&
-            !mouse_hit(ctx, x, state.y, menu_width, menu_height)) {
-            ctx.mouse->accepted = true;
+        if (mouse_hit(0, 0, view.width, view.height) &&
+            !mouse_hit(x, state.y, menu_width, menu_height)) {
+            mouse_hit_accept();
             state.open = false;
             state.action = -1;
         }
@@ -88,8 +90,8 @@ void update(Context ctx, std::function<void(Context)> inner_update) {
         // Handle item press
         int y = state.y + PADDING_TOP;
         for (int i = 0; i < state.items.size(); ++i) {
-            if (mouse_hit(ctx, x, y, menu_width, ITEM_HEIGHT)) {
-                ctx.mouse->accepted = true;
+            if (mouse_hit(x, y, menu_width, ITEM_HEIGHT)) {
+                mouse_hit_accept();
                 state.action_pressing = i;
                 break;
             }
@@ -98,11 +100,11 @@ void update(Context ctx, std::function<void(Context)> inner_update) {
         }
 
         // Handle item release
-        if (!ctx.mouse->pressed && state.action_pressing != -1) {
+        if (!mouse_state.pressed && state.action_pressing != -1) {
             state.open = false;
 
             int y = state.y + PADDING_TOP + state.action_pressing * ITEM_HEIGHT;
-            if (mouse_over(ctx, x, y, menu_width, ITEM_HEIGHT)) {
+            if (mouse_over(x, y, menu_width, ITEM_HEIGHT)) {
                 state.action = state.action_pressing;
             } else {
                 state.action = -1;
@@ -110,44 +112,43 @@ void update(Context ctx, std::function<void(Context)> inner_update) {
         }
       
         // Handle border clicking
-        if (mouse_hit(ctx, x, state.y, menu_width, menu_height)) {
-            ctx.mouse->accepted = true;
+        if (mouse_hit(x, state.y, menu_width, menu_height)) {
+            mouse_hit_accept();
             state.action_pressing = -1;
         }
       
     }
 
     // Step 2. Draw child content
-    auto child_ctx = ctx;
-    inner_update(child_ctx);
+    inner_update();
 
     // Step 3. Draw context menu
     if (state.open && identifier == state.identifier) {
 
-        int width = ctx.width - x;
+        int width = view.width - x;
         if (width > menu_width) {
             width = menu_width;
         }
       
-        int height = ctx.height - state.y;
+        int height = view.height - state.y;
         if (height > menu_height) {
             height = menu_height;
         }
       
-        auto child_ctx = child_context(ctx, x, state.y, width, height);
-        ScrollArea::update(&state.scroll_area_state, child_ctx, menu_width, menu_height, [&](Context ctx) {
+        sub_view(x, state.y, width, height);
+        ScrollArea::update(&state.scroll_area_state, menu_width, menu_height, [&]() {
         
             // Background
-            nvgBeginPath(ctx.vg);
-            nvgFillColor(ctx.vg, nvgRGB(255, 255, 255));
-            nvgRect(ctx.vg, 0, 0, ctx.width, ctx.height);
-            nvgFill(ctx.vg);
+            begin_path();
+            fill_color(rgb(0xffffff));
+            rect(0, 0, view.width, view.height);
+            fill();
           
             // Items
             float ascender, descender, line_height;
-            nvgFontFace(ctx.vg, ITEM_FONT_FACE);
-            nvgFontSize(ctx.vg, ITEM_FONT_SIZE);
-            nvgTextMetrics(ctx.vg, &ascender, &descender, &line_height);
+            font_face(ITEM_FONT_FACE);
+            font_size(ITEM_FONT_SIZE);
+            text_metrics(&ascender, &descender, &line_height);
           
             int y = PADDING_TOP;
             int text_y = (ITEM_HEIGHT - (int)line_height) / 2 + (int)ascender;
@@ -155,54 +156,54 @@ void update(Context ctx, std::function<void(Context)> inner_update) {
             for (int i = 0; i < state.items.size(); ++i) {
                 int hover_state = 0;
 
-                if (mouse_over(ctx, 0, y, menu_width, ITEM_HEIGHT)) {
+                if (mouse_over(0, y, menu_width, ITEM_HEIGHT)) {
                     hover_state = 1;
-                    *ctx.cursor = CURSOR_POINTING_HAND;
+                    set_cursor(CURSOR_POINTING_HAND);
                 }
               
                 if (state.action_pressing == i) {
                     hover_state = 2;
                   
-                    if (ctx.mouse->x < x || ctx.mouse->x > x + menu_width ||
-                        ctx.mouse->y < y || ctx.mouse->y > y + ITEM_HEIGHT) {
+                    if (mouse_state.x < x || mouse_state.x > x + menu_width ||
+                        mouse_state.y < y || mouse_state.y > y + ITEM_HEIGHT) {
                         --hover_state;
                     }
                 }
 
                 if (hover_state > 0) {
-                    nvgBeginPath(ctx.vg);
-                    nvgFillColor(ctx.vg, hover_state == 2 ? ITEM_PRESS_COLOR : ITEM_HOVER_COLOR);
-                    nvgRect(ctx.vg, 0, y, menu_width, ITEM_HEIGHT);
-                    nvgFill(ctx.vg);
+                    begin_path();
+                    fill_color(hover_state == 2 ? ITEM_PRESS_COLOR : ITEM_HOVER_COLOR);
+                    rect(0, y, menu_width, ITEM_HEIGHT);
+                    fill();
                 }
               
-                nvgFillColor(ctx.vg, ITEM_TEXT_COLOR);
-                nvgText(ctx.vg, text_x, y + text_y, state.items[i].label.c_str(), 0);
+                fill_color(ITEM_TEXT_COLOR);
+                text(text_x, y + text_y, state.items[i].label.c_str(), 0);
             
                 y += ITEM_HEIGHT;
             }
 
-            nvgFontSize(ctx.vg, CHECK_FONT_SIZE);
-            nvgFontFace(ctx.vg, "entypo");
-            nvgFillColor(ctx.vg, ITEM_TEXT_COLOR);
-            nvgTextMetrics(ctx.vg, &ascender, &descender, &line_height);
+            font_size(CHECK_FONT_SIZE);
+            font_face("entypo");
+            fill_color(ITEM_TEXT_COLOR);
+            text_metrics(&ascender, &descender, &line_height);
 
             y = PADDING_TOP + (ascender + ITEM_HEIGHT) / 2 - 4;
             for (int i = 0; i < state.items.size(); ++i) {
                 if (state.items[i].checked) {
-                    nvgText(ctx.vg, PADDING_HORIZONTAL, y, entypo::CHECK_MARK, NULL);
+                    text(PADDING_HORIZONTAL, y, entypo::CHECK_MARK, NULL);
                 }
 
                 y += ITEM_HEIGHT;
             }
 
         });
-        nvgRestore(ctx.vg);
+        restore();
           
     }
 }
 
-int process_action(Context ctx, void* identifier) {
+int process_action(void* identifier) {
     if (!state.open && state.identifier == identifier) {
         state.identifier = NULL;
         return state.action;
@@ -211,16 +212,16 @@ int process_action(Context ctx, void* identifier) {
     return -1;
 }
 
-void show(Context ctx, void* identifier, int x, int y, std::vector<Item> items) {
+void show(void* identifier, int x, int y, std::vector<Item> items) {
     state.open = true;
     state.identifier = identifier;
     state.action_pressing = -1;
     state.action = -1;
-    state.x = ctx.x + x;
-    state.y = ctx.y + y;
+    state.x = view.x + x;
+    state.y = view.y + y;
     state.items = std::move(items);
 
-    *ctx.must_repaint = true;
+    post_empty_message();
 }
 
 }

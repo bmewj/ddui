@@ -10,11 +10,11 @@
 
 namespace TextEdit {
 
-Measurements measure(Context ctx,
-                     const Model* model,
-                     std::function<void(Context,int,int*,int*)> measure_entity) {
+using namespace ddui;
 
-    nvgTextAlign(ctx.vg, NVG_ALIGN_LEFT | NVG_ALIGN_BASELINE);
+Measurements measure(const Model* model, std::function<void(int,float*,float*)> measure_entity) {
+
+    text_align(align::LEFT | align::BASELINE);
 
     float y = 0.0;
 
@@ -22,7 +22,7 @@ Measurements measure(Context ctx,
     output.lines.reserve(model->lines.size());
 
     for (auto& line : model->lines) {
-        auto measurements = measure(ctx, model, &line, measure_entity);
+        auto measurements = measure(model, &line, measure_entity);
         measurements.y = y;
         y += measurements.height;
         if (!measurements.characters.empty() && output.width < measurements.characters.back().max_x) {
@@ -35,10 +35,9 @@ Measurements measure(Context ctx,
     return output;
 }
 
-LineMeasurements measure(Context ctx,
-                         const Model* model,
+LineMeasurements measure(const Model* model,
                          const Line* line,
-                         std::function<void(Context,int,int*,int*)> measure_entity) {
+                         std::function<void(float,float*,float*)> measure_entity) {
     
     auto& characters = line->characters;
     char* content = line->content.get();
@@ -60,9 +59,9 @@ LineMeasurements measure(Context ctx,
     float ascender, descender, line_height;
 
     if (characters.empty()) {
-        nvgFontSize(ctx.vg, line->style.text_size);
-        nvgFontFace(ctx.vg, line->style.font_bold ? bold_font : regular_font);
-        nvgTextMetrics(ctx.vg, &ascender, &descender, &line_height);
+        font_size(line->style.text_size);
+        font_face(line->style.font_bold ? bold_font : regular_font);
+        text_metrics(&ascender, &descender, &line_height);
         
         output.line_height = output.height = line_height;
         output.max_ascender = ascender;
@@ -76,8 +75,8 @@ LineMeasurements measure(Context ctx,
     while (i < characters.size()) {
         // Handle special entity characters.
         if (characters[i].entity_id != -1) {
-            int width, height;
-            measure_entity(ctx, characters[i].entity_id, &width, &height);
+            float width, height;
+            measure_entity(characters[i].entity_id, &width, &height);
             
             // Save so that we only call measure_entity() once.
             output.characters[i].x = x;
@@ -112,9 +111,9 @@ LineMeasurements measure(Context ctx,
         }
         
         // Apply segment-styles
-        nvgFontSize(ctx.vg, text_size);
-        nvgFontFace(ctx.vg, font_bold ? bold_font : regular_font);
-        nvgTextMetrics(ctx.vg, &ascender, &descender, &line_height);
+        font_size(text_size);
+        font_face(font_bold ? bold_font : regular_font);
+        text_metrics(&ascender, &descender, &line_height);
         
         // Update vertical measurements
         if (output.line_height < line_height) {
@@ -134,8 +133,8 @@ LineMeasurements measure(Context ctx,
         auto string_start = &content[first_char.index];
         auto string_end = &content[last_char.index + last_char.num_bytes];
 
-        NVGglyphPosition positions[num_chars];
-        nvgTextGlyphPositions(ctx.vg, 0, 0, string_start, string_end, positions, num_chars);
+        GlyphPosition positions[num_chars];
+        text_glyph_positions(0, 0, string_start, string_end, positions, num_chars);
 
         // Measure all the characters in segment
         for (int j = 0; j < num_chars; ++j) {
@@ -170,7 +169,7 @@ LineMeasurements measure(Context ctx,
     return output;
 }
 
-void locate_selection_point(const Measurements* measurements, int x, int y, int* lineno, int* index) {
+void locate_selection_point(const Measurements* measurements, float x, float y, int* lineno, int* index) {
 
     auto& lines = measurements->lines;
 

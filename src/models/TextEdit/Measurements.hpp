@@ -10,7 +10,7 @@
 #define ddui_TextEdit_Measurements_hpp
 
 #include "Model.hpp"
-#include <ddui/Context>
+#include <ddui/ddui>
 #include <functional>
 #include <vector>
 
@@ -35,16 +35,13 @@ struct Measurements {
     std::vector<LineMeasurements> lines;
 };
 
-Measurements measure(Context ctx,
-                     const Model* model,
-                     std::function<void(Context,int,int*,int*)> measure_entity);
+Measurements measure(const Model* model, std::function<void(int,float*,float*)> measure_entity);
 
-LineMeasurements measure(Context ctx,
-                         const Model* model,
+LineMeasurements measure(const Model* model,
                          const Line* line,
-                         std::function<void(Context,int,int*,int*)> measure_entity);
+                         std::function<void(int,float*,float*)> measure_entity);
 
-void locate_selection_point(const Measurements* measurements, int x, int y, int* lineno, int* index);
+void locate_selection_point(const Measurements* measurements, float x, float y, int* lineno, int* index);
 
 }
 

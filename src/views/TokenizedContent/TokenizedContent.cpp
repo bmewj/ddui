@@ -10,9 +10,11 @@
 
 namespace TokenizedContent {
 
+using namespace ddui;
+
 constexpr float SPACE_WIDTH = 3.0;
 
-void set_font_settings(State* state, NVGcolor font_color, float font_size, const char* font_face) {
+void set_font_settings(State* state, Color font_color, float font_size, const char* font_face) {
     state->settings.font_color = font_color;
     state->settings.font_size = font_size;
     state->settings.font_face = font_face;
@@ -74,11 +76,11 @@ void tokenize_and_append_text(State* state, float space_before, float space_afte
 
 }
 
-void append_object(State* state, float width, float height, std::function<void(Context ctx)> update, int action_id) {
+void append_object(State* state, float width, float height, std::function<void()> update, int action_id) {
     append_object(state, SPACE_WIDTH, SPACE_WIDTH, width, height, std::move(update), action_id);
 }
 
-void append_object(State* state, float space_before, float space_after, float width, float height, std::function<void(Context ctx)> update, int action_id) {
+void append_object(State* state, float space_before, float space_after, float width, float height, std::function<void()> update, int action_id) {
     Token token;
     token.type = Token::OBJECT;
     token.space_before = space_before;
@@ -90,7 +92,7 @@ void append_object(State* state, float space_before, float space_after, float wi
     state->content_tokens.push_back(std::move(token));
 }
 
-static float measure_content(State* state, NVGcontext* vg, float total_width, float* xs, float* ys, float* ws, float* hs) {
+static float measure_content(State* state, float total_width, float* xs, float* ys, float* ws, float* hs) {
     float y = 0;
 
     int i = 0;
@@ -112,14 +114,14 @@ static float measure_content(State* state, NVGcontext* vg, float total_width, fl
                 case Token::TEXT: {
 
                     // Measure text
-                    nvgFontFace(vg, token.text.font_face);
-                    nvgFontSize(vg, token.text.font_size);
+                    font_face(token.text.font_face);
+                    font_size(token.text.font_size);
 
                     float ascender, descender, line_height;
-                    nvgTextMetrics(vg, &ascender, &descender, &line_height);
+                    text_metrics(&ascender, &descender, &line_height);
 
                     float bounds[4];
-                    nvgTextBounds(vg, 0, 0, token.text.content.c_str(), NULL, bounds);
+                    text_bounds(0, 0, token.text.content.c_str(), NULL, bounds);
 
                     auto width = bounds[2] - bounds[0];
 
@@ -225,22 +227,22 @@ static float measure_content(State* state, NVGcontext* vg, float total_width, fl
     return y;
 }
 
-float measure_content_height(State* state, Context ctx, float total_width) {
+float measure_content_height(State* state, float total_width) {
     float xs[state->content_tokens.size()];
     float ys[state->content_tokens.size()];
     float ws[state->content_tokens.size()];
     float hs[state->content_tokens.size()];
-    return measure_content(state, ctx.vg, total_width, xs, ys, ws, hs);
+    return measure_content(state, total_width, xs, ys, ws, hs);
 }
 
-void update(State* state, Context ctx) {
+void update(State* state) {
     float xs[state->content_tokens.size()];
     float ys[state->content_tokens.size()];
     float ws[state->content_tokens.size()];
     float hs[state->content_tokens.size()];
-    measure_content(state, ctx.vg, ctx.width, xs, ys, ws, hs);
+    measure_content(state, view.width, xs, ys, ws, hs);
 
-    nvgTextAlign(ctx.vg, NVG_ALIGN_BASELINE | NVG_ALIGN_LEFT);
+    text_align(align::BASELINE | align::LEFT);
     state->action = -1;
 
     for (int i = 0; i < state->content_tokens.size(); ++i) {
@@ -249,16 +251,16 @@ void update(State* state, Context ctx) {
         switch (token.type) {
         
             case Token::TEXT: {
-                nvgFontFace(ctx.vg, token.text.font_face);
-                nvgFontSize(ctx.vg, token.text.font_size);
-                nvgFillColor(ctx.vg, token.text.font_color);
-                nvgText(ctx.vg, xs[i], ys[i], token.text.content.c_str(), NULL);
+                font_face(token.text.font_face);
+                font_size(token.text.font_size);
+                fill_color(token.text.font_color);
+                text(xs[i], ys[i], token.text.content.c_str(), NULL);
                 if (token.action_id != -1) {
-                    if (mouse_over(ctx, xs[i], ys[i] - hs[i], ws[i], hs[i])) {
-                        *ctx.cursor = CURSOR_POINTING_HAND;
+                    if (mouse_over(xs[i], ys[i] - hs[i], ws[i], hs[i])) {
+                        set_cursor(CURSOR_POINTING_HAND);
                     }
-                    if (mouse_hit(ctx, xs[i], ys[i] - hs[i], ws[i], hs[i])) {
-                        ctx.mouse->accepted = true;
+                    if (mouse_hit(xs[i], ys[i] - hs[i], ws[i], hs[i])) {
+                        mouse_hit_accept();
                         state->action = token.action_id;
                     }
                 }
@@ -266,16 +268,15 @@ void update(State* state, Context ctx) {
             }
             
             case Token::OBJECT: {
-                auto child_ctx = child_context(ctx, xs[i], ys[i],
-                                               token.object.width, token.object.height);
-                token.object.update(child_ctx);
-                nvgRestore(ctx.vg);
+                sub_view(xs[i], ys[i], token.object.width, token.object.height);
+                token.object.update();
+                restore();
                 if (token.action_id != -1) {
-                    if (mouse_over(ctx, xs[i], ys[i], ws[i], hs[i])) {
-                        *ctx.cursor = CURSOR_POINTING_HAND;
+                    if (mouse_over(xs[i], ys[i], ws[i], hs[i])) {
+                        set_cursor(CURSOR_POINTING_HAND);
                     }
-                    if (mouse_hit(ctx, xs[i], ys[i], ws[i], hs[i])) {
-                        ctx.mouse->accepted = true;
+                    if (mouse_hit(xs[i], ys[i], ws[i], hs[i])) {
+                        mouse_hit_accept();
                         state->action = token.action_id;
                     }
                 }

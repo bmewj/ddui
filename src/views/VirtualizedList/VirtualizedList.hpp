@@ -9,7 +9,6 @@
 #ifndef VirtualizedList_hpp
 #define VirtualizedList_hpp
 
-#include <ddui/Context>
 #include <ddui/views/ScrollArea>
 #include <vector>
 
@@ -22,10 +21,10 @@ struct State {
 };
 
 void clear_measurements(State* state);
-void update(State* state, Context ctx, int number_of_elements,
-            std::function<float(int,Context)> measure_element_height,
-            std::function<void(int,Context)> update_element,
-            std::function<void(Context)> update_space_below);
+void update(State* state, int number_of_elements,
+            std::function<float(int)> measure_element_height,
+            std::function<void(int)> update_element,
+            std::function<void()> update_space_below);
 
 }
 

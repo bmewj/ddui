@@ -8,13 +8,14 @@
 
 #include "OverlayBox.hpp"
 #include "style.hpp"
-#include <ddui/app>
+#include <ddui/ddui>
 #include <ddui/views/Overlay>
-#include <ddui/animation>
 
 namespace OverlayBox {
 
-static void update_overlay(OverlayBoxState* state, Context ctx);
+using namespace ddui;
+
+static void update_overlay(OverlayBoxState* state);
 
 constexpr auto DURATION_FADE_IN = 0.35;
 constexpr auto DURATION_FADE_OUT = 0.35;
@@ -36,15 +37,15 @@ void close(OverlayBoxState* state) {
     animation::start(ANIMATION_OUT_ID);
 }
 
-void update(OverlayBoxState* state, std::function<void(Context)> update_content) {
+void update(OverlayBoxState* state, std::function<void()> update_content) {
     auto OVERLAY_ID = (void*)state;
     state->update_content = std::move(update_content);
-    Overlay::handle_overlay(OVERLAY_ID, [state](Context ctx) {
-        update_overlay(state, ctx);
+    Overlay::handle_overlay(OVERLAY_ID, [state]() {
+        update_overlay(state);
     });
 }
 
-void update_overlay(OverlayBoxState* state, Context ctx) {
+void update_overlay(OverlayBoxState* state) {
 
     auto OVERLAY_ID = (void*)state;
     auto ANIMATION_IN_ID = (void*)(state + 1);
@@ -74,52 +75,52 @@ void update_overlay(OverlayBoxState* state, Context ctx) {
     auto screen_fill_color = style::SCREEN_FILL_COLOR;
     screen_fill_color.a *= (is_closing ? 1 - completion : completion);
 
-    nvgBeginPath(ctx.vg);
-    nvgRect(ctx.vg, 0, 0, ctx.width, ctx.height);
-    nvgFillColor(ctx.vg, screen_fill_color);
-    nvgFill(ctx.vg);
+    begin_path();
+    rect(0, 0, view.width, view.height);
+    fill_color(screen_fill_color);
+    fill();
 
     auto overlay_width = state->max_width;
-    if (overlay_width > ctx.width - 2 * style::BOX_MARGIN) {
-        overlay_width = ctx.width - 2 * style::BOX_MARGIN;
+    if (overlay_width > view.width - 2 * style::BOX_MARGIN) {
+        overlay_width = view.width - 2 * style::BOX_MARGIN;
     }
 
     auto overlay_height = state->max_height;
-    if (overlay_height > ctx.height - 2 * style::BOX_MARGIN) {
-        overlay_height = ctx.height - 2 * style::BOX_MARGIN;
+    if (overlay_height > view.height - 2 * style::BOX_MARGIN) {
+        overlay_height = view.height - 2 * style::BOX_MARGIN;
     }
 
-    double x  = (ctx.width  - overlay_width)  / 2;
-    double y2 = (ctx.height - overlay_height) / 2;
+    double x  = (view.width  - overlay_width)  / 2;
+    double y2 = (view.height - overlay_height) / 2;
     double y1 = y2 - 200;
 
     double ratio = is_closing ? animation::ease_in(1 - completion) : animation::ease_out(completion);
     double y = y1 + (y2 - y1) * ratio;
 
-    auto child_ctx = child_context(ctx, x, y, overlay_width, overlay_height);
+    sub_view(x, y, overlay_width, overlay_height);
     {
-        nvgGlobalAlpha(ctx.vg, ratio);
+        global_alpha(ratio);
 
         // Background
-        nvgBeginPath(ctx.vg);
-        nvgRoundedRect(ctx.vg, 0, 0, overlay_width, overlay_height, style::BORDER_RADIUS);
-        nvgFillColor(ctx.vg, style::BACKGROUND_COLOR);
-        nvgFill(ctx.vg);
+        begin_path();
+        rounded_rect(0, 0, overlay_width, overlay_height, style::BORDER_RADIUS);
+        fill_color(style::BACKGROUND_COLOR);
+        fill();
         
         // Border outline
-        nvgStrokeColor(ctx.vg, style::BORDER_COLOR);
-        nvgStrokeWidth(ctx.vg, style::BORDER_WIDTH);
-        nvgStroke(ctx.vg);
+        stroke_color(style::BORDER_COLOR);
+        stroke_width(style::BORDER_WIDTH);
+        stroke();
 
         // Content
-        state->update_content(child_ctx);
-        state->update_content = std::function<void(Context)>();
+        state->update_content();
+        state->update_content = std::function<void()>();
 
     }
-    nvgRestore(ctx.vg);
+    restore();
 
-    if (mouse_hit(ctx, 0, 0, ctx.width, ctx.height)) {
-        ctx.mouse->accepted = true;
+    if (mouse_hit(0, 0, view.width, view.height)) {
+        mouse_hit_accept();
         if (!animation::is_animating(ANIMATION_OUT_ID)) {
             close(state);
         }

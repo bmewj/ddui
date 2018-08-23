@@ -7,14 +7,15 @@
 //
 
 #include "Model.hpp"
-#include <ddui/keyboard>
-#include <ddui/app>
+#include <ddui/ddui>
 #include <cstdlib>
 #include <algorithm>
 #include <string.h>
 #include <stdio.h>
 
 namespace TextEdit {
+
+using namespace ddui;
 
 Model::Model() {
     auto empty_content = new char[1];
@@ -25,7 +26,7 @@ Model::Model() {
     empty_line.content = std::unique_ptr<char[]>(empty_content);
     empty_line.style.font_bold = false;
     empty_line.style.text_size = 16.0;
-    empty_line.style.text_color = nvgRGB(0, 0, 0);
+    empty_line.style.text_color = rgb(0x000000);
 
     version_count = 0;
     lines.push_back(std::move(empty_line));
@@ -300,7 +301,7 @@ std::unique_ptr<char[]> get_text_content(Model* model, Selection selection) {
 
 static void apply_style_to_line(Line* line, int a_index, int b_index, StyleCommand style);
 
-void set_style(Model* model, bool font_bold, float text_size, NVGcolor text_color) {
+void set_style(Model* model, bool font_bold, float text_size, Color text_color) {
 
     Selection selection = { 0 };
     selection.b_line = model->lines.size();
@@ -585,7 +586,7 @@ void apply_keyboard_input(Model* model, KeyState* key_state) {
             index = sel.a_index < sel.b_index ? sel.a_index : sel.b_index;
         }
         
-        auto pasted_string = app::get_clipboard_string();
+        auto pasted_string = get_clipboard_string();
         if (pasted_string) {
             insert_text_content(model, &line, &index, pasted_string);
         }
@@ -600,7 +601,7 @@ void apply_keyboard_input(Model* model, KeyState* key_state) {
     if (key_state->key == keyboard::KEY_C && (key_state->mods & keyboard::MOD_SUPER)) {
         if (range_is_selected) {
             auto copied_string = get_text_content(model, model->selection);
-            app::set_clipboard_string(copied_string.get());
+            set_clipboard_string(copied_string.get());
             
             *key_state = { 0 };
         }
@@ -611,7 +612,7 @@ void apply_keyboard_input(Model* model, KeyState* key_state) {
             auto& sel = model->selection;
             
             auto copied_string = get_text_content(model, sel);
-            app::set_clipboard_string(copied_string.get());
+            set_clipboard_string(copied_string.get());
             
             delete_range(model, sel);
             
