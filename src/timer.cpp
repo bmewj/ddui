@@ -11,6 +11,7 @@
 #include <thread>
 #include <vector>
 #include <mutex>
+#include <condition_variable>
 
 static int schedule_timer(std::function<void()> callback, long duration_in_ms, bool repeat);
 static void clear_timer(int timer_id);
