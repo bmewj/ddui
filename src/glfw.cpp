@@ -8,6 +8,7 @@
 
 #include "glfw.hpp"
 #include "core.hpp"
+#include <string.h>
 #include <functional>
 
 #ifdef __APPLE__
