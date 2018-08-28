@@ -10,7 +10,7 @@
 #define OverlayBox_hpp
 
 #include <functional>
-#include <ddui/ddui>
+#include <ddui/core>
 
 namespace OverlayBox {
 

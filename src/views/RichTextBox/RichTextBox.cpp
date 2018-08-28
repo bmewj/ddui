@@ -71,8 +71,12 @@ void update(RichTextBoxState* state) {
     }
     if (state->is_mouse_dragging) {
         set_cursor(CURSOR_IBEAM);
-        int x = mouse_state.x - view.x - state->margin + state->scroll_x;
-        int y = mouse_state.y - view.y - state->margin;
+
+        float mx, my, x, y;
+        mouse_position(&mx, &my);
+        x = mx - state->margin + state->scroll_x;
+        y = my - state->margin;
+
         TextEdit::locate_selection_point(&state->measurements, x, y,
                                          &state->model->selection.b_line,
                                          &state->model->selection.b_index);
@@ -111,7 +115,7 @@ void update(RichTextBoxState* state) {
     // Prepare clip-region
     auto inner_width = state->measurements.width + 2 * state->margin;
     save();
-    scissor(0, 0, view.width, state->height);
+    clip(0, 0, view.width, state->height);
     sub_view(-state->scroll_x, 0, inner_width > view.width ? inner_width : view.width, state->height);
     
     // Text (when selection in foreground)
@@ -145,9 +149,11 @@ void update(RichTextBoxState* state) {
         set_cursor(CURSOR_IBEAM);
         mouse_hit_accept();
         state->is_mouse_dragging = true;
-        
-        int x = mouse_state.x - view.x - state->margin + state->scroll_x;
-        int y = mouse_state.y - view.y - state->margin;
+
+        float mx, my, x, y;
+        mouse_position(&mx, &my);
+        x = mx - state->margin + state->scroll_x;
+        y = my - state->margin;
     
         locate_selection_point(&state->measurements, x, y, &state->model->selection.a_line, &state->model->selection.a_index);
         state->model->selection.b_line = state->model->selection.a_line;

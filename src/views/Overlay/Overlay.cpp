@@ -54,14 +54,14 @@ void update(std::function<void()> inner_update) {
         
         // The overlay has changed, repaint
         if (i >= old_size || overlay.identifier != old_identifiers[i]) {
-            post_empty_message();
+            repaint();
             return;
         }
         
         // The overlay hasn't got a handler, so close it
         if (!overlay.active) {
             overlay_stack.erase(overlay_stack.begin() + i, overlay_stack.end());
-            post_empty_message();
+            repaint();
             return;
         }
         
@@ -81,7 +81,7 @@ void update(std::function<void()> inner_update) {
         mouse_hit_accept();
 
         overlay_stack.pop_back();
-        post_empty_message();
+        repaint();
     }
 
 }

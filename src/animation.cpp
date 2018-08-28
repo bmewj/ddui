@@ -6,10 +6,9 @@
 //  Copyright © 2018 Bartholomew Joyce All rights reserved.
 //
 
-#include "animation.hpp"
+#include "core.hpp"
 #include <chrono>
-
-namespace animation {
+#include <vector>
 
 struct ActiveAnimation {
     void* identifier;
@@ -22,7 +21,7 @@ static std::vector<ActiveAnimation> active_animations;
 
 static int find_active_animation(void* identifier);
 
-void start(void* identifier) {
+void ddui::animation::start(void* identifier) {
 
     ActiveAnimation new_animation;
     new_animation.identifier = identifier;
@@ -37,7 +36,7 @@ void start(void* identifier) {
     }
 }
 
-void stop(void* identifier) {
+void ddui::animation::stop(void* identifier) {
 
     int i = find_active_animation(identifier);
     if (i != -1) {
@@ -45,7 +44,7 @@ void stop(void* identifier) {
     }
 }
 
-bool is_animating(void* identifier) {
+bool ddui::animation::is_animating(void* identifier) {
 
     int i = find_active_animation(identifier);
     if (i == -1) {
@@ -56,7 +55,7 @@ bool is_animating(void* identifier) {
     return true;
 }
 
-double get_time_elapsed(void* identifier) {
+double ddui::animation::get_time_elapsed(void* identifier) {
 
     int i = find_active_animation(identifier);
     if (i == -1) {
@@ -73,15 +72,15 @@ double get_time_elapsed(void* identifier) {
     return time_elapsed;
 }
 
-double ease_in(double completion) {
+double ddui::animation::ease_in(double completion) {
     return completion * completion;
 }
 
-double ease_out(double completion) {
+double ddui::animation::ease_out(double completion) {
     return 1 - (1 - completion) * (1 - completion);
 }
 
-double ease_in_out(double completion) {
+double ddui::animation::ease_in_out(double completion) {
     if (completion < 0.5) {
         return 0.5 * ease_in(2.0 * completion);
     } else {
@@ -89,8 +88,20 @@ double ease_in_out(double completion) {
     }
 }
 
-void update_animation() {
+bool ddui::animation::is_animating() {
+    return !active_animations.empty();
+}
 
+int find_active_animation(void* identifier) {
+    for (int i = 0; i < active_animations.size(); ++i) {
+        if (active_animations[i].identifier == identifier) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+void update_animation() {
     // Update the current time
     last_update_time = std::chrono::high_resolution_clock::now();
 
@@ -105,19 +116,4 @@ void update_animation() {
     for (auto& active_animation : active_animations) {
         active_animation.touched = false;
     }
-}
-
-bool is_animating() {
-    return !active_animations.empty();
-}
-
-int find_active_animation(void* identifier) {
-    for (int i = 0; i < active_animations.size(); ++i) {
-        if (active_animations[i].identifier == identifier) {
-            return i;
-        }
-    }
-    return -1;
-}
-
 }

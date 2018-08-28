@@ -9,7 +9,7 @@
 #ifndef WorkerIndicator_hpp
 #define WorkerIndicator_hpp
 
-#include <ddui/ddui>
+#include <ddui/core>
 
 namespace WorkerIndicator {
 

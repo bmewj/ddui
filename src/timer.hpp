@@ -9,18 +9,6 @@
 #ifndef ddui_timer_hpp
 #define ddui_timer_hpp
 
-#include <functional>
-
-namespace timer {
-
-int set_timeout(std::function<void()> callback, long time_in_ms);
-void clear_timeout(int timeout_id);
-
-int set_interval(std::function<void()> callback, long time_in_ms);
-void clear_interval(int interval_id);
-
-void init(); // called internally by ddui
-
-}
+void timer_init();
 
 #endif

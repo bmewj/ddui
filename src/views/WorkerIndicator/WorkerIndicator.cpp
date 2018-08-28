@@ -44,7 +44,7 @@ void update(Color color) {
     arc(0, 0, r1, -pi, rs - pi, direction::CLOCKWISE);
     line_to(-r2 * cos(rs), -r2 * sin(rs));
     arc(0, 0, r2, rs - pi, -pi, direction::COUNTER_CLOCKWISE);
-    stroke();
+    close_path();
 
     fill_color(color);
     fill();

@@ -8,7 +8,7 @@
 
 #include "OverlayBox.hpp"
 #include "style.hpp"
-#include <ddui/ddui>
+#include <ddui/core>
 #include <ddui/views/Overlay>
 
 namespace OverlayBox {

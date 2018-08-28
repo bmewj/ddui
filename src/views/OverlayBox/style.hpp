@@ -9,7 +9,7 @@
 #ifndef OverlayBox_style_hpp
 #define OverlayBox_style_hpp
 
-#include <ddui/ddui>
+#include <ddui/core>
 
 namespace OverlayBox {
 namespace style {

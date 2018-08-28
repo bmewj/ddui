@@ -9,7 +9,7 @@
 #ifndef ddui_Overlay_hpp
 #define ddui_Overlay_hpp
 
-#include <ddui/ddui>
+#include <ddui/core>
 #include <functional>
 
 namespace Overlay {

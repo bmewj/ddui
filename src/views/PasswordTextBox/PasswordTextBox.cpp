@@ -78,7 +78,11 @@ void update(PasswordTextBoxState* state) {
     }
     if (state->is_mouse_dragging) {
         set_cursor(CURSOR_IBEAM);
-        int x = mouse_state.x - view.x - state->margin + state->scroll_x;
+
+        float mx, my, x;
+        mouse_position(&mx, &my);
+        x = mx - state->margin + state->scroll_x;
+
         state->model->selection.b_line = 0;
         if (x < dot_bounding_width / 2) {
             state->model->selection.b_index = 0;
@@ -120,7 +124,7 @@ void update(PasswordTextBoxState* state) {
     // Prepare clip-region
     auto inner_width = total_width + 2 * state->margin;
     save();
-    scissor(0, 0, view.width, state->height);
+    clip(0, 0, view.width, state->height);
     sub_view(-state->scroll_x, 0, inner_width > view.width ? inner_width : view.width, state->height);
     
     // Text (when selection in foreground)
@@ -186,8 +190,10 @@ void update(PasswordTextBoxState* state) {
         set_cursor(CURSOR_IBEAM);
         mouse_hit_accept();
         state->is_mouse_dragging = true;
-        
-        int x = mouse_state.x - view.x - state->margin + state->scroll_x;
+
+        float mx, my, x;
+        mouse_position(&mx, &my);
+        x = mx - state->margin + state->scroll_x;
         
         state->model->selection.a_line = 0;
         if (x < dot_bounding_width / 2) {

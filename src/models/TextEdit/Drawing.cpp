@@ -168,7 +168,7 @@ void draw_selection(float offset_x, float offset_y,
             line_to(-offset_x, y2 + height2);
             line_to(-offset_x, y1 + height1);
             line_to(x1, y1 + height1);
-            fill();
+            close_path();
         }
         
         fill();

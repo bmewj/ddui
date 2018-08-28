@@ -7,7 +7,7 @@
 //
 
 #include "Model.hpp"
-#include <ddui/ddui>
+#include <ddui/core>
 #include <cstdlib>
 #include <algorithm>
 #include <string.h>

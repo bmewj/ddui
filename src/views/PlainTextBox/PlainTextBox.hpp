@@ -9,7 +9,7 @@
 #ifndef ddui_PlainTextBox_hpp
 #define ddui_PlainTextBox_hpp
 
-#include <ddui/ddui>
+#include <ddui/core>
 #include <ddui/models/TextEdit>
 #include <string>
 #include <vector>
@@ -35,12 +35,12 @@ struct PlainTextBoxState {
     float margin = 8;
     float border_radius = 4;
     float border_width = 1;
-    ddui::Color border_color = ddui::rgb(200, 200, 200);
-    ddui::Color border_color_focused = ddui::rgb(50, 100, 255);
-    ddui::Color bg_color = ddui::rgb(255, 255, 255);
-    ddui::Color bg_color_focused = ddui::rgb(255, 255, 255);
-    ddui::Color cursor_color = ddui::rgb(50, 100, 255);
-    ddui::Color selection_color = ddui::rgba(50, 100, 255, 100);
+    ddui::Color border_color = ddui::rgb(0xc8c8c8);
+    ddui::Color border_color_focused = ddui::rgb(0x3264ff);
+    ddui::Color bg_color = ddui::rgb(0xffffff);
+    ddui::Color bg_color_focused = ddui::rgb(0xffffff);
+    ddui::Color cursor_color = ddui::rgb(0x3264ff);
+    ddui::Color selection_color = ddui::rgba(0x3264ff, 0.4);
     bool selection_in_foreground = true;
 };
 

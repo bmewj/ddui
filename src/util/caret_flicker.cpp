@@ -7,7 +7,7 @@
 //
 
 #include "caret_flicker.hpp"
-#include <ddui/ddui>
+#include <ddui/core>
 
 namespace caret_flicker {
 

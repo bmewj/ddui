@@ -33,17 +33,18 @@ void update(ScrollAreaState* state, float inner_width, float inner_height, std::
     auto container_width = view.width;
     auto container_height = view.height;
 
+    float mx, my, dx, dy;
+    mouse_movement(&mx, &my, &dx, &dy);
+
     // Update the scroll position
     if (mouse_over(0, 0, view.width, view.height)) {
         state->scroll_x += mouse_state.scroll_dx;
         state->scroll_y += mouse_state.scroll_dy;
     }
     if (mouse_state.pressed && state->is_dragging_horizontal_bar) {
-        auto dx = mouse_state.x - mouse_state.initial_x;
         state->scroll_x = state->initial_scroll_x + (dx * inner_width) / container_width;
     }
     if (mouse_state.pressed && state->is_dragging_vertical_bar) {
-        auto dy = mouse_state.y - mouse_state.initial_y;
         state->scroll_y = state->initial_scroll_y + (dy * inner_height) / container_height;
     }
 
@@ -106,7 +107,7 @@ void update(ScrollAreaState* state, float inner_width, float inner_height, std::
   
     // Draw the content
     save();
-    scissor(0, 0, container_width, container_height);
+    clip(0, 0, container_width, container_height);
     sub_view(-state->scroll_x, -state->scroll_y,
              container_width  > inner_width  ? container_width  : inner_width,
              container_height > inner_height ? container_height : inner_height);
@@ -142,13 +143,12 @@ void update(ScrollAreaState* state, float inner_width, float inner_height, std::
 }
 
 void scroll_into_view(ScrollAreaState* state, float x, float y, float width, float height) {
-
     state->scroll_into_view.requested = true;
     state->scroll_into_view.x = x;
     state->scroll_into_view.y = y;
     state->scroll_into_view.width = width;
     state->scroll_into_view.height = height;
-    post_empty_message();
+    repaint();
 
 }
 

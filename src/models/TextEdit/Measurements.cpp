@@ -35,9 +35,8 @@ Measurements measure(const Model* model, std::function<void(int,float*,float*)> 
     return output;
 }
 
-LineMeasurements measure(const Model* model,
-                         const Line* line,
-                         std::function<void(float,float*,float*)> measure_entity) {
+LineMeasurements measure(const Model* model, const Line* line,
+                         std::function<void(int,float*,float*)> measure_entity) {
     
     auto& characters = line->characters;
     char* content = line->content.get();

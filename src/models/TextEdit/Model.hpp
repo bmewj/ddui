@@ -9,8 +9,7 @@
 #ifndef ddui_TextEdit_Model_hpp
 #define ddui_TextEdit_Model_hpp
 
-#include <nanovg.h>
-#include <ddui/ddui>
+#include <ddui/core>
 #include <vector>
 #include <memory>
 

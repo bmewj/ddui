@@ -9,7 +9,7 @@
 #ifndef TokenizedContent_hpp
 #define TokenizedContent_hpp
 
-#include <ddui/ddui>
+#include <ddui/core>
 #include <functional>
 #include <vector>
 #include <string>

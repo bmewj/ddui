@@ -49,7 +49,7 @@ void update(State* state) {
   
     // Prepare clip-region
     save();
-    scissor(0, 0, view.width, view.height);
+    clip(0, 0, view.width, view.height);
     sub_view(-state->scroll_x, 0, state->content_width > view.width ? state->content_width : view.width, view.height);
 
     for (int i = 0; i < state->model->count(); ++i) {
@@ -72,7 +72,8 @@ void update(State* state) {
         translate(-state->scroll_x, 0);
 
         set_cursor(CURSOR_CLOSED_HAND);
-        auto dx = mouse_state.x - mouse_state.initial_x;
+        float mx, my, dx, dy;
+        mouse_movement(&mx, &my, &dx, &dy);
       
         if (state->drop_point != -1 || dx != 0) {
             // Find drop point

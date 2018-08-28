@@ -9,7 +9,7 @@
 #ifndef ddui_ScrollArea_hpp
 #define ddui_ScrollArea_hpp
 
-#include <ddui/ddui>
+#include <ddui/core>
 #include <functional>
 #include "ScrollAreaState.hpp"
 

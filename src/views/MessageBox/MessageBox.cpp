@@ -81,7 +81,7 @@ void update_content(MessageBoxState* state) {
     }
     
     if (mouse_hit(0, 0, view.width, view.height)) {
-        mouse_state.accepted = true;
+        mouse_hit_accept();
     }
 
 }

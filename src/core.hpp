@@ -1,5 +1,5 @@
 //
-//  ddui.hpp
+//  core.hpp
 //  ddui
 //
 //  Created by Bartholomew Joyce on 23/08/2018.
@@ -21,6 +21,15 @@ struct Color {
             float r,g,b,a;
         };
     };
+};
+struct Paint {
+    float xform[6];
+    float extent[2];
+    float radius;
+    float feather;
+    Color inner_color;
+    Color outer_color;
+    int image;
 };
 
 namespace align {
@@ -210,10 +219,10 @@ enum Cursor {
 
 // Setup
 bool init();
-void set_post_empty_message_proc(void (*proc)());
-void set_get_clipboard_string_proc(const char* (*proc)());
-void set_set_clipboard_string_proc(void (*proc)(const char*));
-void set_set_cursor_proc(void (*proc)(Cursor));
+void set_post_empty_message_proc(std::function<void()> proc);
+void set_get_clipboard_string_proc(std::function<const char*()> proc);
+void set_set_clipboard_string_proc(std::function<void(const char*)> proc);
+void set_set_cursor_proc(std::function<void(Cursor)> proc);
 
 // Teardown
 void terminate();
@@ -226,9 +235,9 @@ void input_mouse_button(int button, int action, int mods);
 void input_scroll(float offset_x, float offset_y);
 
 // Frame management
-void begin_frame(float width, float height, float pixel_ratio);
-void end_frame();
-void post_empty_message();
+void update(float width, float height, float pixel_ratio, std::function<void()> update_proc);
+void repaint();
+void set_immediate(std::function<void()> callback);
 
 // Color utils
 Color rgb(unsigned char r, unsigned char g, unsigned char b);
@@ -237,62 +246,68 @@ Color rgba(unsigned char r, unsigned char g, unsigned char b, float a);
 Color rgba(unsigned int rgb, float a);
 
 // State Handling
-struct Rect {
-    float x, y, width, height;
+struct Viewport {
+    float width, height;
+    struct {
+        float x1, y1, x2, y2;
+    } clip;
 };
-extern Rect view;
+extern Viewport view;
 void save();
 void restore();
 void reset();
 void sub_view(float x, float y, float width, float height);
 
 // Render styles
-// void shape_anti_alias(bool enabled);
+void shape_anti_alias(bool enabled);
 void stroke_color(Color color);
-// void stroke_paint(NVGpaint paint);
+void stroke_paint(Paint paint);
 void fill_color(Color color);
-// void fill_paint(NVGpaint paint);
-// void miter_limit(float limit);
+void fill_paint(Paint paint);
+void miter_limit(float limit);
 void stroke_width(float size);
-// void line_cap(int cap);
-// void line_join(int join);
+void line_cap(int cap);
+void line_join(int join);
 void global_alpha(float alpha);
 
 // Transforms
 void reset_transform();
-// void transform(float a, float b, float c, float d, float e, float f);
+void transform(float a, float b, float c, float d, float e, float f);
 void translate(float x, float y);
 void rotate(float angle);
-// void skew_x(float angle);
-// void skew_y(float angle);
+void skew_x(float angle);
+void skew_y(float angle);
 void scale(float x, float y);
-// void current_transform(float* xform);
+void to_global_position(float* gx, float* gy, float x, float y);
+void from_global_position(float* x, float* y, float gx, float gy);
 // ...
 
 // Images
 // ...
 
 // Paints
-// ...
+Paint linear_gradient(float sx, float sy, float ex, float ey, Color icol, Color ocol);
+Paint box_gradient(float x, float y, float w, float h, float r, float f, Color icol, Color ocol);
+Paint radial_gradient(float cx, float cy, float inr, float outr, Color icol, Color ocol);
+Paint image_pattern(float ox, float oy, float ex, float ey, float angle, int image, float alpha);
 
-// Scissoring
-void scissor(float x, float y, float w, float h);
-void reset_scissor();
+// Clipping
+void clip(float x, float y, float width, float height);
 
 // Paths
 void begin_path();
 void move_to(float x, float y);
 void line_to(float x, float y);
-// void bezier_to(float c1x, float c1y, float c2x, float c2y, float x, float y);
-// void quad_to(float cx, float cy, float x, float y);
-// void arc_to(float x1, float y1, float x2, float y2, float radius);
+void bezier_to(float c1x, float c1y, float c2x, float c2y, float x, float y);
+void quad_to(float cx, float cy, float x, float y);
+void arc_to(float x1, float y1, float x2, float y2, float radius);
 void close_path();
-// void path_winding(int dir);
+void path_winding(int dir);
 void arc(float cx, float cy, float r, float a0, float a1, int dir);
 void rect(float x, float y, float w, float h);
 void rounded_rect(float x, float y, float w, float h, float r);
 void rounded_rect_varying(float x, float y, float w, float h, float radTopLeft, float radTopRight, float radBottomRight, float radBottomLeft);
-// void ellipse(float cx, float cy, float rx, float ry);
+void ellipse(float cx, float cy, float rx, float ry);
 void circle(float cx, float cy, float r);
 void fill();
 void stroke();
@@ -319,6 +334,8 @@ bool mouse_hit(float x, float y, float width, float height);
 bool mouse_hit_secondary(float x, float y, float width, float height);
 bool mouse_over(float x, float y, float width, float height);
 void mouse_hit_accept();
+void mouse_position(float* x, float* y);
+void mouse_movement(float* x, float* y, float* dx, float* dy);
 
 // Focus state
 void register_focus_group(void* identifier);
@@ -340,7 +357,6 @@ const char* get_clipboard_string();
 void set_clipboard_string(const char* string);
 
 // Cursor state
-extern Cursor cursor_state;
 void set_cursor(Cursor cursor);
 
 // Animation

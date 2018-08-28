@@ -7,7 +7,7 @@
 //
 
 #include "ContextMenu.hpp"
-#include <ddui/ddui>
+#include <ddui/core>
 #include <ddui/util/entypo>
 #include <ddui/views/ScrollArea>
 #include <nanovg.h>
@@ -23,7 +23,7 @@ struct ContextMenuState {
     void* identifier;
     int action_pressing;
     int action;
-    int x, y;
+    float x, y;
     std::vector<Item> items;
 
     ScrollArea::ScrollAreaState scroll_area_state;
@@ -34,27 +34,27 @@ ContextMenuState::ContextMenuState() {
     identifier = NULL;
 }
 
-static constexpr int ITEM_HEIGHT = 28;
-static constexpr int ITEM_FONT_SIZE = 16;
-static constexpr int CHECK_FONT_SIZE = 32;
+static constexpr float ITEM_HEIGHT = 28;
+static constexpr float ITEM_FONT_SIZE = 16;
+static constexpr float CHECK_FONT_SIZE = 32;
 static constexpr const char* ITEM_FONT_FACE = "regular";
 static Color ITEM_TEXT_COLOR = rgb(0x000000);
 static Color ITEM_HOVER_COLOR = rgb(0xc8c8c8);
 static Color ITEM_PRESS_COLOR = rgb(0xa0a0a0);
 static Color BG_COLOR = rgb(0xffffff);
-static constexpr int PADDING_TOP = 4;
-static constexpr int PADDING_BOTTOM = 4;
+static constexpr float PADDING_TOP = 4;
+static constexpr float PADDING_BOTTOM = 4;
 
-static constexpr int PADDING_HORIZONTAL = 9;
-static constexpr int PADDING_LEFT = 32;
-static constexpr int PADDING_RIGHT = 16;
+static constexpr float PADDING_HORIZONTAL = 9;
+static constexpr float PADDING_LEFT = 32;
+static constexpr float PADDING_RIGHT = 16;
 
 static ContextMenuState state;
 
 void update(std::function<void()> inner_update) {
     // Step 1. Process mouse input
     void* identifier = state.identifier;
-    int menu_width, menu_height, x;
+    float menu_width, menu_height, x, y;
     if (state.open) {
         menu_height = PADDING_TOP + ITEM_HEIGHT * state.items.size() + PADDING_BOTTOM;
 
@@ -62,11 +62,11 @@ void update(std::function<void()> inner_update) {
         font_size(ITEM_FONT_SIZE);
 
         float bounds[4];
-        int max_text_width = 0;
+        float max_text_width = 0;
         for (auto& item : state.items) {
           text_bounds(0, 0, item.label.c_str(), 0, bounds);
-          int width = (int)(bounds[2] - bounds[0]);
-          if (width > max_text_width) {
+          auto width = bounds[2] - bounds[0];
+          if (max_text_width < width) {
               max_text_width = width;
           }
         }
@@ -74,21 +74,21 @@ void update(std::function<void()> inner_update) {
         menu_width = PADDING_LEFT + max_text_width + PADDING_RIGHT;
         
         // Adjust menu position to fit in screen
-        x = state.x;
+        from_global_position(&x, &y, state.x, state.y);
         if (x + menu_width > view.width && menu_width < view.width) {
             x = view.width - menu_width;
         }
 
         // Handle context menu dismissal
         if (mouse_hit(0, 0, view.width, view.height) &&
-            !mouse_hit(x, state.y, menu_width, menu_height)) {
+            !mouse_hit(x, y, menu_width, menu_height)) {
             mouse_hit_accept();
             state.open = false;
             state.action = -1;
         }
 
         // Handle item press
-        int y = state.y + PADDING_TOP;
+        y += PADDING_TOP;
         for (int i = 0; i < state.items.size(); ++i) {
             if (mouse_hit(x, y, menu_width, ITEM_HEIGHT)) {
                 mouse_hit_accept();
@@ -125,16 +125,16 @@ void update(std::function<void()> inner_update) {
     // Step 3. Draw context menu
     if (state.open && identifier == state.identifier) {
 
-        int width = view.width - x;
+        auto width = view.width - x;
         if (width > menu_width) {
             width = menu_width;
         }
       
-        int height = view.height - state.y;
+        auto height = view.height - state.y;
         if (height > menu_height) {
             height = menu_height;
         }
-      
+
         sub_view(x, state.y, width, height);
         ScrollArea::update(&state.scroll_area_state, menu_width, menu_height, [&]() {
         
@@ -150,9 +150,9 @@ void update(std::function<void()> inner_update) {
             font_size(ITEM_FONT_SIZE);
             text_metrics(&ascender, &descender, &line_height);
           
-            int y = PADDING_TOP;
-            int text_y = (ITEM_HEIGHT - (int)line_height) / 2 + (int)ascender;
-            int text_x = PADDING_LEFT;
+            float y = PADDING_TOP;
+            float text_y = (ITEM_HEIGHT - line_height) / 2 + ascender;
+            float text_x = PADDING_LEFT;
             for (int i = 0; i < state.items.size(); ++i) {
                 int hover_state = 0;
 
@@ -164,8 +164,10 @@ void update(std::function<void()> inner_update) {
                 if (state.action_pressing == i) {
                     hover_state = 2;
                   
-                    if (mouse_state.x < x || mouse_state.x > x + menu_width ||
-                        mouse_state.y < y || mouse_state.y > y + ITEM_HEIGHT) {
+                    float mx, my;
+                    mouse_position(&mx, &my);
+                    if (mx < x || mx > x + menu_width ||
+                        my < y || my > y + ITEM_HEIGHT) {
                         --hover_state;
                     }
                 }
@@ -212,16 +214,15 @@ int process_action(void* identifier) {
     return -1;
 }
 
-void show(void* identifier, int x, int y, std::vector<Item> items) {
+void show(void* identifier, float x, float y, std::vector<Item> items) {
     state.open = true;
     state.identifier = identifier;
     state.action_pressing = -1;
     state.action = -1;
-    state.x = view.x + x;
-    state.y = view.y + y;
+    to_global_position(&state.x, &state.y, x, y);
     state.items = std::move(items);
 
-    post_empty_message();
+    repaint();
 }
 
 }

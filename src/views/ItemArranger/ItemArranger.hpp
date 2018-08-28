@@ -9,7 +9,7 @@
 #ifndef ddui_ItemArranger_hpp
 #define ddui_ItemArranger_hpp
 
-#include <ddui/ddui>
+#include <ddui/core>
 #include <string>
 #include <vector>
 

@@ -6,30 +6,28 @@
 //  Copyright © 2018 Bartholomew Joyce All rights reserved.
 //
 
-#include "timer.hpp"
+#include "core.hpp"
 #include <chrono>
 #include <thread>
+#include <vector>
 #include <mutex>
-#include "app.hpp"
-
-namespace timer {
 
 static int schedule_timer(std::function<void()> callback, long duration_in_ms, bool repeat);
 static void clear_timer(int timer_id);
 
-int set_timeout(std::function<void()> callback, long time_in_ms) {
+int ddui::timer::set_timeout(std::function<void()> callback, long time_in_ms) {
     return schedule_timer(std::move(callback), time_in_ms, false);
 }
 
-void clear_timeout(int timeout_id) {
+void ddui::timer::clear_timeout(int timeout_id) {
     clear_timer(timeout_id);
 }
 
-int set_interval(std::function<void()> callback, long time_in_ms) {
+int ddui::timer::set_interval(std::function<void()> callback, long time_in_ms) {
     return schedule_timer(std::move(callback), time_in_ms, true);
 }
 
-void clear_interval(int interval_id) {
+void ddui::timer::clear_interval(int interval_id) {
     clear_timer(interval_id);
 }
 
@@ -57,7 +55,7 @@ static std::vector<Timer> timers;
 static int next_timer_id;
 static std::chrono::high_resolution_clock::time_point thread_wake_time;
 
-void init() {
+void timer_init() {
     next_timer_id = 1;
     std::thread(run_thread).detach();
 }
@@ -72,10 +70,10 @@ void run_thread() {
         for (auto& timer : timers) {
             if (timer.due_time <= current_time) {
                 if (timer.repeat) {
-                    app::set_immediate(timer.callback);
+                    ddui::set_immediate(timer.callback);
                     timer.due_time = timer.due_time + timer.duration;
                 } else {
-                    app::set_immediate(std::move(timer.callback));
+                    ddui::set_immediate(std::move(timer.callback));
                     timer.erase = true;
                 }
             }
@@ -139,6 +137,4 @@ void clear_timer(int timer_id) {
             break;
         }
     }
-}
-
 }
