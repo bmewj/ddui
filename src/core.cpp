@@ -353,36 +353,36 @@ void set_immediate(std::function<void()> callback) {
 
 // Color utils
 Color rgb(unsigned char r, unsigned char g, unsigned char b) {
-    return Color {
-        .r = r / (float)0xff,
-        .g = g / (float)0xff,
-        .b = b / (float)0xff,
-        .a = 1.0
-    };
+    Color color;
+    color.r = r / (float)0xff;
+    color.g = g / (float)0xff;
+    color.b = b / (float)0xff;
+    color.a = 1.0;
+    return color;
 }
 Color rgb(unsigned int rgb) {
-    return Color {
-        .r = ((rgb >> 16) & 0xff) / (float)0xff,
-        .g = ((rgb >>  8) & 0xff) / (float)0xff,
-        .b = ((rgb >>  0) & 0xff) / (float)0xff,
-        .a = 1.0
-    };
+    Color color;
+    color.r = ((rgb >> 16) & 0xff) / (float)0xff;
+    color.g = ((rgb >>  8) & 0xff) / (float)0xff;
+    color.b = ((rgb >>  0) & 0xff) / (float)0xff;
+    color.a = 1.0;
+    return color;
 }
 Color rgba(unsigned char r, unsigned char g, unsigned char b, float a) {
-    return Color {
-        .r = r / (float)0xff,
-        .g = g / (float)0xff,
-        .b = b / (float)0xff,
-        .a = a
-    };
+    Color color;
+    color.r = r / (float)0xff;
+    color.g = g / (float)0xff;
+    color.b = b / (float)0xff;
+    color.a = a;
+    return color;
 }
 Color rgba(unsigned int rgb, float a) {
-    return Color {
-        .r = ((rgb >> 16) & 0xff) / (float)0xff,
-        .g = ((rgb >>  8) & 0xff) / (float)0xff,
-        .b = ((rgb >>  0) & 0xff) / (float)0xff,
-        .a = a
-    };
+    Color color;
+    color.r = ((rgb >> 16) & 0xff) / (float)0xff;
+    color.g = ((rgb >>  8) & 0xff) / (float)0xff;
+    color.b = ((rgb >>  0) & 0xff) / (float)0xff;
+    color.a = a;
+    return color;
 }
 
 // State Handling
@@ -418,31 +418,19 @@ void shape_anti_alias(bool enabled) {
 }
 
 void stroke_color(Color color) {
-    nvgStrokeColor(vg, NVGcolor {
-        .r = color.r,
-        .g = color.g,
-        .b = color.b,
-        .a = color.a
-    });
+    nvgStrokeColor(vg, *(NVGcolor*)&color);
 }
 
 void stroke_paint(Paint paint) {
-    auto nvg_paint = *((NVGpaint*)&paint);
-    nvgStrokePaint(vg, nvg_paint);
+    nvgStrokePaint(vg, *(NVGpaint*)&paint);
 }
 
 void fill_color(Color color) {
-    nvgFillColor(vg, NVGcolor {
-        .r = color.r,
-        .g = color.g,
-        .b = color.b,
-        .a = color.a
-    });
+    nvgFillColor(vg, *(NVGcolor*)&color);
 }
 
 void fill_paint(Paint paint) {
-    auto nvg_paint = *((NVGpaint*)&paint);
-    nvgFillPaint(vg, nvg_paint);
+    nvgFillPaint(vg, *(NVGpaint*)&paint);
 }
 
 void miter_limit(float limit) {
@@ -520,29 +508,29 @@ void current_transform(float* xform) {
 
 // Paints
 Paint linear_gradient(float sx, float sy, float ex, float ey, Color icol, Color ocol) {
-    auto nvg_icol = *((NVGcolor*)&icol);
-    auto nvg_ocol = *((NVGcolor*)&ocol);
+    auto nvg_icol = *(NVGcolor*)&icol;
+    auto nvg_ocol = *(NVGcolor*)&ocol;
     auto nvg_paint = nvgLinearGradient(vg, sx, sy, ex, ey, nvg_icol, nvg_ocol);
-    return *((Paint*)&nvg_paint);
+    return *(Paint*)&nvg_paint;
 }
 
 Paint box_gradient(float x, float y, float w, float h, float r, float f, Color icol, Color ocol) {
-    auto nvg_icol = *((NVGcolor*)&icol);
-    auto nvg_ocol = *((NVGcolor*)&ocol);
+    auto nvg_icol = *(NVGcolor*)&icol;
+    auto nvg_ocol = *(NVGcolor*)&ocol;
     auto nvg_paint = nvgBoxGradient(vg, x, y, w, h, r, f, nvg_icol, nvg_ocol);
-    return *((Paint*)&nvg_paint);
+    return *(Paint*)&nvg_paint;
 }
 
 Paint radial_gradient(float cx, float cy, float inr, float outr, Color icol, Color ocol) {
-    auto nvg_icol = *((NVGcolor*)&icol);
-    auto nvg_ocol = *((NVGcolor*)&ocol);
+    auto nvg_icol = *(NVGcolor*)&icol;
+    auto nvg_ocol = *(NVGcolor*)&ocol;
     auto nvg_paint = nvgRadialGradient(vg, cx, cy, inr, outr, nvg_icol, nvg_ocol);
-    return *((Paint*)&nvg_paint);
+    return *(Paint*)&nvg_paint;
 }
 
 Paint image_pattern(float ox, float oy, float ex, float ey, float angle, int image, float alpha) {
     auto nvg_paint = nvgImagePattern(vg, ox, oy, ex, ey, angle, image, alpha);
-    return *((Paint*)&nvg_paint);
+    return *(Paint*)&nvg_paint;
 }
 
 // Clipping
