@@ -501,8 +501,6 @@ void current_transform(float* xform) {
     nvgCurrentTransform(vg, xform);
 }
 
-// ...
-
 // Images
 // ...
 
