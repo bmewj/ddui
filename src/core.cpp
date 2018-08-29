@@ -384,6 +384,14 @@ Color rgba(unsigned int rgb, float a) {
     color.a = a;
     return color;
 }
+Color color_interpolate(Color a, Color b, float ratio) {
+    Color color;
+    color.r = a.r + ratio * (b.r - a.r);
+    color.g = a.g + ratio * (b.g - a.g);
+    color.b = a.b + ratio * (b.b - a.b);
+    color.a = a.a + ratio * (b.a - a.a);
+    return color;
+}
 
 // State Handling
 void save() {
@@ -534,6 +542,13 @@ Paint image_pattern(float ox, float oy, float ex, float ey, float angle, int ima
 // Clipping
 void clip(float x, float y, float width, float height) {
     nvgIntersectScissor(vg, x, y, width, height);
+}
+
+static NVGscissor* get_scissor();
+void get_clip_dimensions(float* width, float* height) {
+    auto scissor = get_scissor();
+    *width  = scissor->extent[0] * 2.0;
+    *height = scissor->extent[1] * 2.0;
 }
 
 // Paths

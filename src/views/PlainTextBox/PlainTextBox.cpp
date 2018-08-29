@@ -142,6 +142,7 @@ void update(PlainTextBoxState* state) {
     
     // Dispose of clip region
     restore();
+    restore();
 
     // Initiate selection by mouse dragging
     if (mouse_hit(0, 0, view.width, state->height)) {

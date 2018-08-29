@@ -20,8 +20,6 @@ struct OverlayState {
 };
 
 static std::vector<OverlayState> overlay_stack;
-static MouseState empty_mouse = { 0 };
-static KeyState empty_key = { 0 };
 
 void update(std::function<void()> inner_update) {
 
@@ -36,6 +34,8 @@ void update(std::function<void()> inner_update) {
     if (!overlay_stack.empty()) {
         mouse_state = { 0 };
         key_state = { 0 };
+        mouse_state.x = -1;
+        mouse_state.y = -1;
     }
 
     // Save current identifiers to compare

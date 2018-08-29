@@ -106,15 +106,19 @@ void update_overlay(OverlayBoxState* state) {
         rounded_rect(0, 0, overlay_width, overlay_height, style::BORDER_RADIUS);
         fill_color(style::BACKGROUND_COLOR);
         fill();
-        
+
         // Border outline
         stroke_color(style::BORDER_COLOR);
         stroke_width(style::BORDER_WIDTH);
         stroke();
 
         // Content
+        auto old_max_height = state->max_height;
         state->update_content();
         state->update_content = std::function<void()>();
+        if (old_max_height != state->max_height) {
+            repaint();
+        }
 
     }
     restore();

@@ -9,10 +9,8 @@
 #ifndef ddui_draw_text_in_box_hpp
 #define ddui_draw_text_in_box_hpp
 
-#include <nanovg.h>
-
-void draw_text_in_box(NVGcontext* vg, int x, int y, int width, int height, const char* content);
-void draw_centered_text_in_box(NVGcontext* vg, int x, int y, int width, int height, const char* content);
-int truncate_text(NVGcontext* vg, int width, int strlen, char* dst, const char* src);
+void draw_text_in_box(float x, float y, float width, float height, const char* content);
+void draw_centered_text_in_box(float x, float y, float width, float height, const char* content);
+int truncate_text(float width, int strlen, char* dst, const char* src);
 
 #endif

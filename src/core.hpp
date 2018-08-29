@@ -244,6 +244,7 @@ Color rgb(unsigned char r, unsigned char g, unsigned char b);
 Color rgb(unsigned int rgb);
 Color rgba(unsigned char r, unsigned char g, unsigned char b, float a);
 Color rgba(unsigned int rgb, float a);
+Color color_interpolate(Color a, Color b, float ratio);
 
 // State Handling
 struct Viewport {
@@ -293,6 +294,7 @@ Paint image_pattern(float ox, float oy, float ex, float ey, float angle, int ima
 
 // Clipping
 void clip(float x, float y, float width, float height);
+void get_clip_dimensions(float* width, float* height);
 
 // Paths
 void begin_path();
