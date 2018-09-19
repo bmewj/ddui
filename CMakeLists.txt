@@ -12,7 +12,6 @@ list(APPEND ddui_ASSETS
 )
 set(ddui_ASSETS ${ddui_ASSETS} PARENT_SCOPE)
 set(ddui_MACOSX_BUNDLE ${CMAKE_CURRENT_SOURCE_DIR}/assets/MacOSXBundleInfo.plist.in PARENT_SCOPE)
-#add_definitions(-DFONS_USE_FREETYPE)
 
 if(NOT DEFINED ddui_GL_VERSION)
     if(APPLE)
@@ -30,8 +29,6 @@ set(GLFW_BUILD_TESTS OFF CACHE BOOL "build tests")
 
 add_subdirectory(lib/glfw)
 
-find_package(Freetype REQUIRED)
-
 set(CMAKE_C_FLAGS "-std=gnu99")
 
 add_library(ddui ${ddui_SOURCES})
@@ -41,7 +38,6 @@ target_include_directories(ddui PUBLIC
     lib/nanovg/src
     lib/glfw/include
     lib/gl3w/include
-    ${FREETYPE_INCLUDE_DIRS}
 )
 
 if(APPLE)
@@ -66,5 +62,4 @@ endif()
 target_link_libraries(ddui
     glfw
     ${EXTRA_LIBS}
-    ${FREETYPE_LIBRARIES}
 )

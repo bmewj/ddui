@@ -1,6 +1,8 @@
 list(APPEND ddui_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/core.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/app.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/app.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/init.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/glfw.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/animation.hpp

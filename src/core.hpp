@@ -15,12 +15,7 @@ namespace ddui {
 
 // Types
 struct Color {
-    union {
-        float rgba[4];
-        struct {
-            float r,g,b,a;
-        };
-    };
+    float r, g, b, a;
 };
 struct Paint {
     float xform[6];
@@ -260,37 +255,33 @@ void reset();
 void sub_view(float x, float y, float width, float height);
 
 // Render styles
-void shape_anti_alias(bool enabled);
+// void shape_anti_alias(bool enabled);
 void stroke_color(Color color);
 void stroke_paint(Paint paint);
 void fill_color(Color color);
 void fill_paint(Paint paint);
-void miter_limit(float limit);
+// void miter_limit(float limit);
 void stroke_width(float size);
-void line_cap(int cap);
-void line_join(int join);
+// void line_cap(int cap);
+// void line_join(int join);
 void global_alpha(float alpha);
 
 // Transforms
 void reset_transform();
-void transform(float a, float b, float c, float d, float e, float f);
+// void transform(float a, float b, float c, float d, float e, float f);
 void translate(float x, float y);
 void rotate(float angle);
-void skew_x(float angle);
-void skew_y(float angle);
+// void skew_x(float angle);
+// void skew_y(float angle);
 void scale(float x, float y);
 void to_global_position(float* gx, float* gy, float x, float y);
 void from_global_position(float* x, float* y, float gx, float gy);
-// ...
-
-// Images
-// ...
 
 // Paints
 Paint linear_gradient(float sx, float sy, float ex, float ey, Color icol, Color ocol);
 Paint box_gradient(float x, float y, float w, float h, float r, float f, Color icol, Color ocol);
-Paint radial_gradient(float cx, float cy, float inr, float outr, Color icol, Color ocol);
-Paint image_pattern(float ox, float oy, float ex, float ey, float angle, int image, float alpha);
+// Paint radial_gradient(float cx, float cy, float inr, float outr, Color icol, Color ocol);
+// Paint image_pattern(float ox, float oy, float ex, float ey, float angle, int image, float alpha);
 
 // Clipping
 void clip(float x, float y, float width, float height);
@@ -317,9 +308,6 @@ void stroke();
 // Text
 int create_font(const char* name, const char* filename);
 void font_size(float size);
-// void font_blur(float blur);
-// void text_letter_spacing(float spacing);
-// void text_line_height(float lineHeight);
 void text_align(int align);
 void font_face(const char* font);
 float text(float x, float y, const char* string, const char* end);
@@ -328,7 +316,6 @@ float text_bounds(float x, float y, const char* string, const char* end, float* 
 void text_box_bounds(float x, float y, float breakRowWidth, const char* string, const char* end, float* bounds);
 int text_glyph_positions(float x, float y, const char* string, const char* end, GlyphPosition* positions, int maxPositions);
 void text_metrics(float* ascender, float* descender, float* lineh);
-// int text_break_lines(const char* string, const char* end, float breakRowWidth, NVGtextRow* rows, int maxRows);
 
 // Mouse state
 extern MouseState mouse_state;
