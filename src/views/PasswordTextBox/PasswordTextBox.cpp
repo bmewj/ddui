@@ -16,6 +16,7 @@ using namespace ddui;
 
 PasswordTextBoxState::PasswordTextBoxState() {
     current_version_count = -1;
+    scroll_x = 0;
 }
 
 void update(PasswordTextBoxState* state) {

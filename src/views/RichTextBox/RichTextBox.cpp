@@ -16,6 +16,7 @@ using namespace ddui;
 
 RichTextBoxState::RichTextBoxState() {
     current_version_count = -1;
+    scroll_x = 0;
 }
 
 static void apply_rich_text_commands(TextEdit::Model* model, KeyState* key);

@@ -16,6 +16,7 @@ using namespace ddui;
 
 PlainTextBoxState::PlainTextBoxState() {
     current_version_count = -1;
+    scroll_x = 0;
 }
 
 void update(PlainTextBoxState* state) {

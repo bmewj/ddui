@@ -106,6 +106,7 @@ void update_content(PromptBoxState* state) {
     // Plain Text Box
     sub_view(PADDING, y + MESSAGE_SIZE * 3, view.width - 2 * PADDING, view.height);
     PlainTextBox::update(&state->text_box);
+    restore();
 
     // Register Buttons as Focus Groups
     for (auto& button : state->button_set) {
