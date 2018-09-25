@@ -221,8 +221,6 @@ void show(void* identifier, float x, float y, std::vector<Item> items) {
     state.action = -1;
     to_global_position(&state.x, &state.y, x, y);
     state.items = std::move(items);
-
-    repaint();
 }
 
 }
