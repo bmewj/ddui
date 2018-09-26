@@ -71,6 +71,8 @@ bool init_window(GLFWwindow* window, std::function<void()> update_proc) {
     }
 
     ddui::set_post_empty_message_proc(glfwPostEmptyEvent);
+    ddui::set_get_clipboard_string_proc(std::bind(glfwGetClipboardString, window));
+    ddui::set_set_clipboard_string_proc(std::bind(glfwSetClipboardString, window, std::placeholders::_1));
     ddui::set_set_cursor_proc(std::bind(set_window_cursor, window, std::placeholders::_1));
 
     if (!cursors_initialised) {
