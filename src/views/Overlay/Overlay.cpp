@@ -72,7 +72,6 @@ void update(std::function<void()> inner_update) {
             key_state = original_key_state;
         }
         overlay.inner_update();
-        overlay.inner_update = std::function<void()>();
         
     }
 
@@ -82,6 +81,11 @@ void update(std::function<void()> inner_update) {
 
         overlay_stack.pop_back();
         repaint();
+    }
+
+    // Reset all inner updates
+    for (auto& overlay : overlay_stack) {
+        overlay.inner_update = std::function<void()>();
     }
 
 }
