@@ -16,12 +16,21 @@ using namespace ddui;
 struct OverlayState {
     void* identifier = NULL;
     bool active;
+    bool should_close;
     std::function<void()> inner_update;
 };
 
 static std::vector<OverlayState> overlay_stack;
 
 void update(std::function<void()> inner_update) {
+
+    // Close overlays that should close
+    for (int i = 0; i < overlay_stack.size(); ++i) {
+        if (overlay_stack[i].should_close) {
+            overlay_stack.erase(overlay_stack.begin() + i, overlay_stack.end());
+            break;
+        }
+    }
 
     // All overlays start out inactive (to detect closes of overlays)
     for (auto& overlay : overlay_stack) {
@@ -72,6 +81,7 @@ void update(std::function<void()> inner_update) {
             key_state = original_key_state;
         }
         overlay.inner_update();
+        overlay.inner_update = std::function<void()>();
         
     }
 
@@ -83,9 +93,13 @@ void update(std::function<void()> inner_update) {
         repaint();
     }
 
-    // Reset all inner updates
-    for (auto& overlay : overlay_stack) {
-        overlay.inner_update = std::function<void()>();
+    // Close overlays that should close
+    for (int i = 0; i < overlay_stack.size(); ++i) {
+        if (overlay_stack[i].should_close) {
+            overlay_stack.erase(overlay_stack.begin() + i, overlay_stack.end());
+            repaint();
+            return;
+        }
     }
 
 }
@@ -107,6 +121,7 @@ void open(void* identifier) {
     OverlayState overlay;
     overlay.identifier = identifier;
     overlay.active = false;
+    overlay.should_close = false;
     overlay_stack.push_back(overlay);
 
 }
@@ -115,7 +130,8 @@ void close(void* identifier) {
 
     for (int i = 0; i < overlay_stack.size(); ++i) {
         if (overlay_stack[i].identifier == identifier) {
-            overlay_stack.erase(overlay_stack.begin() + i, overlay_stack.end());
+            overlay_stack[i].should_close = true;
+            repaint();
             return;
         }
     }
