@@ -80,8 +80,17 @@ void update_content(MessageBoxState* state) {
         }
     }
     
+    // Clicking in the box doesn't dismiss the message
     if (mouse_hit(0, 0, view.width, view.height)) {
         mouse_hit_accept();
+    }
+
+    // Pressing escape dismisses the box
+    if (state->can_dismiss &&
+        has_key_event() &&
+        key_state.action == keyboard::ACTION_PRESS &&
+        key_state.key == keyboard::KEY_ESCAPE) {
+        close(state);
     }
 
 }
