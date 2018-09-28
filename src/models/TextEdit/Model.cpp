@@ -427,12 +427,12 @@ void apply_keyboard_input(Model* model, KeyState* key_state) {
     if (key_state->key == keyboard::KEY_LEFT) {
         auto& sel = model->selection;
         
-        if (range_is_selected && !(key_state->mods & (keyboard::MOD_SUPER | keyboard::MOD_SHIFT))) {
+        if (range_is_selected && !(key_state->mods & (keyboard::MOD_COMMAND | keyboard::MOD_SHIFT))) {
             if (sel.b_line > sel.a_line || (sel.b_line == sel.a_line && sel.b_index > sel.a_index)) {
                 sel.b_line = sel.a_line;
                 sel.b_index = sel.a_index;
             }
-        } else if (key_state->mods & keyboard::MOD_SUPER) {
+        } else if (key_state->mods & keyboard::MOD_COMMAND) {
             sel.b_index = 0;
         } else if (sel.b_index - 1 >= 0) {
             sel.b_index -= 1;;
@@ -455,12 +455,12 @@ void apply_keyboard_input(Model* model, KeyState* key_state) {
         auto& sel = model->selection;
         auto line_length = model->lines[sel.b_line].characters.size();
         
-        if (range_is_selected && !(key_state->mods & (keyboard::MOD_SUPER | keyboard::MOD_SHIFT))) {
+        if (range_is_selected && !(key_state->mods & (keyboard::MOD_COMMAND | keyboard::MOD_SHIFT))) {
             if (sel.b_line < sel.a_line || (sel.b_line == sel.a_line && sel.b_index < sel.a_index)) {
                 sel.b_line = sel.a_line;
                 sel.b_index = sel.a_index;
             }
-        } else if (key_state->mods & keyboard::MOD_SUPER) {
+        } else if (key_state->mods & keyboard::MOD_COMMAND) {
             sel.b_index = line_length;
         } else if (sel.b_index + 1 <= line_length) {
             sel.b_index += 1;
@@ -576,7 +576,7 @@ void apply_keyboard_input(Model* model, KeyState* key_state) {
         *key_state = { 0 };
     }
     
-    if (key_state->key == keyboard::KEY_V && (key_state->mods & keyboard::MOD_SUPER)) {
+    if (key_state->key == keyboard::KEY_V && (key_state->mods & keyboard::MOD_COMMAND)) {
         auto& sel = model->selection;
         delete_range(model, sel);
         
@@ -598,7 +598,7 @@ void apply_keyboard_input(Model* model, KeyState* key_state) {
         *key_state = { 0 };
     }
     
-    if (key_state->key == keyboard::KEY_C && (key_state->mods & keyboard::MOD_SUPER)) {
+    if (key_state->key == keyboard::KEY_C && (key_state->mods & keyboard::MOD_COMMAND)) {
         if (range_is_selected) {
             auto copied_string = get_text_content(model, model->selection);
             set_clipboard_string(copied_string.get());
@@ -607,7 +607,7 @@ void apply_keyboard_input(Model* model, KeyState* key_state) {
         }
     }
     
-    if (key_state->key == keyboard::KEY_X && (key_state->mods & keyboard::MOD_SUPER)) {
+    if (key_state->key == keyboard::KEY_X && (key_state->mods & keyboard::MOD_COMMAND)) {
         if (range_is_selected) {
             auto& sel = model->selection;
             

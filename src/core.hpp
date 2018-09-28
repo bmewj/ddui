@@ -54,6 +54,8 @@ namespace keyboard {
     constexpr int MOD_CONTROL = 0x0002;
     constexpr int MOD_ALT     = 0x0004;
     constexpr int MOD_SUPER   = 0x0008;
+    
+    constexpr int MOD_COMMAND = 0x000a;
 
     constexpr int KEY_UNKNOWN = 1;
     constexpr int KEY_SPACE = 32;

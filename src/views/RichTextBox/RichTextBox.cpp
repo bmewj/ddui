@@ -181,7 +181,7 @@ void apply_rich_text_commands(TextEdit::Model* model, KeyState* key) {
         min_index = sel.a_index < sel.b_index ? sel.a_index : sel.b_index;
     }
 
-    if ((key->mods & keyboard::MOD_SUPER) &&
+    if ((key->mods & keyboard::MOD_COMMAND) &&
         (key->key == keyboard::KEY_B)) {
         
         auto& line = model->lines[min_line];
@@ -193,7 +193,7 @@ void apply_rich_text_commands(TextEdit::Model* model, KeyState* key) {
         }
     }
 
-    if ((key->mods & keyboard::MOD_SUPER) &&
+    if ((key->mods & keyboard::MOD_COMMAND) &&
         (key->mods & keyboard::MOD_SHIFT) &&
         (key->key == keyboard::KEY_EQUAL)) {
         
@@ -206,7 +206,7 @@ void apply_rich_text_commands(TextEdit::Model* model, KeyState* key) {
         }
     }
 
-    if ((key->mods & keyboard::MOD_SUPER) &&
+    if ((key->mods & keyboard::MOD_COMMAND) &&
         (key->key == keyboard::KEY_MINUS)) {
         
         auto& line = model->lines[min_line];
