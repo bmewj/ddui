@@ -6,8 +6,8 @@
 //  Copyright © 2018 Bartholomew Joyce All rights reserved.
 //
 
-#ifndef ddui_hpp
-#define ddui_hpp
+#ifndef ddui_core_hpp
+#define ddui_core_hpp
 
 #include <functional>
 
@@ -44,6 +44,11 @@ namespace direction {
     constexpr int COUNTER_CLOCKWISE = 1;
     constexpr int CLOCKWISE = 2;
 }
+
+#undef MOD_SHIFT
+#undef MOD_CONTROL
+#undef MOD_ALT
+#undef MOD_SUPER
 
 namespace keyboard {
     constexpr int ACTION_PRESS   = 1;
