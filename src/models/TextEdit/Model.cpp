@@ -450,6 +450,27 @@ void apply_keyboard_input(Model* model, KeyState* key_state) {
         
         *key_state = { 0 };
     }
+
+    if (key_state->key == keyboard::KEY_HOME) {
+        auto& sel = model->selection;
+        sel.desired_index = sel.b_index = 0;
+        if (!(key_state->mods & keyboard::MOD_SHIFT)) {
+            sel.a_index = 0;
+            sel.a_line = sel.b_line;
+        }
+        *key_state = { 0 };
+    }
+    
+    if (key_state->key == keyboard::KEY_END) {
+        auto& sel = model->selection;
+        auto line_length = model->lines[sel.b_line].characters.size();
+        sel.desired_index = sel.b_index = line_length;
+        if (!(key_state->mods & keyboard::MOD_SHIFT)) {
+            sel.a_index = line_length;
+            sel.a_line = sel.b_line;
+        }
+        *key_state = { 0 };
+    }
     
     if (key_state->key == keyboard::KEY_RIGHT) {
         auto& sel = model->selection;
@@ -511,7 +532,8 @@ void apply_keyboard_input(Model* model, KeyState* key_state) {
         *key_state = { 0 };
     }
     
-    if (key_state->key == keyboard::KEY_ENTER) {
+    if (key_state->key == keyboard::KEY_ENTER ||
+        key_state->key == keyboard::KEY_KP_ENTER) {
         auto& sel = model->selection;
         delete_range(model, sel);
         
@@ -529,16 +551,26 @@ void apply_keyboard_input(Model* model, KeyState* key_state) {
         
         *key_state = { 0 };
     }
-    
-    if (key_state->key == keyboard::KEY_BACKSPACE) {
+        
+    if (key_state->key == keyboard::KEY_BACKSPACE ||
+        key_state->key == keyboard::KEY_DELETE) {
         auto& sel = model->selection;
         
         if (!range_is_selected) {
-            if (sel.a_index > 0) {
-                sel.a_index -= 1;
-            } else if (sel.a_line > 0) {
-                sel.a_line -= 1;
-                sel.a_index = model->lines[sel.a_line].characters.size();
+            if (key_state->key == keyboard::KEY_BACKSPACE) {
+                if (sel.a_index > 0) {
+                    sel.a_index -= 1;
+                } else if (sel.a_line > 0) {
+                    sel.a_line -= 1;
+                    sel.a_index = model->lines[sel.a_line].characters.size();
+                }
+            } else {
+                if (sel.a_index < model->lines[sel.a_line].characters.size()) {
+                    sel.a_index += 1;
+                } else if (sel.a_line < model->lines.size() - 1) {
+                    sel.a_line += 1;
+                    sel.a_index = 0;
+                }
             }
         }
         
