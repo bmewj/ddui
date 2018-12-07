@@ -10,6 +10,7 @@
 #include "init.hpp"
 #include "timer.hpp"
 #include "animation.hpp"
+#include "util/get_asset_filename.hpp"
 #include <vector>
 #include <chrono>
 #include <mutex>
@@ -63,8 +64,8 @@ bool init() {
     key_state = { 0 };
     cursor_state_old = CURSOR_ARROW;
     cursor_state_new = CURSOR_ARROW;
-  
-    create_font("entypo", "assets/Entypo.ttf");
+
+    create_font("entypo", "Entypo.ttf");
     timer_init();
 
     return true;
@@ -618,7 +619,8 @@ void stroke() {
 
 // Text
 int create_font(const char* name, const char* filename) {
-    return nvgCreateFont(vg, name, filename);
+    auto asset_filename = get_asset_filename(filename);
+    return nvgCreateFont(vg, name, asset_filename.c_str());
 }
 
 void font_size(float size) {
