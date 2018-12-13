@@ -13,6 +13,8 @@
 
 #ifdef __APPLE__
 #include <AppKit/AppKit.h>
+#define GLFW_EXPOSE_NATIVE_NSGL
+#include <GLFW/glfw3native.h>
 #endif
 
 namespace ddui {
@@ -37,9 +39,9 @@ bool init_glfw() {
         printf("Failed to init GLFW.\n");
         return false;
     }
-    
+
     glfwSetErrorCallback(error_callback);
-    
+
 #ifdef __APPLE__
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
@@ -62,7 +64,7 @@ bool init_window(GLFWwindow* window, std::function<void()> update_proc) {
     glfwSetMouseButtonCallback(window, mouse_button_callback);
     glfwSetScrollCallback(window, scroll_callback);
     glfwSetWindowSizeCallback(window, window_size_callback);
-    
+
     glfwMakeContextCurrent(window);
     if (!init_gl()) {
         printf("Could not init GL3 API\n");
@@ -93,13 +95,21 @@ void update_window(GLFWwindow* window) {
     glfwGetFramebufferSize(window, &fb_width, &fb_height);
     glfwGetWindowSize(window, &win_width, &win_height);
     auto pixel_ratio = (float)fb_width / (float)win_width;
-    
+
     double xpos, ypos;
     glfwGetCursorPos(window, &xpos, &ypos);
     ddui::input_mouse_position(xpos, ypos);
-    
+
     ddui::update(win_width, win_height, pixel_ratio, *update_proc_ptr);
     glfwSwapBuffers(window);
+    
+#ifdef __APPLE__
+    static bool fixed_mac_bug = false;
+    if (!fixed_mac_bug) {
+        id nsglContext = glfwGetNSGLContext(window);
+        [nsglContext update];
+    }
+#endif
 }
 
 void get_gl_version(int* major, int* minor) {

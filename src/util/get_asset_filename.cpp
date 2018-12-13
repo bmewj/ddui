@@ -28,6 +28,7 @@ std::string get_asset_filename(std::string name) {
         asset_dir = executable_dir + "/assets/";
     #endif
 
-    return asset_dir + name;
+    std::string asset_filename = asset_dir + name;
+    return asset_filename;
 
 }

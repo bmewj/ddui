@@ -19,13 +19,13 @@ bool app_init(int window_width, int window_height, const char* title, std::funct
         printf("Failed to init GLFW.\n");
         return false;
     }
-    
+
     window = glfwCreateWindow(window_width, window_height, title, NULL, NULL);
     if (!window) {
         glfwTerminate();
         return false;
     }
-    
+
     ddui::init_window(window, update_proc);
     if (!ddui::init()) {
         printf("Could not init ddui.\n");

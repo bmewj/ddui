@@ -222,11 +222,16 @@ void update(float width, float height, float pixel_ratio, std::function<void()> 
 void update_pre(float width, float height, float pixel_ratio) {
 
     // Process all set_immediate callbacks
-    set_immediate_mutex.lock();
-    auto callbacks = std::move(set_immediate_callbacks);
-    set_immediate_mutex.unlock();
-    for (auto& callback : callbacks) {
-        callback();
+    while (true) {
+        set_immediate_mutex.lock();
+        auto callbacks = std::move(set_immediate_callbacks);
+        set_immediate_mutex.unlock();
+        for (auto& callback : callbacks) {
+            callback();
+        }
+        if (callbacks.empty()) {
+            break;
+        }
     }
 
     // Let the animation system know that a new frame is being generated
@@ -274,10 +279,10 @@ void update_post() {
             consume_key_event();
         }
     }
-    
+
     focus_state.focus_old = focus_state.focus_new;
     focus_state.focus_new = NULL;
-    
+
     int group_index = -1;
     for (int i = 0; i < focus_state.groups.size(); ++i) {
         if (focus_state.groups[i] == focus_state.focus_old) {
@@ -285,7 +290,7 @@ void update_post() {
             break;
         }
     }
-    
+
     switch (focus_state.action) {
         case FocusState::NO_CHANGE:
             if (group_index != -1) {
@@ -317,7 +322,7 @@ void update_post() {
         case FocusState::BLUR:
             break;
     }
-    
+
     if (focus_state.focus_old != focus_state.focus_new ||
         !key_state_queue.empty()) {
         repaint();
