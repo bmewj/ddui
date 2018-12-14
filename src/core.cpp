@@ -11,8 +11,8 @@
 #include "timer.hpp"
 #include "animation.hpp"
 #include "util/get_asset_filename.hpp"
+#include "profiling.hpp"
 #include <vector>
-#include <chrono>
 #include <mutex>
 #include <GL3/gl3w.h>
 
@@ -185,6 +185,10 @@ static void update_post();
 
 void update(float width, float height, float pixel_ratio, std::function<void()> update_proc) {
 
+    #ifdef DDUI_PROFILING_ON
+        profiling::frame_start();
+    #endif
+
     // Setup GL frame
     auto frame_buffer_width  = (int)(width * pixel_ratio);
     auto frame_buffer_height = (int)(height * pixel_ratio);
@@ -217,6 +221,10 @@ void update(float width, float height, float pixel_ratio, std::function<void()> 
 
     nvgEndFrame(vg);
 
+    #ifdef DDUI_PROFILING_ON
+        profiling::frame_end();
+    #endif
+
 }
 
 void update_pre(float width, float height, float pixel_ratio) {
@@ -226,6 +234,9 @@ void update_pre(float width, float height, float pixel_ratio) {
         set_immediate_mutex.lock();
         auto callbacks = std::move(set_immediate_callbacks);
         set_immediate_mutex.unlock();
+        #ifdef DDUI_PROFILING_ON
+            profiling::num_set_immediates += callbacks.size();
+        #endif
         for (auto& callback : callbacks) {
             callback();
         }
@@ -265,6 +276,10 @@ void update_pre(float width, float height, float pixel_ratio) {
 }
 
 void update_post() {
+
+    #ifdef DDUI_PROFILING_ON
+        profiling::num_repaints += 1;
+    #endif
 
     mouse_state.scroll_dx = 0.0;
     mouse_state.scroll_dy = 0.0;
@@ -325,7 +340,7 @@ void update_post() {
 
     if (focus_state.focus_old != focus_state.focus_new ||
         !key_state_queue.empty()) {
-        repaint();
+        should_repaint = true;
     }
 
     if (cursor_state_old != cursor_state_new) {

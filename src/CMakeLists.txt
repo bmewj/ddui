@@ -9,6 +9,8 @@ list(APPEND ddui_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/animation.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/timer.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/timer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/profiling.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/profiling.cpp
 )
 
 if(ddui_GL_VERSION MATCHES "GL3")
