@@ -8,7 +8,7 @@
 
 #include "profiling.hpp"
 #include "core.hpp"
-#include <ddui/util/get_asset_filename>
+#include <ddui/util/get_content_filename>
 #include <string>
 #include <sstream>
 #include <iomanip>
@@ -69,7 +69,7 @@ void write_to_buffer(std::string data) {
 
         // Open file
         if (file_handle == NULL) {
-            auto filename = get_asset_filename("profiling_data.csv");
+            auto filename = get_content_filename("profiling_data.csv");
             file_handle = fopen(filename.c_str(), "a");
         }
 
