@@ -11,6 +11,7 @@
 #include <ddui/util/get_content_filename>
 #include <mutex>
 #include <string>
+#include <string.h>
 #include <sstream>
 #include <iomanip>
 
