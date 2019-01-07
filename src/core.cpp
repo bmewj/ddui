@@ -198,7 +198,6 @@ void update(float width, float height, float pixel_ratio, std::function<void()> 
 
     repaint_mutex.lock();
     is_painting = true;
-    should_repaint = false;
     repaint_mutex.unlock();
 
     while (true) {
@@ -208,13 +207,15 @@ void update(float width, float height, float pixel_ratio, std::function<void()> 
         update_post();
 
         repaint_mutex.lock();
-        if (!should_repaint) {
-            is_painting = false;
-            repaint_mutex.unlock();
+        is_painting = should_repaint;
+        repaint_mutex.unlock();
+        if (!is_painting) {
             break;
         }
-        should_repaint = false;
-        repaint_mutex.unlock();
+
+        #ifdef DDUI_PROFILING_ON
+            profiling::repaint_start();
+        #endif
 
         nvgCancelFrame(vg);
     }
@@ -244,6 +245,11 @@ void update_pre(float width, float height, float pixel_ratio) {
             break;
         }
     }
+
+    // Reset should_repaint
+    repaint_mutex.lock();
+    should_repaint = false;
+    repaint_mutex.unlock();
 
     // Let the animation system know that a new frame is being generated
     update_animation();
@@ -351,10 +357,17 @@ void update_post() {
     }
 }
 
-void repaint() {
+void repaint(const char* reason) {
     repaint_mutex.lock();
     if (is_painting) {
         should_repaint = true;
+
+        #ifdef DDUI_PROFILING_ON
+            if (reason != NULL) {
+                profiling::repaint_reason(reason);
+            }
+        #endif
+
     } else {
         if (post_empty_message_proc) {
             post_empty_message_proc();
@@ -369,7 +382,7 @@ void set_immediate(std::function<void()> callback) {
     set_immediate_mutex.lock();
     set_immediate_callbacks.push_back(std::move(callback));
     set_immediate_mutex.unlock();
-    repaint();
+    repaint(NULL);
 }
 
 // Color utils

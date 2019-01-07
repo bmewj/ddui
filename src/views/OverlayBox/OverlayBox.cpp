@@ -117,7 +117,7 @@ void update_overlay(OverlayBoxState* state) {
         state->update_content();
         state->update_content = std::function<void()>();
         if (old_max_height != state->max_height) {
-            repaint();
+            repaint("OverlayBox::update_overlay");
         }
 
     }

@@ -148,8 +148,7 @@ void scroll_into_view(ScrollAreaState* state, float x, float y, float width, flo
     state->scroll_into_view.y = y;
     state->scroll_into_view.width = width;
     state->scroll_into_view.height = height;
-    repaint();
-
+    repaint("ScrollArea::scroll_into_view");
 }
 
 }

@@ -16,6 +16,8 @@ namespace profiling {
 
 void frame_start();
 void frame_end();
+void repaint_start();
+void repaint_reason(const char* reason);
 extern int num_set_immediates;
 extern int num_repaints;
 

@@ -238,7 +238,7 @@ void input_scroll(float offset_x, float offset_y);
 
 // Frame management
 void update(float width, float height, float pixel_ratio, std::function<void()> update_proc);
-void repaint();
+void repaint(const char* reason);
 void set_immediate(std::function<void()> callback);
 
 // Color utils

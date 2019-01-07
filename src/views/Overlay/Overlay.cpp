@@ -63,14 +63,14 @@ void update(std::function<void()> inner_update) {
         
         // The overlay has changed, repaint
         if (i >= old_size || overlay.identifier != old_identifiers[i]) {
-            repaint();
+            repaint("Overlay::update(1)");
             return;
         }
         
         // The overlay hasn't got a handler, so close it
         if (!overlay.active) {
             overlay_stack.erase(overlay_stack.begin() + i, overlay_stack.end());
-            repaint();
+            repaint("Overlay::update(2)");
             return;
         }
         
@@ -91,14 +91,14 @@ void update(std::function<void()> inner_update) {
         mouse_hit_accept();
 
         overlay_stack.pop_back();
-        repaint();
+        repaint("Overlay::update(3)");
     }
 
     // Close overlays that should close
     for (int i = 0; i < overlay_stack.size(); ++i) {
         if (overlay_stack[i].should_close) {
             overlay_stack.erase(overlay_stack.begin() + i, overlay_stack.end());
-            repaint();
+            repaint("Overlay::update(4)");
             return;
         }
     }
@@ -132,7 +132,7 @@ void close(void* identifier) {
     for (int i = 0; i < overlay_stack.size(); ++i) {
         if (overlay_stack[i].identifier == identifier) {
             overlay_stack[i].should_close = true;
-            repaint();
+            repaint("Overlay::close");
             return;
         }
     }
