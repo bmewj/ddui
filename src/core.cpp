@@ -43,6 +43,8 @@ static std::mutex repaint_mutex;
 static bool is_painting, should_repaint;
 static std::mutex set_immediate_mutex;
 static std::vector<std::function<void()>> set_immediate_callbacks;
+static std::mutex set_post_update_mutex;
+static std::vector<std::function<void()>> set_post_update_callbacks;
 static Cursor cursor_state_old, cursor_state_new;
 MouseState mouse_state;
 KeyState key_state;
@@ -287,9 +289,11 @@ void update_post() {
         profiling::num_repaints += 1;
     #endif
 
+    // Reset scroll input
     mouse_state.scroll_dx = 0.0;
     mouse_state.scroll_dy = 0.0;
 
+    // Update focus group
     if (key_state.action == keyboard::ACTION_RELEASE) {
         if (key_state.key == keyboard::KEY_TAB) {
             if (key_state.mods & keyboard::MOD_SHIFT) {
@@ -349,11 +353,20 @@ void update_post() {
         should_repaint = true;
     }
 
+    // Update cursor
     if (cursor_state_old != cursor_state_new) {
         cursor_state_old  = cursor_state_new;
         if (set_cursor_proc) {
             set_cursor_proc(cursor_state_new);
         }
+    }
+
+    // Call all post_update callbacks
+    set_post_update_mutex.lock();
+    auto callbacks = std::move(set_post_update_callbacks);
+    set_post_update_mutex.unlock();
+    for (auto& callback : callbacks) {
+        callback();
     }
 }
 
@@ -383,6 +396,12 @@ void set_immediate(std::function<void()> callback) {
     set_immediate_callbacks.push_back(std::move(callback));
     set_immediate_mutex.unlock();
     repaint(NULL);
+}
+
+void set_post_update(std::function<void()> callback) {
+    set_post_update_mutex.lock();
+    set_post_update_callbacks.push_back(std::move(callback));
+    set_post_update_mutex.unlock();
 }
 
 // Color utils

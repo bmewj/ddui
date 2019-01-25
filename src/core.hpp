@@ -240,6 +240,7 @@ void input_scroll(float offset_x, float offset_y);
 void update(float width, float height, float pixel_ratio, std::function<void()> update_proc);
 void repaint(const char* reason);
 void set_immediate(std::function<void()> callback);
+void set_post_update(std::function<void()> callback);
 
 // Color utils
 Color rgb(unsigned char r, unsigned char g, unsigned char b);
