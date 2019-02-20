@@ -41,46 +41,49 @@ void draw_centered_text_in_box(float x, float y, float width, float height, cons
 }
 
 int truncate_text(float width, int strlen, char* dst, const char* src) {
-  
-    if (width <= 0) {
+
+    // Handle 0 width case
+    if (width <= 0 || strlen == 0) {
         dst[0] = '\0';
         return 0;
     }
-  
+
+    // Measure width of ...
     float bounds[4];
-  
+    ddui::text_bounds(0, 0, "...", NULL, bounds);
+    auto ellipses_width = bounds[2] - bounds[0];
+    
+    // Handle less than ... width case
+    if (width <= ellipses_width) {
+        dst[0] = '\0';
+        return 0;
+    }
+    
+    // Get glyph positions
+    ddui::GlyphPosition glyph_positions[strlen];
+    auto num_glyph_positions = ddui::text_glyph_positions(0, 0, src, NULL, glyph_positions, strlen);
+    
     strcpy(dst, src);
-    ddui::text_bounds(0, 0, src, 0, bounds);
-    auto text_width = bounds[2] - bounds[0];
-  
-    if (width >= text_width) {
-        return text_width;
+    
+    // Does the entire line fit?
+    auto text_width = glyph_positions[num_glyph_positions - 1].maxx - glyph_positions[0].minx;
+    if (text_width <= width) {
+        return text_width + 2;
     }
-  
-    int N = strlen - 1;
-  
-    strcpy(dst, src);
-    dst[N    ] = '.';
-    dst[N + 1] = '.';
-    dst[N + 2] = '.';
-    dst[N + 3] = '\0';
-    ddui::text_bounds(0, 0, dst, 0, bounds);
-    text_width = bounds[2] - bounds[0];
-  
-    while (width < text_width && N > 0) {
-        --N;
-        dst[N] = '.';
-        dst[N + 3] = '\0';
-        ddui::text_bounds(0, 0, dst, 0, bounds);
-        text_width = bounds[2] - bounds[0];
+    
+    // How much can we fit?
+    auto num_chars = num_glyph_positions;
+    for (; num_chars > 0; --num_chars) {
+        text_width = glyph_positions[num_chars - 1].maxx - glyph_positions[0].minx + ellipses_width;
+        if (text_width <= width) {
+            break;
+        }
     }
-  
-    while (width < text_width && N > -3) {
-        --N;
-        dst[N + 3] = '\0';
-        ddui::text_bounds(0, 0, dst, 0, bounds);
-        text_width = bounds[2] - bounds[0];
-    }
-  
-    return width;
+    
+    // Append the dots
+    dst[num_chars] = '.';
+    dst[num_chars+1] = '.';
+    dst[num_chars+2] = '.';
+    dst[num_chars+3] = '\0';
+    return text_width + 2;
 }
