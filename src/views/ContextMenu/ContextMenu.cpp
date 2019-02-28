@@ -86,6 +86,10 @@ void update(std::function<void()> inner_update) {
             state.open = false;
             state.action = -1;
         }
+        
+        // Adjust x, y for scrolling
+        x -= state.scroll_area_state.scroll_x;
+        y -= state.scroll_area_state.scroll_y;
 
         // Handle item press
         y += PADDING_TOP;
@@ -103,20 +107,20 @@ void update(std::function<void()> inner_update) {
         if (!mouse_state.pressed && state.action_pressing != -1) {
             state.open = false;
 
-            int y = state.y + PADDING_TOP + state.action_pressing * ITEM_HEIGHT;
+            auto y = state.y + PADDING_TOP + state.action_pressing * ITEM_HEIGHT - state.scroll_area_state.scroll_y;
             if (mouse_over(x, y, menu_width, ITEM_HEIGHT)) {
                 state.action = state.action_pressing;
             } else {
                 state.action = -1;
             }
         }
-      
+
         // Handle border clicking
         if (mouse_hit(x, state.y, menu_width, menu_height)) {
             mouse_hit_accept();
             state.action_pressing = -1;
         }
-      
+
     }
 
     // Step 2. Draw child content
@@ -129,7 +133,7 @@ void update(std::function<void()> inner_update) {
         if (width > menu_width) {
             width = menu_width;
         }
-      
+
         auto height = view.height - state.y;
         if (height > menu_height) {
             height = menu_height;
