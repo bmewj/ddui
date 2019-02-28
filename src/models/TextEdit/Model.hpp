@@ -71,6 +71,7 @@ struct Model {
 void set_text_content(Model* model, const char* content);
 void insert_text_content(Model* model, int* line, int* index, const char* content);
 std::unique_ptr<char[]> get_text_content(Model* model, Selection selection);
+std::unique_ptr<char[]> get_text_content(Model* model);
 
 void set_style(Model* model, bool font_bold, float text_size, ddui::Color text_color);
 void apply_style(Model* model, Selection selection, StyleCommand style);

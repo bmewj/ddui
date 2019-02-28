@@ -296,6 +296,20 @@ std::unique_ptr<char[]> get_text_content(Model* model, Selection selection) {
     }
 }
 
+std::unique_ptr<char[]> get_text_content(Model* model) {
+
+    // Select all
+    Selection selection;
+    selection.a_line = 0;
+    selection.a_index = 0;
+    selection.b_line = model->lines.size() - 1;
+    selection.b_index = model->lines.back().characters.size();
+
+    // Return the text content
+    return get_text_content(model, selection);
+
+}
+
 #define MAX(a, b) (a > b ? a : b)
 #define MIN(a, b) (a < b ? a : b)
 
