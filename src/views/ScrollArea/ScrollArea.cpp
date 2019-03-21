@@ -12,7 +12,8 @@ namespace ScrollArea {
 
 using namespace ddui;
 
-constexpr int BAR_WIDTH = 10;
+constexpr float BAR_WIDTH = 10;
+constexpr float SMALLEST_BAR_LENGTH = 20;
 
 #define LIMIT(l, x, u)\
     if (x > u) x = u;\
@@ -75,16 +76,28 @@ void update(ScrollAreaState* state, float inner_width, float inner_height, std::
 
     // Calculate scrollbar sizes
     bool show_h_bar = (container_width < inner_width);
-    int h_bar_x = (state->scroll_x * container_width) / inner_width;
-    int h_bar_y = container_height - BAR_WIDTH;
-    int h_bar_w = (container_width * container_width) / inner_width;
-    int h_bar_h = BAR_WIDTH;
+    auto h_bar_x = (state->scroll_x * container_width) / inner_width;
+    auto h_bar_y = container_height - BAR_WIDTH;
+    auto h_bar_w = (container_width * container_width) / inner_width;
+    auto h_bar_h = BAR_WIDTH;
+    if (h_bar_w < SMALLEST_BAR_LENGTH) {
+        auto length = h_bar_w;
+        h_bar_w = (container_width < SMALLEST_BAR_LENGTH) ? 0.8 * container_width : SMALLEST_BAR_LENGTH;
+        h_bar_x -= 0.5 * (h_bar_w - length);
+        LIMIT(0, h_bar_x, container_width - h_bar_w);
+    }
   
     bool show_v_bar = (container_height < inner_height);
-    int v_bar_x = container_width - BAR_WIDTH;
-    int v_bar_y = (state->scroll_y * container_height) / inner_height;
-    int v_bar_w = BAR_WIDTH;
-    int v_bar_h = (container_height * container_height) / inner_height;
+    auto v_bar_x = container_width - BAR_WIDTH;
+    auto v_bar_y = (state->scroll_y * container_height) / inner_height;
+    auto v_bar_w = BAR_WIDTH;
+    auto v_bar_h = (container_height * container_height) / inner_height;
+    if (v_bar_h < SMALLEST_BAR_LENGTH) {
+        auto length = v_bar_h;
+        v_bar_h = (container_height < SMALLEST_BAR_LENGTH) ? 0.8 * container_height : SMALLEST_BAR_LENGTH;
+        v_bar_y -= 0.5 * (v_bar_h - length);
+        LIMIT(0, v_bar_y, container_height - v_bar_h);
+    }
   
     // Scroll bar hovering/dragging
     if (show_h_bar && mouse_hit(h_bar_x, h_bar_y, h_bar_w, h_bar_h)) {
