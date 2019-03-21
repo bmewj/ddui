@@ -86,7 +86,7 @@ void update(ScrollAreaState* state, float inner_width, float inner_height, std::
         h_bar_x -= 0.5 * (h_bar_w - length);
         LIMIT(0, h_bar_x, container_width - h_bar_w);
     }
-  
+
     bool show_v_bar = (container_height < inner_height);
     auto v_bar_x = container_width - BAR_WIDTH;
     auto v_bar_y = (state->scroll_y * container_height) / inner_height;
@@ -98,7 +98,7 @@ void update(ScrollAreaState* state, float inner_width, float inner_height, std::
         v_bar_y -= 0.5 * (v_bar_h - length);
         LIMIT(0, v_bar_y, container_height - v_bar_h);
     }
-  
+
     // Scroll bar hovering/dragging
     if (show_h_bar && mouse_hit(h_bar_x, h_bar_y, h_bar_w, h_bar_h)) {
         mouse_hit_accept();
@@ -108,7 +108,7 @@ void update(ScrollAreaState* state, float inner_width, float inner_height, std::
     if (state->is_dragging_horizontal_bar && !mouse_state.pressed) {
         state->is_dragging_horizontal_bar = false;
     }
-  
+
     if (show_v_bar && mouse_hit(v_bar_x, v_bar_y, v_bar_w, v_bar_h)) {
         mouse_hit_accept();
         state->is_dragging_vertical_bar = true;
@@ -117,7 +117,7 @@ void update(ScrollAreaState* state, float inner_width, float inner_height, std::
     if (state->is_dragging_vertical_bar && !mouse_state.pressed) {
         state->is_dragging_vertical_bar = false;
     }
-  
+
     // Draw the content
     save();
     clip(0, 0, container_width, container_height);
@@ -127,7 +127,7 @@ void update(ScrollAreaState* state, float inner_width, float inner_height, std::
     update_inner();
     restore();
     restore();
-  
+
     // Draw scroll bars
     if (show_h_bar) {
         auto color = rgba(0x000000, 0.3);
