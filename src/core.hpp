@@ -186,6 +186,15 @@ namespace keyboard {
     constexpr int KEY_LAST = KEY_MENU;
 }
 
+namespace image {
+    constexpr int GENERATE_MIPMAPS = 1<<0; // Generate mipmaps during creation of the image.
+    constexpr int REPEAT_X         = 1<<1; // Repeat image in X direction.
+    constexpr int REPEAT_Y         = 1<<2; // Repeat image in Y direction.
+    constexpr int FLIP_Y           = 1<<3; // Flips (inverses) image in Y direction when rendered.
+    constexpr int PREMULTIPLIED    = 1<<4; // Image data has premultiplied alpha.
+    constexpr int NEAREST          = 1<<5; // Image interpolation is Nearest instead Linear
+}
+
 struct GlyphPosition {
     const char* str;    // Position of the glyph in the input string.
     float x;            // The x-coordinate of the logical glyph position.
@@ -285,11 +294,14 @@ void scale(float x, float y);
 void to_global_position(float* gx, float* gy, float x, float y);
 void from_global_position(float* x, float* y, float gx, float gy);
 
+// Images
+int create_image_from_rgba(int w, int h, int image_flags, const unsigned char* data);
+
 // Paints
 Paint linear_gradient(float sx, float sy, float ex, float ey, Color icol, Color ocol);
 Paint box_gradient(float x, float y, float w, float h, float r, float f, Color icol, Color ocol);
-// Paint radial_gradient(float cx, float cy, float inr, float outr, Color icol, Color ocol);
-// Paint image_pattern(float ox, float oy, float ex, float ey, float angle, int image, float alpha);
+Paint radial_gradient(float cx, float cy, float inr, float outr, Color icol, Color ocol);
+Paint image_pattern(float ox, float oy, float ex, float ey, float angle, int image, float alpha);
 
 // Clipping
 void clip(float x, float y, float width, float height);

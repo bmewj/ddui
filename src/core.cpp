@@ -563,7 +563,9 @@ void current_transform(float* xform) {
 }
 
 // Images
-// ...
+int create_image_from_rgba(int w, int h, int image_flags, const unsigned char* data) {
+    return nvgCreateImageRGBA(vg, w, h, image_flags, data);
+}
 
 // Paints
 Paint linear_gradient(float sx, float sy, float ex, float ey, Color icol, Color ocol) {
