@@ -14,9 +14,14 @@
 
 namespace Overlay {
 
+enum InputBlockSetting {
+    BLOCKS_INPUT,
+    DOESNT_BLOCK_INPUT
+};
+
 void update(std::function<void()> inner_update);
 void handle_overlay(void* identifier, std::function<void()> inner_update);
-void open(void* identifier);
+void open(void* identifier, InputBlockSetting input_block_setting = BLOCKS_INPUT);
 void close(void* identifier);
 bool is_open(void* identifier);
 

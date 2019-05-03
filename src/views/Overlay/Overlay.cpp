@@ -15,6 +15,7 @@ using namespace ddui;
 
 struct OverlayState {
     void* identifier = NULL;
+    InputBlockSetting input_block_setting;
     bool active;
     bool should_close;
     std::function<void()> inner_update;
@@ -37,10 +38,18 @@ void update(std::function<void()> inner_update) {
         overlay.active = false;
     }
 
-    // Block user input to background content when an overlay is open
+    // Block user input to background content if there are overlays which are
+    // input blocking.
+    bool should_block_input = false;
+    for (const auto& overlay : overlay_stack) {
+        if (overlay.input_block_setting == BLOCKS_INPUT) {
+            should_block_input = true;
+            break;
+        }
+    }
     auto original_mouse_state = mouse_state;
     auto original_key_state = key_state;
-    if (!overlay_stack.empty()) {
+    if (should_block_input) {
         mouse_state = { 0 };
         key_state = { 0 };
         mouse_state.x = -1;
@@ -117,10 +126,11 @@ void handle_overlay(void* identifier, std::function<void()> inner_update) {
 
 }
 
-void open(void* identifier) {
+void open(void* identifier, InputBlockSetting input_block_setting) {
 
     OverlayState overlay;
     overlay.identifier = identifier;
+    overlay.input_block_setting = input_block_setting;
     overlay.active = false;
     overlay.should_close = false;
     overlay_stack.push_back(overlay);
