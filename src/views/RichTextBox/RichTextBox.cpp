@@ -27,7 +27,9 @@ void update(RichTextBoxState* state) {
     
     // Process key input
     if (has_key_event(state)) {
-        if (state->multiline || key_state.key != keyboard::KEY_ENTER) {
+        if (state->multiline ||
+            (key_state.key != keyboard::KEY_ENTER &&
+             key_state.key != keyboard::KEY_KP_ENTER)) {
             TextEdit::apply_keyboard_input(state->model, &key_state);
         }
         apply_rich_text_commands(state->model, &key_state);

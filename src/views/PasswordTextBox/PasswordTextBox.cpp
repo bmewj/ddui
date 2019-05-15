@@ -26,6 +26,7 @@ void update(PasswordTextBoxState* state) {
     // Process key input
     if (has_key_event(state)) {
         if (!(key_state.key == keyboard::KEY_ENTER) &&
+            !(key_state.key == keyboard::KEY_KP_ENTER) &&
             !(key_state.key == keyboard::KEY_C && key_state.mods == keyboard::MOD_COMMAND)) {
             TextEdit::apply_keyboard_input(state->model, &key_state);
             TextEdit::remove_line_breaks(state->model);
