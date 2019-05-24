@@ -136,7 +136,6 @@ void input_character(unsigned int codepoint) {
         KeyState key_state;
         key_state.action = keyboard::ACTION_PRESS;
         key_state.key = 0;
-        key_state.mods = 0;
         key_state.character = key_character;
         key_state_queue.push_back(key_state);
     } else {
@@ -892,12 +891,16 @@ bool has_key_event(void* identifier) {
 }
 
 void consume_key_event() {
+    auto saved_mods = key_state.mods;
     key_state = { 0 };
+    key_state.mods = saved_mods;
 }
 
 void repeat_key_event() {
     key_state_queue.insert(key_state_queue.begin(), key_state);
+    auto saved_mods = key_state.mods;
     key_state = { 0 };
+    key_state.mods = saved_mods;
 }
 
 const char* get_clipboard_string() {
