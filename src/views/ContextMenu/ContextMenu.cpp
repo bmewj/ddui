@@ -86,29 +86,25 @@ void update(std::function<void()> inner_update) {
             state.open = false;
             state.action = -1;
         }
-        
-        // Adjust x, y for scrolling
-        x -= state.scroll_area_state.scroll_x;
-        y -= state.scroll_area_state.scroll_y;
 
         // Handle item press
-        y += PADDING_TOP;
+        auto y2 = y - state.scroll_area_state.scroll_y + PADDING_TOP;
         for (int i = 0; i < state.items.size(); ++i) {
-            if (mouse_hit(x, y, menu_width, ITEM_HEIGHT)) {
+            if (mouse_hit(x, y2, menu_width, ITEM_HEIGHT)) {
                 mouse_hit_accept();
                 state.action_pressing = i;
                 break;
             }
           
-            y += ITEM_HEIGHT;
+            y2 += ITEM_HEIGHT;
         }
 
         // Handle item release
         if (!mouse_state.pressed && state.action_pressing != -1) {
             state.open = false;
 
-            auto y = state.y + PADDING_TOP + state.action_pressing * ITEM_HEIGHT - state.scroll_area_state.scroll_y;
-            if (mouse_over(x, y, menu_width, ITEM_HEIGHT)) {
+            auto y3 = y + PADDING_TOP + state.action_pressing * ITEM_HEIGHT - state.scroll_area_state.scroll_y;
+            if (mouse_over(x, y3, menu_width, ITEM_HEIGHT)) {
                 state.action = state.action_pressing;
             } else {
                 state.action = -1;
@@ -116,7 +112,7 @@ void update(std::function<void()> inner_update) {
         }
 
         // Handle border clicking
-        if (mouse_hit(x, state.y, menu_width, menu_height)) {
+        if (mouse_hit(x, y, menu_width, menu_height)) {
             mouse_hit_accept();
             state.action_pressing = -1;
         }
@@ -134,12 +130,12 @@ void update(std::function<void()> inner_update) {
             width = menu_width;
         }
 
-        auto height = view.height - state.y;
+        auto height = view.height - y;
         if (height > menu_height) {
             height = menu_height;
         }
 
-        sub_view(x, state.y, width, height);
+        sub_view(x, y, width, height);
         ScrollArea::update(&state.scroll_area_state, menu_width, menu_height, [&]() {
         
             // Background
