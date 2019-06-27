@@ -25,6 +25,7 @@ void update(std::function<void()> inner_update);
 
 int process_action(void* identifier);
 void show(void* identifier, float x, float y, std::vector<Item> items);
+bool is_showing(void* identifier);
 
 }
 

@@ -223,4 +223,8 @@ void show(void* identifier, float x, float y, std::vector<Item> items) {
     state.items = std::move(items);
 }
 
+bool is_showing(void* identifier) {
+    return (state.open && state.identifier == identifier);
+}
+
 }
