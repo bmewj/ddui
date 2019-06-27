@@ -336,7 +336,7 @@ void TabBar::open_rename_input() {
     state.state = TAB_RENAMING;
     state.text_box_model.regular_font = this->font_face;
     TextEdit::set_text_content(&state.text_box_model, state.tab_names[state.active_tab].c_str());
-    TextEdit::set_style(&state.text_box_model, false, this->font_size, rgb(0x000000));
+    TextEdit::set_style(&state.text_box_model, false, this->font_size, color_text_active);
     state.text_box_state.model = &state.text_box_model;
     state.text_box_state.bg_color = rgba(0x000000, 0.0);
     state.text_box_state.bg_color_focused = rgba(0x000000, 0.0);
