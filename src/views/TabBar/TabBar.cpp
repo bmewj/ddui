@@ -351,26 +351,14 @@ void TabBar::open_context_menu() {
     float mx, my;
     mouse_position(&mx, &my);
 
-    std::vector<ContextMenu::Item> items;
-    {
-        ContextMenu::Item item;
-        item.label = "Rename";
-        item.checked = false;
-        items.push_back(std::move(item));
-    }
-    {
-        ContextMenu::Item item;
-        item.label = "Duplicate";
-        item.checked = false;
-        items.push_back(std::move(item));
-    }
-    if (state.tab_names.size() > 1) {
-        ContextMenu::Item item;
-        item.label = "Close";
-        item.checked = false;
-        items.push_back(std::move(item));
-    }
-    ContextMenu::show(this, mx, my, std::move(items));
+    MenuBuilder mb;
+    
+    ContextMenu::show(this, mx, my,
+        mb.menu()
+            .item("Rename").action(0)
+            .item("Duplicate").action(1)
+            .item("Close").action(state.tab_names.size() > 1 ? 2 : -1)
+    );
 }
 
 int TabBar::tab_drag_target_position() {

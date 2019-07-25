@@ -13,6 +13,7 @@
 #include <functional>
 #include <string>
 #include <vector>
+#include <ddui/views/Menu>
 
 namespace ContextMenu {
 
@@ -24,7 +25,7 @@ struct Item {
 void update(std::function<void()> inner_update);
 
 int process_action(void* identifier);
-void show(void* identifier, float x, float y, std::vector<Item> items);
+void show(void* identifier, float x, float y, MenuBuilder::Menu& menu);
 bool is_showing(void* identifier);
 
 }
