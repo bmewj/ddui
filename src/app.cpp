@@ -39,7 +39,7 @@ void app_run() {
     while (!glfwWindowShouldClose(window)) {
         ddui::update_window(window);
         if (ddui::animation::is_animating()) {
-            glfwPollEvents();
+            glfwWaitEventsTimeout(15e-3);
         } else {
             glfwWaitEvents();
         }
