@@ -17,11 +17,6 @@
 
 namespace ContextMenu {
 
-struct Item {
-    std::string label;
-    bool checked;
-};
-
 void update(std::function<void()> inner_update);
 
 int process_action(void* identifier);
