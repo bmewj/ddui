@@ -18,6 +18,7 @@ struct ContextMenuState {
     bool open;
     void* identifier;
     int action;
+    float gx, gy;
 
     Menu::State menu_state;
 };
@@ -35,6 +36,14 @@ void update(std::function<void()> inner_update) {
         inner_update();
         return;
     }
+
+    // Update the positioning
+    from_global_position(
+        &state.menu_state.root_x,
+        &state.menu_state.root_y,
+        state.gx,
+        state.gy
+    );
 
     Menu menu(state.menu_state);
 
@@ -54,11 +63,15 @@ void update(std::function<void()> inner_update) {
             break;
     }
 
-    // Do inner update
-    inner_update();
+    // Do the inner update and render the menu afterwards
+    if (state.open) {
+        menu.steal_user_input();
+        inner_update();
+        menu.render();
+    } else {
+        inner_update();
+    }
 
-    // Render the menu
-    menu.render();
 }
 
 int process_action(void* identifier) {
@@ -75,9 +88,9 @@ void show(void* identifier, float x, float y, MenuBuilder::Menu& menu) {
     state.identifier = identifier;
     state.action = -1;
 
-    float gx, gy;
-    to_global_position(&gx, &gy, x, y);
-    state.menu_state = menu.builder.create(menu, gx, gy);
+    to_global_position(&state.gx, &state.gy, x, y);
+
+    state.menu_state = menu.builder.create(menu, 0, 0);
 }
 
 bool is_showing(void* identifier) {

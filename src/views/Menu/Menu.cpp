@@ -9,13 +9,14 @@
 #include "Menu.hpp"
 
 Menu::Menu(State& state) : state(state) {
-    // Save the mouse state
-    saved_mouse_state = ddui::mouse_state;
+
 }
 
 Menu::~Menu() {
     // Reinstate the saved mouse state
-    ddui::mouse_state = saved_mouse_state;
+    if (did_steal_user_input) {
+        ddui::mouse_state = saved_mouse_state;
+    }
 }
 
 Menu& Menu::process_user_input(Action* action) {
@@ -33,48 +34,16 @@ Menu& Menu::process_user_input(Action* action) {
         return *this;
     }
 
-    // Let's lay out the menus inside the view
-    auto num_opened_menus = state.opened_menu_stack.size();
-    {
-        Anchor a;
-        a.direction = Anchor::LEFT_TO_RIGHT;
-        a.x = state.root_x;
-        a.y = state.root_y;
-
-        Anchor b;
-        b.direction = Anchor::RIGHT_TO_LEFT;
-        b.x = state.root_x + state.root_width;
-        b.y = state.root_y;
-
-        auto& root_menu = state.opened_menu_stack.front();
-        lay_out_menu(a, b, root_menu);
-    }
-    for (int i = 1; i < num_opened_menus; ++i) {
-        const auto& parent_menu = state.opened_menu_stack[i - 1];
-        
-        Anchor a, b;
-        parent_menu.view_state->get_item_anchors(
-            state.menus[parent_menu.menu_index],
-            parent_menu.bounding_rect,
-            parent_menu.selected_item_index,
-            &a,
-            &b
-        );
-
-        // If the parent menu was opened in a RIGHT_TO_LEFT
-        // fashion, we want to try and do the same for the child
-        // menu as well by swapping our a and b anchors.
-        if (parent_menu.anchor.direction != a.direction) {
-            std::swap(a, b);
-        }
-
-        auto& menu = state.opened_menu_stack[i];
-        lay_out_menu(a, b, menu);
+    // Let's lay out the menus within the view
+    if (!did_lay_out) {
+        lay_out_menus();
     }
 
     // Where is the mouse positioned?
     float mx, my;
     ddui::mouse_position(&mx, &my);
+
+    auto num_opened_menus = state.opened_menu_stack.size();
 
     // Let's try and find the item that the mouse is hovering on
     int active_menu_index = -1;
@@ -99,12 +68,12 @@ Menu& Menu::process_user_input(Action* action) {
 
     // If the user clicks and no menu is hovering, the menus should be dismissed
     if (ddui::mouse_hit(0, 0, ddui::view.width, ddui::view.height)) {
+        ddui::mouse_hit_accept();
+        state.mouse_is_pressed = true;
+
         if (active_menu_index == -1) {
             action->type = MENU_DISMISS;
             return *this;
-        } else {
-            ddui::mouse_hit_accept();
-            state.mouse_is_pressed = true;
         }
     }
 
@@ -185,7 +154,7 @@ Menu& Menu::process_user_input(Action* action) {
 
         sub_menu.menu_index = menu.items[active_item_index].sub_menu_index;
         sub_menu.selected_item_index = -1;
-        sub_menu.view_state = std::unique_ptr<ISubMenuView>(menu.construct_view_state());
+        sub_menu.view_state = std::unique_ptr<IMenuView>(menu.construct_view_state());
 
         Anchor a, b;
         parent_menu.view_state->get_item_anchors(
@@ -209,16 +178,91 @@ Menu& Menu::process_user_input(Action* action) {
     return *this;
 }
 
+Menu& Menu::steal_user_input() {
+    // When a menu is used over the top of other content, you might want to
+    // clear all the mouse inputs so that the other content can't respond to it
+    // for the duration that the menu is open.
+
+    auto& ms = ddui::mouse_state;
+
+    // We want to save a copy that we can reinstate when the Menu gets destructed
+    saved_mouse_state = ms;
+
+    // Set global mouse state to empty values
+    ms.x = ms.y = -100;
+    ms.pressed = ms.pressed_secondary = false;
+    ms.accepted = true;
+    ms.scroll_dx = ms.scroll_dy = 0;
+
+    // Register that we've stolen user input (and must reinstate it afterwards)
+    did_steal_user_input = true;
+
+    return *this;
+}
+
 Menu& Menu::render() {
 
-    using namespace ddui;
+    // Lay out menus
+    if (!did_lay_out) {
+        lay_out_menus();
+    }
 
+    // Render all the menus in order
     for (const auto& opened_menu : state.opened_menu_stack) {
         const auto& menu = state.menus[opened_menu.menu_index];
         opened_menu.view_state->render(menu, opened_menu.bounding_rect, opened_menu.selected_item_index);
     }
 
     return *this;
+}
+
+void Menu::lay_out_menus() {
+
+    auto num_opened_menus = state.opened_menu_stack.size();
+
+    // Lay out root menu
+    {
+        Anchor a;
+        a.direction = Anchor::LEFT_TO_RIGHT;
+        a.x = state.root_x;
+        a.y = state.root_y;
+
+        Anchor b;
+        b.direction = Anchor::RIGHT_TO_LEFT;
+        b.x = state.root_x + state.root_width;
+        b.y = state.root_y;
+
+        auto& root_menu = state.opened_menu_stack.front();
+        lay_out_menu(a, b, root_menu);
+    }
+
+    // Lay out sub-menus
+    for (int i = 1; i < num_opened_menus; ++i) {
+        const auto& parent_menu = state.opened_menu_stack[i - 1];
+        
+        Anchor a, b;
+        parent_menu.view_state->get_item_anchors(
+            state.menus[parent_menu.menu_index],
+            parent_menu.bounding_rect,
+            parent_menu.selected_item_index,
+            &a,
+            &b
+        );
+
+        // If the parent menu was opened in a RIGHT_TO_LEFT
+        // fashion, we want to try and do the same for the child
+        // menu as well by swapping our a and b anchors.
+        if (parent_menu.anchor.direction != a.direction) {
+            std::swap(a, b);
+        }
+
+        auto& menu = state.opened_menu_stack[i];
+        lay_out_menu(a, b, menu);
+    }
+
+    // Set lay out variable
+    did_lay_out = true;
+
 }
 
 void Menu::lay_out_menu(const Anchor& a, const Anchor& b, OpenedMenuState& opened_menu) {

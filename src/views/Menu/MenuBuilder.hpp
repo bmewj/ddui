@@ -10,7 +10,7 @@
 #define MenuBuilder_hpp
 
 #include "Menu.hpp"
-#include "SubMenuView.hpp"
+#include "DefaultMenuView.hpp"
 
 struct MenuBuilder {
     struct Menu {
@@ -40,7 +40,7 @@ struct MenuBuilder {
         auto& opened_menu = state.opened_menu_stack.back();
         opened_menu.menu_index = root_menu.menu_index;
         opened_menu.selected_item_index = -1;
-        opened_menu.view_state = std::unique_ptr<::Menu::ISubMenuView>(root.construct_view_state());
+        opened_menu.view_state = std::unique_ptr<::Menu::IMenuView>(root.construct_view_state());
 
         state.root_x = x;
         state.root_y = y;
@@ -57,7 +57,7 @@ MenuBuilder::Menu::Menu(MenuBuilder& builder) : builder(builder) {
     menu_index = builder.state.menus.size();
     builder.state.menus.push_back(::Menu::SubMenuState());
     auto& sub_menu = builder.state.menus.back();
-    sub_menu.construct_view_state = SubMenuView::construct;
+    sub_menu.construct_view_state = DefaultMenuView::construct;
 }
 
 MenuBuilder::Menu& MenuBuilder::Menu::separator() {

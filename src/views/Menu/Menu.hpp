@@ -42,8 +42,8 @@ struct Menu {
     struct BoundingRect;
     struct Anchor;
 
-    struct ISubMenuView {
-        virtual ~ISubMenuView() = default;
+    struct IMenuView {
+        virtual ~IMenuView() = default;
         virtual void get_bounding_rect(const SubMenuState&, float max_width, float max_height, BoundingRect*) = 0;
         virtual void get_item_anchors(const SubMenuState&, const BoundingRect&, int item_index, Anchor*, Anchor*) = 0;
         virtual int  process_user_input(const SubMenuState&, const BoundingRect&) = 0;
@@ -52,7 +52,7 @@ struct Menu {
 
     struct SubMenuState {
         std::vector<ItemState> items;
-        ISubMenuView* (*construct_view_state)();
+        IMenuView* (*construct_view_state)();
     };
 
     struct BoundingRect {
@@ -75,7 +75,7 @@ struct Menu {
         int selected_item_index; // -1 is no selection
         Anchor anchor;
         BoundingRect bounding_rect;
-        std::unique_ptr<ISubMenuView> view_state;
+        std::unique_ptr<IMenuView> view_state;
     };
 
     struct State {
@@ -91,12 +91,16 @@ struct Menu {
     Menu(State& state);
     ~Menu();
     Menu& process_user_input(Action* action = NULL);
+    Menu& steal_user_input();
     Menu& render();
 
 private:
     State& state;
     ddui::MouseState saved_mouse_state;
+    bool did_lay_out = false;
+    bool did_steal_user_input = false;
 
+    void lay_out_menus();
     void lay_out_menu(const Anchor& a, const Anchor& b, OpenedMenuState& opened_menu);
     void choose_most_suitable_anchor(const Anchor& a, const Anchor& b, float width, Anchor* out);
 };

@@ -1,12 +1,12 @@
 //
-//  SubMenuView.cpp
+//  DefaultMenuView.cpp
 //  ddui
 //
 //  Created by Bartholomew Joyce on 25/07/2019.
 //  Copyright © 2019 Bartholomew Joyce All rights reserved.
 //
 
-#include "SubMenuView.hpp"
+#include "DefaultMenuView.hpp"
 #include <ddui/core>
 #include <ddui/util/draw_text_in_box>
 #include <ddui/util/entypo>
@@ -29,11 +29,11 @@ namespace {
     static auto SEPARATOR_COLOR = ddui::rgb(0xdddddd);
 }
 
-Menu::ISubMenuView* SubMenuView::construct() {
-    return (Menu::ISubMenuView*)new SubMenuView;
+Menu::IMenuView* DefaultMenuView::construct() {
+    return (Menu::IMenuView*)new DefaultMenuView;
 }
 
-void SubMenuView::get_bounding_rect(const SubMenuState& menu, float max_width, float max_height, BoundingRect* rect) {
+void DefaultMenuView::get_bounding_rect(const SubMenuState& menu, float max_width, float max_height, BoundingRect* rect) {
 
     float width;
     {
@@ -85,7 +85,7 @@ void SubMenuView::get_bounding_rect(const SubMenuState& menu, float max_width, f
     // is lined up with the first item of this menu.
 }
 
-void SubMenuView::get_item_anchors(const SubMenuState& menu, const BoundingRect& rect, int item_index, Anchor* a, Anchor* b) {
+void DefaultMenuView::get_item_anchors(const SubMenuState& menu, const BoundingRect& rect, int item_index, Anchor* a, Anchor* b) {
     float item_y = rect.y - scroll_y + BORDER_RADIUS + item_index * ITEM_HEIGHT;
     
     a->direction = Anchor::LEFT_TO_RIGHT;
@@ -97,7 +97,7 @@ void SubMenuView::get_item_anchors(const SubMenuState& menu, const BoundingRect&
     b->y = item_y;
 }
 
-int SubMenuView::process_user_input(const SubMenuState& menu, const BoundingRect& rect) {
+int DefaultMenuView::process_user_input(const SubMenuState& menu, const BoundingRect& rect) {
     float first_item_y = rect.y - scroll_y + BORDER_RADIUS;
 
     float mx, my;
@@ -123,7 +123,7 @@ int SubMenuView::process_user_input(const SubMenuState& menu, const BoundingRect
     return index;
 }
 
-void SubMenuView::render(const SubMenuState& menu, const BoundingRect& rect, int selected_item_index) {
+void DefaultMenuView::render(const SubMenuState& menu, const BoundingRect& rect, int selected_item_index) {
     // Menu shadow
     constexpr float SIZE = 1.5;
     constexpr float DX = 0.5;
@@ -152,7 +152,7 @@ void SubMenuView::render(const SubMenuState& menu, const BoundingRect& rect, int
     ddui::restore(); // a
 }
 
-void SubMenuView::draw_items(const SubMenuState& menu, int selected_item_index) {
+void DefaultMenuView::draw_items(const SubMenuState& menu, int selected_item_index) {
     float x = LEFT_MARGIN_WIDTH;
     float y = 0;
     float w = ddui::view.width - LEFT_MARGIN_WIDTH - RIGHT_MARGIN_WIDTH + 5;
@@ -208,7 +208,7 @@ void SubMenuView::draw_items(const SubMenuState& menu, int selected_item_index) 
     }
 }
 
-void SubMenuView::draw_arrow() {
+void DefaultMenuView::draw_arrow() {
     float size = 0.4 * ddui::view.height;
     float margin = 0.5 * (ddui::view.height - size);
     float x = ddui::view.width - margin - size;
