@@ -10,6 +10,7 @@
 #include <ddui/core>
 #include <ddui/util/draw_text_in_box>
 #include <ddui/util/entypo>
+#include <ddui/util/BoxShadow>
 
 namespace {
     constexpr float ITEM_HEIGHT = 20.0;
@@ -125,14 +126,15 @@ int DefaultMenuView::process_user_input(const SubMenuState& menu, const Bounding
 
 void DefaultMenuView::render(const SubMenuState& menu, const BoundingRect& rect, int selected_item_index) {
     // Menu shadow
-    constexpr float SIZE = 1.5;
-    constexpr float DX = 0.5;
-    constexpr float DY = 0.5;
-    auto paint = ddui::box_gradient(rect.x + DX, rect.y + DY, rect.width, rect.height, BORDER_RADIUS, 2 * SIZE, ddui::rgba(0x000000,0.2), ddui::rgba(0x000000,0.0));
-    ddui::begin_path();
-    ddui::rect(rect.x - SIZE + DX, rect.y - SIZE + DY, rect.width + 2 * SIZE, rect.height + 2 * SIZE);
-    ddui::fill_paint(paint);
-    ddui::fill();
+    ddui::sub_view(rect.x, rect.y, rect.width, rect.height);
+    {
+        ddui::BoxShadow()
+            .blur(1.5)
+            .border_radius(BORDER_RADIUS)
+            .offset(0.5, 0.5)
+            .render();
+    }
+    ddui::restore();
 
     // Menu background
     ddui::begin_path();

@@ -4,6 +4,7 @@ list(APPEND ddui_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/entypo.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/caret_flicker.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/caret_flicker.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/BoxShadow.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/get_asset_filename.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/get_asset_filename.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/get_content_filename.hpp
