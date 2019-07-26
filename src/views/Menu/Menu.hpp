@@ -13,6 +13,7 @@
 #include <string>
 #include <functional>
 #include <memory>
+#include <ddui/core>
 
 struct Menu {
 
@@ -88,11 +89,13 @@ struct Menu {
     };
 
     Menu(State& state);
+    ~Menu();
     Menu& process_user_input(Action* action = NULL);
     Menu& render();
 
 private:
     State& state;
+    ddui::MouseState saved_mouse_state;
 
     void lay_out_menu(const Anchor& a, const Anchor& b, OpenedMenuState& opened_menu);
     void choose_most_suitable_anchor(const Anchor& a, const Anchor& b, float width, Anchor* out);
