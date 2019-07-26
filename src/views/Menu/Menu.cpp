@@ -154,7 +154,9 @@ Menu& Menu::process_user_input(Action* action) {
 
         sub_menu.menu_index = menu.items[active_item_index].sub_menu_index;
         sub_menu.selected_item_index = -1;
-        sub_menu.view_state = std::unique_ptr<IMenuView>(menu.construct_view_state());
+        sub_menu.view_state = std::unique_ptr<IMenuView>(
+            state.menus[sub_menu.menu_index].construct_view_state()
+        );
 
         Anchor a, b;
         parent_menu.view_state->get_item_anchors(
