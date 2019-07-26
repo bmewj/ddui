@@ -88,16 +88,7 @@ Menu& Menu::process_user_input(Action* action) {
 
     // If the user releases a press, we will create an action
     bool mouse_is_pressed = (ddui::mouse_state.pressed || ddui::mouse_state.pressed_secondary);
-    bool naive_did_release = (state.mouse_is_pressed && !mouse_is_pressed);
-    bool did_release = false;
-    if (!state.mouse_is_first_press) {
-        did_release = naive_did_release;
-    } else if (naive_did_release) {
-        float mx, my, dx, dy;
-        ddui::mouse_movement(&mx, &my, &dx, &dy);
-        did_release = (dx != 0 || dy != 0);
-        state.mouse_is_first_press = false;
-    }
+    bool did_release = (state.mouse_is_pressed && !mouse_is_pressed);
     if (did_release) {
         state.mouse_is_pressed = false;
 

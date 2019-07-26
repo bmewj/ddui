@@ -80,7 +80,6 @@ struct Menu {
 
     struct State {
         bool mouse_is_pressed;
-        bool mouse_is_first_press = true;
         std::vector<SubMenuState> menus;
         std::vector<std::function<void()>> action_callbacks;
         std::vector<int> action_ids;
