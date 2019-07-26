@@ -62,6 +62,15 @@ Menu& Menu::process_user_input(Action* action) {
 
             active_menu_index = i;
             active_item_index = opened_menu.view_state->process_user_input(menu, opened_menu.bounding_rect);
+
+            // If we were previously on a menu item that opens a sub menu, and now
+            // we're not hovering on any item anymore, we want to keep that sub menu
+            // open until another item is selected.
+            if (active_item_index == -1 &&
+                opened_menu.selected_item_index != -1 &&
+                menu.items[opened_menu.selected_item_index].sub_menu_index != -1) {
+                active_item_index = opened_menu.selected_item_index;
+            }
             break;
         }
     }
