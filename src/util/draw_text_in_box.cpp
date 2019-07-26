@@ -17,11 +17,9 @@ void draw_text_in_box(float x, float y, float width, float height, const char* c
     char new_content[length + 4];
     truncate_text(width - 2 * MARGIN, length, new_content, content);
   
-    float ascender, descender, line_height;
-    ddui::text_metrics(&ascender, &descender, &line_height);
-  
     auto text_x = x + MARGIN;
-    auto text_y = y + (height - line_height) / 2 + ascender;
+    auto text_y = y + 0.5 * height;
+    ddui::text_align(ddui::align::LEFT | ddui::align::MIDDLE);
     ddui::text(text_x, text_y, new_content, 0);
 }
 
@@ -32,11 +30,9 @@ void draw_centered_text_in_box(float x, float y, float width, float height, cons
     char new_content[length + 4];
     auto text_width = truncate_text(width - 2 * MARGIN, length, new_content, content);
   
-    float ascender, descender, line_height;
-    ddui::text_metrics(&ascender, &descender, &line_height);
-  
     auto text_x = x + (width - text_width) / 2 + MARGIN;
-    auto text_y = y + (height - line_height) / 2 + ascender;
+    auto text_y = y + 0.5 * height;
+    ddui::text_align(ddui::align::LEFT | ddui::align::MIDDLE);
     ddui::text(text_x, text_y, new_content, 0);
 }
 
