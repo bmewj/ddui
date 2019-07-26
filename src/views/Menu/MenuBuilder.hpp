@@ -21,6 +21,7 @@ struct MenuBuilder {
         inline Menu& action(int action_id);
         inline Menu& action(std::function<void()> action_callback);
         inline Menu& sub_menu(Menu& sub_menu);
+        inline Menu& custom_view(::Menu::IMenuView* (*construct_view_state)());
 
         MenuBuilder& builder;
         int menu_index;
@@ -118,6 +119,12 @@ MenuBuilder::Menu& MenuBuilder::Menu::sub_menu(MenuBuilder::Menu& sub_menu) {
     auto& menu = builder.state.menus[menu_index];
     auto& item = menu.items.back();
     item.sub_menu_index = sub_menu.menu_index;
+    return *this;
+}
+
+MenuBuilder::Menu& MenuBuilder::Menu::custom_view(::Menu::IMenuView* (*construct_view_state)()) {
+    auto& menu = builder.state.menus[menu_index];
+    menu.construct_view_state = construct_view_state;
     return *this;
 }
 

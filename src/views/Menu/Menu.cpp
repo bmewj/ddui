@@ -278,7 +278,7 @@ void Menu::lay_out_menu(const Anchor& a, const Anchor& b, OpenedMenuState& opene
     auto available_width = (a_space > b_space) ? a_space : b_space;
 
     // Step 2. Get the view renderer to tell us the bounds of the menu
-    opened_menu.view_state->get_bounding_rect(menu, available_width, ddui::view.height, &bounds_in);
+    opened_menu.view_state->lay_out_menu(menu, available_width, ddui::view.height, &bounds_in);
     bounds_out.width  = bounds_in.width;
     bounds_out.height = bounds_in.height;
 

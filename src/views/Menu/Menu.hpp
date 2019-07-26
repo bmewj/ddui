@@ -44,7 +44,7 @@ struct Menu {
 
     struct IMenuView {
         virtual ~IMenuView() = default;
-        virtual void get_bounding_rect(const SubMenuState&, float max_width, float max_height, BoundingRect*) = 0;
+        virtual void lay_out_menu(const SubMenuState&, float max_width, float max_height, BoundingRect*) = 0;
         virtual void get_item_anchors(const SubMenuState&, const BoundingRect&, int item_index, Anchor*, Anchor*) = 0;
         virtual int  process_user_input(const SubMenuState&, const BoundingRect&) = 0;
         virtual void render(const SubMenuState&, const BoundingRect&, int selected_item_index) = 0;
