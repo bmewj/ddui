@@ -14,6 +14,7 @@
 #include <functional>
 #include <memory>
 #include <ddui/core>
+#include "MenuMouseTracker.hpp"
 
 struct Menu {
 
@@ -79,7 +80,7 @@ struct Menu {
     };
 
     struct State {
-        bool mouse_is_pressed;
+        MenuMouseTracker::State mouse_tracker_state;
         std::vector<SubMenuState> menus;
         std::vector<std::function<void()>> action_callbacks;
         std::vector<int> action_ids;

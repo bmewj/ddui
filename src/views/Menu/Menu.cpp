@@ -74,12 +74,14 @@ Menu& Menu::process_user_input(Action* action) {
             break;
         }
     }
+    
+    // Update our mouse tracker
+    MenuMouseTracker mouse_tracker(state.mouse_tracker_state);
+    mouse_tracker.update();
 
     // If the user clicks and no menu is hovering, the menus should be dismissed
-    if (ddui::mouse_hit(0, 0, ddui::view.width, ddui::view.height)) {
+    if (mouse_tracker.did_press) {
         ddui::mouse_hit_accept();
-        state.mouse_is_pressed = true;
-
         if (active_menu_index == -1) {
             action->type = MENU_DISMISS;
             return *this;
@@ -87,11 +89,7 @@ Menu& Menu::process_user_input(Action* action) {
     }
 
     // If the user releases a press, we will create an action
-    bool mouse_is_pressed = (ddui::mouse_state.pressed || ddui::mouse_state.pressed_secondary);
-    bool did_release = (state.mouse_is_pressed && !mouse_is_pressed);
-    if (did_release) {
-        state.mouse_is_pressed = false;
-
+    if (mouse_tracker.did_release) {
         if (active_menu_index == -1 || active_item_index == -1) {
             action->type = MENU_DISMISS;
         } else {
@@ -113,7 +111,6 @@ Menu& Menu::process_user_input(Action* action) {
             }
         }
     }
-    state.mouse_is_pressed = mouse_is_pressed;
 
     // From here on forward, active_menu_index will not be -1 for no hovers, we will pick
     // a sub menu to be active
