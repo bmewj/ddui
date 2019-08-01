@@ -562,8 +562,24 @@ void current_transform(float* xform) {
 }
 
 // Images
+int create_image_from_file(const char* filename, int image_flags) {
+    return nvgCreateImage(vg, filename, image_flags);
+}
+
 int create_image_from_rgba(int w, int h, int image_flags, const unsigned char* data) {
     return nvgCreateImageRGBA(vg, w, h, image_flags, data);
+}
+
+void update_image(int image_id, const unsigned char* data) {
+    return nvgUpdateImage(vg, image_id, data);
+}
+
+void image_size(int image_id, int* w, int* h) {
+    return nvgImageSize(vg, image_id, w, h);
+}
+
+void delete_image(int image_id) {
+    return nvgDeleteImage(vg, image_id);
 }
 
 // Paints

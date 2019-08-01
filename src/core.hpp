@@ -295,7 +295,11 @@ void to_global_position(float* gx, float* gy, float x, float y);
 void from_global_position(float* x, float* y, float gx, float gy);
 
 // Images
+int create_image_from_file(const char* filename, int image_flags);
 int create_image_from_rgba(int w, int h, int image_flags, const unsigned char* data);
+void update_image(int image_id, const unsigned char* data);
+void image_size(int image_id, int* w, int* h);
+void delete_image(int image_id);
 
 // Paints
 Paint linear_gradient(float sx, float sy, float ex, float ey, Color icol, Color ocol);
