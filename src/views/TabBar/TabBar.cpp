@@ -45,6 +45,11 @@ TabBar& TabBar::text_color_active(ddui::Color color_text_active) {
     return *this;
 }
 
+TabBar& TabBar::add_custom_context_menu_items(const AddCustomCtxMenuItemsHandler& handler) {
+    this->add_custom_context_menu_items_handler = &handler;
+    return *this;
+}
+
 TabBar& TabBar::new_tab_button_placement(int placement) {
     this->new_tab_placement = placement;
     return *this;
@@ -352,13 +357,18 @@ void TabBar::open_context_menu() {
     mouse_position(&mx, &my);
 
     MenuBuilder mb;
-    
-    ContextMenu::show(this, mx, my,
+    MenuBuilder::Menu menu = (
         mb.menu()
             .item("Rename").action(0)
             .item("Duplicate").action(1)
             .item("Close").action(state.tab_names.size() > 1 ? 2 : -1)
     );
+
+    if (this->add_custom_context_menu_items_handler != NULL) {
+        (*this->add_custom_context_menu_items_handler)(state.active_tab, menu);
+    }
+
+    ContextMenu::show(this, mx, my, menu);
 }
 
 int TabBar::tab_drag_target_position() {
