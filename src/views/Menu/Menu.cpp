@@ -61,7 +61,7 @@ Menu& Menu::process_user_input(Action* action) {
             const auto& menu = state.menus[opened_menu.menu_index];
 
             active_menu_index = i;
-            active_item_index = opened_menu.view_state->process_user_input(menu, opened_menu.bounding_rect);
+            active_item_index = opened_menu.view_state->process_user_input(opened_menu.bounding_rect);
 
             // If we were previously on a menu item that opens a sub menu, and now
             // we're not hovering on any item anymore, we want to keep that sub menu
@@ -152,12 +152,14 @@ Menu& Menu::process_user_input(Action* action) {
         sub_menu.menu_index = menu.items[active_item_index].sub_menu_index;
         sub_menu.selected_item_index = -1;
         sub_menu.view_state = std::unique_ptr<IMenuView>(
-            state.menus[sub_menu.menu_index].construct_view_state()
+            state.menus[sub_menu.menu_index].construct_view_state(
+                state.menus[sub_menu.menu_index],
+                num_opened_menus - 1
+            )
         );
 
         Anchor a, b;
         parent_menu.view_state->get_item_anchors(
-            state.menus[parent_menu.menu_index],
             parent_menu.bounding_rect,
             active_item_index,
             &a,
@@ -208,8 +210,7 @@ Menu& Menu::render() {
 
     // Render all the menus in order
     for (const auto& opened_menu : state.opened_menu_stack) {
-        const auto& menu = state.menus[opened_menu.menu_index];
-        opened_menu.view_state->render(menu, opened_menu.bounding_rect, opened_menu.selected_item_index);
+        opened_menu.view_state->render(opened_menu.bounding_rect, opened_menu.selected_item_index);
     }
 
     return *this;
@@ -241,7 +242,6 @@ void Menu::lay_out_menus() {
         
         Anchor a, b;
         parent_menu.view_state->get_item_anchors(
-            state.menus[parent_menu.menu_index],
             parent_menu.bounding_rect,
             parent_menu.selected_item_index,
             &a,
@@ -277,7 +277,7 @@ void Menu::lay_out_menu(const Anchor& a, const Anchor& b, OpenedMenuState& opene
     auto available_width = (a_space > b_space) ? a_space : b_space;
 
     // Step 2. Get the view renderer to tell us the bounds of the menu
-    opened_menu.view_state->lay_out_menu(menu, available_width, ddui::view.height, &bounds_in);
+    opened_menu.view_state->lay_out_menu(available_width, ddui::view.height, &bounds_in);
     bounds_out.width  = bounds_in.width;
     bounds_out.height = bounds_in.height;
 
