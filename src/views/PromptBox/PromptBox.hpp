@@ -22,7 +22,7 @@ struct PromptBoxState {
     std::string title;
     std::string message;
     TextEdit::Model text_box_model;
-    PlainTextBox::PlainTextBoxState text_box;
+    PlainTextBox::State text_box_state;
     std::vector<std::string> button_set;
     bool can_dismiss;
     bool opened;

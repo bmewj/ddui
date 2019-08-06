@@ -55,7 +55,7 @@ struct TabBar {
 
         // Rename box
         TextEdit::Model text_box_model;
-        PlainTextBox::PlainTextBoxState text_box_state;
+        PlainTextBox::State text_box_state;
     };
     
     using AddCustomCtxMenuItemsHandler = std::function<void(int, MenuBuilder::Menu&)>;

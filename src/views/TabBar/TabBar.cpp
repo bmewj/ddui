@@ -332,7 +332,19 @@ void TabBar::draw() {
     // Render the renaming text box
     if (state.state == TAB_RENAMING) {
         sub_view(state.active_tab * tab_width, 0, tab_width, view.height);
-        PlainTextBox::update(&state.text_box_state);
+        {
+            auto style = *PlainTextBox::get_global_styles();
+            style.bg_color = rgba(0x000000, 0.0);
+            style.bg_color_focused = rgba(0x000000, 0.0);
+            style.border_color = rgba(0x000000, 0.0);
+            style.border_color_focused = rgba(0x000000, 0.0);
+            style.border_radius = 0;
+            style.border_width = 0;
+
+            PlainTextBox(&state.text_box_state, &state.text_box_model)
+                .set_styles(&style)
+                .update();
+        }
         restore();
     }
 }
@@ -342,13 +354,6 @@ void TabBar::open_rename_input() {
     state.text_box_model.regular_font = this->font_face;
     TextEdit::set_text_content(&state.text_box_model, state.tab_names[state.active_tab].c_str());
     TextEdit::set_style(&state.text_box_model, false, this->font_size, color_text_active);
-    state.text_box_state.model = &state.text_box_model;
-    state.text_box_state.bg_color = rgba(0x000000, 0.0);
-    state.text_box_state.bg_color_focused = rgba(0x000000, 0.0);
-    state.text_box_state.border_color = rgba(0x000000, 0.0);
-    state.text_box_state.border_color_focused = rgba(0x000000, 0.0);
-    state.text_box_state.border_radius = 0;
-    state.text_box_state.border_width = 0;
     focus(&state.text_box_state);
 }
 

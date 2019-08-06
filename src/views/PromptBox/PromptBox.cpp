@@ -24,17 +24,7 @@ PromptBoxState::PromptBoxState() {
 
     text_box_model.regular_font = "regular";
     
-    text_box.model = &text_box_model;
-    text_box.multiline = false;
-    
     TextEdit::set_style(&text_box_model, false, 18.0, rgb(0xffffff));
-    
-    text_box.bg_color = rgb(0x282828);
-    text_box.bg_color_focused = rgb(0x282828);
-    text_box.border_color = rgb(0x606060);
-    text_box.border_color_focused = rgb(0xaaaaaa);
-    text_box.cursor_color = rgb(0xffffff);
-    text_box.selection_color = rgba(0xffffff, 0.5);
 }
 
 void open(PromptBoxState* state) {
@@ -67,7 +57,7 @@ void update_content(PromptBoxState* state) {
         !animation::is_animating(ANIMATION_IN_ID) &&
         !animation::is_animating(ANIMATION_OUT_ID)) {
         state->opened = true;
-        focus(&state->text_box);
+        focus(&state->text_box_state);
     }
     if (state->opened &&
         animation::is_animating(ANIMATION_OUT_ID)) {
@@ -94,7 +84,7 @@ void update_content(PromptBoxState* state) {
     text_align(align::LEFT);
 
     // Submit Key (ENTER)
-    if (has_key_event(&state->text_box) &&
+    if (has_key_event(&state->text_box_state) &&
         key_state.key == keyboard::KEY_ENTER) {
         if (key_state.action == keyboard::ACTION_PRESS) {
             close(state);
@@ -105,7 +95,19 @@ void update_content(PromptBoxState* state) {
 
     // Plain Text Box
     sub_view(PADDING, y + MESSAGE_SIZE * 3, view.width - 2 * PADDING, view.height);
-    PlainTextBox::update(&state->text_box);
+    {
+        auto styles = *PlainTextBox::get_global_styles();
+        styles.bg_color = rgb(0x282828);
+        styles.bg_color_focused = rgb(0x282828);
+        styles.border_color = rgb(0x606060);
+        styles.border_color_focused = rgb(0xaaaaaa);
+        styles.cursor_color = rgb(0xffffff);
+        styles.selection_color = rgba(0xffffff, 0.5);
+
+        PlainTextBox(&state->text_box_state, &state->text_box_model)
+            .set_styles(&styles)
+            .update();
+    }
     restore();
 
     // Register Buttons as Focus Groups

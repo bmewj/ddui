@@ -9,43 +9,57 @@
 #ifndef ddui_PlainTextBox_hpp
 #define ddui_PlainTextBox_hpp
 
-#include <ddui/core>
 #include <ddui/models/TextEdit>
-#include <string>
 #include <vector>
 
-namespace PlainTextBox {
+struct PlainTextBox {
 
-struct PlainTextBoxState {
-    PlainTextBoxState();
+    using Model = TextEdit::Model;
+    using Measurements = TextEdit::Measurements;
 
-    TextEdit::Model* model;
-    bool multiline = false;
+    struct State {
+        // Text edit state
+        int current_version_count = -1;
+        Model* model = NULL;
+        Measurements measurements;
 
-    // Text edit state
-    int current_version_count;
-    TextEdit::Measurements measurements;
+        // UI info
+        bool is_mouse_dragging = false;
+        float height = 0;
+        float scroll_x = 0;
+    };
 
-    // UI info
-    bool is_mouse_dragging;
-    float height;
-    float scroll_x;
-    
     // Styles
-    float margin = 8;
-    float border_radius = 4;
-    float border_width = 1;
-    ddui::Color border_color = ddui::rgb(0xc8c8c8);
-    ddui::Color border_color_focused = ddui::rgb(0x3264ff);
-    ddui::Color bg_color = ddui::rgb(0xffffff);
-    ddui::Color bg_color_focused = ddui::rgb(0xffffff);
-    ddui::Color cursor_color = ddui::rgb(0x3264ff);
-    ddui::Color selection_color = ddui::rgba(0x3264ff, 0.4);
-    bool selection_in_foreground = true;
+    struct StyleOptions {
+        float margin;
+        float border_radius;
+        float border_width;
+        ddui::Color border_color;
+        ddui::Color border_color_focused;
+        ddui::Color bg_color;
+        ddui::Color bg_color_focused;
+        ddui::Color cursor_color;
+        ddui::Color selection_color;
+        bool selection_in_foreground;
+    };
+    static StyleOptions* get_global_styles();
+
+    // Methods
+    PlainTextBox(State* state, Model* model);
+    PlainTextBox& set_styles(const StyleOptions* styles);
+    PlainTextBox& set_multiline(bool multiline);
+    void update();
+
+protected:
+    State& state;
+    Model& model;
+    const StyleOptions* styles;
+    bool multiline;
+
+    virtual void process_key_input();
+    virtual void refresh_model_measurements();
+    virtual void draw_content();
+    virtual void draw_selection();
 };
-
-void update(PlainTextBoxState* state);
-
-}
 
 #endif
