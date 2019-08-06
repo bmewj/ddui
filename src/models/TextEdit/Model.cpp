@@ -21,7 +21,8 @@ Model::Model() {
     auto empty_content = new char[1];
     empty_content[0] = '\0';
 
-    Line empty_line;
+    lines.push_back(Line());
+    auto& empty_line = lines.front();
     empty_line.num_bytes = 1;
     empty_line.content = std::unique_ptr<char[]>(empty_content);
     empty_line.style.font_bold = false;
@@ -29,8 +30,10 @@ Model::Model() {
     empty_line.style.text_color = rgb(0x000000);
 
     version_count = 0;
-    lines.push_back(std::move(empty_line));
     selection = { 0 };
+
+    regular_font = "regular";
+    bold_font = "bold";
 }
 
 void set_text_content(Model* model, const char* content) {
