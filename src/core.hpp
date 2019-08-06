@@ -285,11 +285,11 @@ void global_alpha(float alpha);
 
 // Transforms
 void reset_transform();
-// void transform(float a, float b, float c, float d, float e, float f);
+void transform(float a, float b, float c, float d, float e, float f);
 void translate(float x, float y);
 void rotate(float angle);
-// void skew_x(float angle);
-// void skew_y(float angle);
+void skew_x(float angle);
+void skew_y(float angle);
 void scale(float x, float y);
 void to_global_position(float* gx, float* gy, float x, float y);
 void from_global_position(float* x, float* y, float gx, float gy);
