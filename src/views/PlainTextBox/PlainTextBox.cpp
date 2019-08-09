@@ -39,7 +39,7 @@ PlainTextBox::PlainTextBox(State* _state, Model* _model)
         state.model = &model;
         state.current_version_count = -1;
     }
-    
+
     styles = get_global_styles();
     multiline = false;
 }
@@ -158,7 +158,8 @@ void PlainTextBox::update() {
     
     // Selection
     if (has_focus(group_id)) {
-        draw_selection();
+        auto cursor_color = (state.is_mouse_dragging || caret_flicker::get_phase()) ? styles->cursor_color : rgba(0x000000, 0.0);
+        draw_selection(cursor_color);
     }
     
     // Text (when selection in background)
@@ -204,17 +205,28 @@ void PlainTextBox::process_key_input() {
 }
 
 void PlainTextBox::refresh_model_measurements() {
-    state.measurements = TextEdit::measure(&model, std::function<void(float,float*,float*)>());
+    using namespace std::placeholders;
+    auto measure_entity_fn = std::bind(&PlainTextBox::measure_entity, this, _1, _2, _3);
+    state.measurements = TextEdit::measure(&model, measure_entity_fn);
+}
+
+void PlainTextBox::measure_entity(int entity_id, float* width, float* height) {
+    // NO-OP
+}
+
+void PlainTextBox::draw_entity(int entity_id) {
+    // NO-OP
 }
 
 void PlainTextBox::draw_content() {
+    using namespace std::placeholders;
+    auto draw_entity_fn = std::bind(&PlainTextBox::draw_entity, this, _1);
     TextEdit::draw_content(styles->margin, styles->margin,
                            &model, &state.measurements,
-                           std::function<void(int)>());
+                           draw_entity_fn);
 }
 
-void PlainTextBox::draw_selection() {
-    auto cursor_color = (state.is_mouse_dragging || caret_flicker::get_phase()) ? styles->cursor_color : rgba(0x000000, 0.0);
+void PlainTextBox::draw_selection(const ddui::Color& cursor_color) {
     TextEdit::draw_selection(styles->margin, styles->margin,
                              &model, &state.measurements,
                              cursor_color, styles->selection_color);

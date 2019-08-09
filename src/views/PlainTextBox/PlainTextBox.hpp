@@ -58,8 +58,10 @@ protected:
 
     virtual void process_key_input();
     virtual void refresh_model_measurements();
+    virtual void measure_entity(int entity_id, float* width, float* height);
+    virtual void draw_entity(int entity_id);
     virtual void draw_content();
-    virtual void draw_selection();
+    virtual void draw_selection(const ddui::Color& cursor_color);
 };
 
 #endif
