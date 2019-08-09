@@ -421,15 +421,28 @@ void create_entity(Model* model, int lineno, int from, int to, int entity_id) {
         printf("TextEdit::create_entity() on index range that doesn't exist.");
         return; // Invalid index ranges are not thrown.
     }
-    
+
+    // Update the num_bytes and entity_id of the first character in the range
     auto& first_character = line.characters[from];
     auto& last_character = line.characters[to - 1];
     first_character.num_bytes = last_character.index + last_character.num_bytes - first_character.index;
     first_character.entity_id = entity_id;
-    
+
+    // Delete all subsequent characters
     auto begin_iter = line.characters.begin() + from + 1;
     auto end_iter = line.characters.begin() + to;
     line.characters.erase(begin_iter, end_iter);
+
+    // Update the selection (if necessary)
+    auto& sel = model->selection;
+    if (sel.a_line == lineno && sel.a_index >= from) {
+        sel.a_index = (sel.a_index < to) ? from + 1 : (sel.a_index + from - to + 1);
+    }
+    if (sel.b_line == lineno && sel.b_index >= from) {
+        sel.b_index = (sel.b_index < to) ? from + 1 : (sel.b_index + from - to + 1);
+    }
+
+    model->version_count++;
 }
 
 void apply_keyboard_input(Model* model, KeyState* key_state) {
