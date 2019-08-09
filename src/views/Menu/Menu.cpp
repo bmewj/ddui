@@ -265,8 +265,6 @@ void Menu::lay_out_menus() {
 }
 
 void Menu::lay_out_menu(const Anchor& a, const Anchor& b, OpenedMenuState& opened_menu) {
-
-    auto& menu = state.menus[opened_menu.menu_index];
     
     BoundingRect  bounds_in;
     BoundingRect& bounds_out = opened_menu.bounding_rect;
