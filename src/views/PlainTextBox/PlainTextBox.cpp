@@ -206,21 +206,21 @@ void PlainTextBox::process_key_input() {
 
 void PlainTextBox::refresh_model_measurements() {
     using namespace std::placeholders;
-    auto measure_entity_fn = std::bind(&PlainTextBox::measure_entity, this, _1, _2, _3);
+    auto measure_entity_fn = std::bind(&PlainTextBox::measure_entity, this, _1, _2, _3, _4, _5);
     state.measurements = TextEdit::measure(&model, measure_entity_fn);
 }
 
-void PlainTextBox::measure_entity(int entity_id, float* width, float* height) {
+void PlainTextBox::measure_entity(int line, int index, int entity_id, float* width, float* height) {
     // NO-OP
 }
 
-void PlainTextBox::draw_entity(int entity_id) {
+void PlainTextBox::draw_entity(int line, int index, int entity_id) {
     // NO-OP
 }
 
 void PlainTextBox::draw_content() {
     using namespace std::placeholders;
-    auto draw_entity_fn = std::bind(&PlainTextBox::draw_entity, this, _1);
+    auto draw_entity_fn = std::bind(&PlainTextBox::draw_entity, this, _1, _2, _3);
     TextEdit::draw_content(styles->margin, styles->margin,
                            &model, &state.measurements,
                            draw_entity_fn);
