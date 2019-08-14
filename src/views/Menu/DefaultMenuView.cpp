@@ -12,15 +12,15 @@
 #include <ddui/util/entypo>
 #include <ddui/util/BoxShadow>
 
-Menu::IMenuView* DefaultMenuView::construct(const SubMenuState& menu, int level) {
-    return (Menu::IMenuView*)new DefaultMenuView(menu, level);
+Menu::IMenuView* DefaultMenuView::construct() {
+    return (Menu::IMenuView*)new DefaultMenuView();
 }
 
-DefaultMenuView::DefaultMenuView(const SubMenuState& menu, int level) : menu(menu), level(level) {
+DefaultMenuView::DefaultMenuView() {
     styles = get_global_styles();
 }
 
-void DefaultMenuView::lay_out_menu(float max_width, float max_height, BoundingRect* rect) {
+void DefaultMenuView::lay_out_menu(const SubMenuState& menu, int level, float max_width, float max_height, BoundingRect* rect) {
 
     float width;
     {
@@ -72,7 +72,7 @@ void DefaultMenuView::lay_out_menu(float max_width, float max_height, BoundingRe
     // is lined up with the first item of this menu.
 }
 
-void DefaultMenuView::get_item_anchors(const BoundingRect& rect, int item_index, Anchor* a, Anchor* b) {
+void DefaultMenuView::get_item_anchors(const SubMenuState& menu, int level, const BoundingRect& rect, int item_index, Anchor* a, Anchor* b) {
     float item_y = rect.y - scroll_y + styles->border_radius + item_index * styles->item_height;
     
     a->direction = Anchor::LEFT_TO_RIGHT;
@@ -84,7 +84,7 @@ void DefaultMenuView::get_item_anchors(const BoundingRect& rect, int item_index,
     b->y = item_y;
 }
 
-int DefaultMenuView::process_user_input(const BoundingRect& rect) {
+int DefaultMenuView::process_user_input(const SubMenuState& menu, int level, const BoundingRect& rect) {
     float first_item_y = rect.y - scroll_y + styles->border_radius;
 
     float mx, my;
@@ -110,9 +110,9 @@ int DefaultMenuView::process_user_input(const BoundingRect& rect) {
     return index;
 }
 
-void DefaultMenuView::render(const BoundingRect& rect, int selected_item_index) {
+void DefaultMenuView::render(const SubMenuState& menu, int level, const BoundingRect& rect, int selected_item_index) {
     render_background(rect, selected_item_index);
-    render_content(rect, selected_item_index);
+    render_content(menu, rect, selected_item_index);
 }
 
 DefaultMenuView::StyleOptions* DefaultMenuView::get_global_styles() {
@@ -161,21 +161,21 @@ void DefaultMenuView::render_background(const BoundingRect& rect, int selected_i
     ddui::fill();
 }
 
-void DefaultMenuView::render_content(const BoundingRect& rect, int selected_item_index) {
+void DefaultMenuView::render_content(const SubMenuState& menu, const BoundingRect& rect, int selected_item_index) {
     ddui::save(); // a
     ddui::clip(rect.x, rect.y, rect.width, rect.height);
     ddui::translate(0, -scroll_y);
 
     ddui::sub_view(rect.x, rect.y + styles->border_radius, rect.width, menu.items.size() * styles->item_height); // b
 
-    draw_items(selected_item_index);
+    draw_items(menu, selected_item_index);
 
     ddui::restore(); // b
     ddui::restore(); // a
 }
 
 
-void DefaultMenuView::draw_items(int selected_item_index) {
+void DefaultMenuView::draw_items(const SubMenuState& menu, int selected_item_index) {
     float x = styles->left_margin_width;
     float y = 0;
     float w = ddui::view.width - styles->left_margin_width - styles->right_margin_width + 5;

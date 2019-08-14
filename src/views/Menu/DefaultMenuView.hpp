@@ -17,12 +17,12 @@ struct DefaultMenuView : Menu::IMenuView {
     using Anchor = Menu::Anchor;
 
     // Implementation of IMenuView interface
-    static Menu::IMenuView* construct(const SubMenuState& menu, int level);
-    DefaultMenuView(const SubMenuState& menu, int level);
-    void lay_out_menu(float max_width, float max_height, BoundingRect* rect) override;
-    void get_item_anchors(const BoundingRect& rect, int item_index, Anchor* anchor_a, Anchor* anchor_b) override;
-    int  process_user_input(const BoundingRect& rect) override;
-    void render(const BoundingRect& rect, int selected_item_index) override;
+    static Menu::IMenuView* construct();
+    DefaultMenuView();
+    void lay_out_menu(const SubMenuState& menu, int level, float max_width, float max_height, BoundingRect* rect) override;
+    void get_item_anchors(const SubMenuState& menu, int level, const BoundingRect& rect, int item_index, Anchor* anchor_a, Anchor* anchor_b) override;
+    int  process_user_input(const SubMenuState& menu, int level, const BoundingRect& rect) override;
+    void render(const SubMenuState& menu, int level, const BoundingRect& rect, int selected_item_index) override;
 
     // Style options
     struct StyleOptions {
@@ -47,16 +47,14 @@ struct DefaultMenuView : Menu::IMenuView {
 
     // Own methods
     void render_background(const BoundingRect&, int selected_item_index);
-    void render_content(const BoundingRect&, int selected_item_index);
+    void render_content(const SubMenuState& menu, const BoundingRect&, int selected_item_index);
 
 protected:
-    const SubMenuState& menu;
-    int level;
     float content_width;
     float content_height;
     float scroll_y;
 
-    void draw_items(int selected_item_index);
+    void draw_items(const SubMenuState& menu, int selected_item_index);
     void draw_arrow();
 };
 

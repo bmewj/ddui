@@ -45,15 +45,15 @@ struct Menu {
 
     struct IMenuView {
         virtual ~IMenuView() = default;
-        virtual void lay_out_menu(float max_width, float max_height, BoundingRect*) = 0;
-        virtual void get_item_anchors(const BoundingRect&, int item_index, Anchor*, Anchor*) = 0;
-        virtual int  process_user_input(const BoundingRect&) = 0;
-        virtual void render(const BoundingRect&, int selected_item_index) = 0;
+        virtual void lay_out_menu(const SubMenuState& menu, int level, float max_width, float max_height, BoundingRect*) = 0;
+        virtual void get_item_anchors(const SubMenuState& menu, int level, const BoundingRect&, int item_index, Anchor*, Anchor*) = 0;
+        virtual int  process_user_input(const SubMenuState& menu, int level, const BoundingRect&) = 0;
+        virtual void render(const SubMenuState& menu, int level, const BoundingRect&, int selected_item_index) = 0;
     };
 
     struct SubMenuState {
         std::vector<ItemState> items;
-        IMenuView* (*construct_view_state)(const SubMenuState& menu, int level);
+        IMenuView* (*construct_view_state)();
     };
 
     struct BoundingRect {
@@ -101,7 +101,7 @@ private:
     bool did_steal_user_input = false;
 
     void lay_out_menus();
-    void lay_out_menu(const Anchor& a, const Anchor& b, OpenedMenuState& opened_menu);
+    void lay_out_menu(const Anchor& a, const Anchor& b, int level);
     void choose_most_suitable_anchor(const Anchor& a, const Anchor& b, float width, Anchor* out);
 };
 
