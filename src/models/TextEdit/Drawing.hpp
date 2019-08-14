@@ -16,10 +16,12 @@
 
 namespace TextEdit {
 
+using DrawEntityFn = std::function<void(int line, int index, int entity_id)>;
+
 void draw_content(float offset_x, float offset_y,
                   const Model* model,
                   const Measurements* measurements,
-                  std::function<void(int)> update_entity);
+                  const DrawEntityFn& draw_entity);
 
 void draw_selection(float offset_x, float offset_y,
                     const Model* model,

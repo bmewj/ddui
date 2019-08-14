@@ -227,7 +227,7 @@ void insert_text_content(Model* model, int* lineno, int* index, const char* cont
     
 }
 
-std::unique_ptr<char[]> get_text_content(Model* model, Selection selection) {
+std::unique_ptr<char[]> get_text_content(Model* model, const Selection& selection) {
     
     if (selection.a_line == selection.b_line) {
         // Single-line copy string
@@ -694,7 +694,7 @@ void apply_keyboard_input(Model* model, KeyState* key_state) {
     model->version_count++;
 }
 
-void delete_range(Model* model, Selection sel) {
+void delete_range(Model* model, const Selection& sel) {
     if (sel.a_line == sel.b_line) {
         if (sel.a_index == sel.b_index) {
             return; // Nothing to delete
@@ -773,12 +773,16 @@ void delete_range(Model* model, Selection sel) {
 }
 
 void insert_character(Model* model, int lineno, int index, const char* character) {
-    auto length = strlen(character);
-    
+    auto length = (
+        !(*character & 0x80) ? 1 :
+        !(*character & 0x20) ? 2 :
+        !(*character & 0x10) ? 3 : 4
+    );
+
     auto& line = model->lines[lineno];
-    
+
     auto ch_index = index == 0 ? 0 : line.characters[index - 1].index + line.characters[index - 1].num_bytes;
-    
+
     // Update the content array
     auto new_num_bytes = line.num_bytes + length;
     auto new_content = new char[new_num_bytes];
@@ -787,7 +791,7 @@ void insert_character(Model* model, int lineno, int index, const char* character
     strncpy(new_content + ch_index + length, line.content.get() + ch_index, line.num_bytes - ch_index);
     line.content = std::unique_ptr<char[]>(new_content);
     line.num_bytes = new_num_bytes;
-    
+
     // Insert the new character
     Character character_entry;
     character_entry.index = ch_index;
@@ -800,12 +804,12 @@ void insert_character(Model* model, int lineno, int index, const char* character
         character_entry.style = prev_character.style;
     }
     line.characters.insert(line.characters.begin() + index, character_entry);
-    
+
     // Update the character indices
     for (auto it = line.characters.begin() + index + 1; it < line.characters.end(); ++it) {
         it->index += length;
     }
-    
+
     model->version_count++;
 }
 

@@ -35,10 +35,11 @@ struct Measurements {
     std::vector<LineMeasurements> lines;
 };
 
-Measurements measure(const Model* model, std::function<void(int,float*,float*)> measure_entity);
+using MeasureEntityFn = std::function<void(int line, int index, int entity_id, float* width, float* height)>;
 
-LineMeasurements measure(const Model* model, const Line* line,
-                         std::function<void(int,float*,float*)> measure_entity);
+Measurements measure(const Model* model, const MeasureEntityFn& measure_entity);
+
+LineMeasurements measure(const Model* model, int lineno, const MeasureEntityFn& measure_entity);
 
 void locate_selection_point(const Measurements* measurements, float x, float y, int* lineno, int* index);
 

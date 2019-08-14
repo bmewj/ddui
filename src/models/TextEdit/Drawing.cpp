@@ -18,9 +18,7 @@ using namespace ddui;
 void draw_content(float offset_x, float offset_y,
                   const Model* model,
                   const Measurements* measurements,
-                  std::function<void(int)> update_entity) {
-
-    text_align(align::LEFT | align::BASELINE);
+                  const DrawEntityFn& draw_entity) {
 
     float y = offset_y;
     for (int lineno = 0; lineno < model->lines.size(); ++lineno) {
@@ -39,7 +37,7 @@ void draw_content(float offset_x, float offset_y,
             if (character.entity_id != -1) {
                 sub_view(offset_x + measurement.x, y + measurement.y,
                          measurement.width, measurement.height);
-                update_entity(character.entity_id);
+                draw_entity(lineno, i, character.entity_id);
                 restore();
                 ++i;
                 continue;
@@ -62,6 +60,7 @@ void draw_content(float offset_x, float offset_y,
             font_size(style.text_size);
             font_face(style.font_bold ? model->bold_font : model->regular_font);
             fill_color(style.text_color);
+            text_align(align::LEFT | align::BASELINE);
             
             // Compose string start and end
             auto string_start = &content[character.index];

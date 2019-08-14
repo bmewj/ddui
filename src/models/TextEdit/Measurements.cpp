@@ -12,7 +12,7 @@ namespace TextEdit {
 
 using namespace ddui;
 
-Measurements measure(const Model* model, std::function<void(int,float*,float*)> measure_entity) {
+Measurements measure(const Model* model, const MeasureEntityFn& measure_entity) {
 
     text_align(align::LEFT | align::BASELINE);
 
@@ -21,8 +21,8 @@ Measurements measure(const Model* model, std::function<void(int,float*,float*)> 
     Measurements output;
     output.lines.reserve(model->lines.size());
 
-    for (auto& line : model->lines) {
-        auto measurements = measure(model, &line, measure_entity);
+    for (int i = 0; i < model->lines.size(); ++i) {
+        auto measurements = measure(model, i, measure_entity);
         measurements.y = y;
         y += measurements.height;
         if (!measurements.characters.empty() && output.width < measurements.characters.back().max_x) {
@@ -35,11 +35,12 @@ Measurements measure(const Model* model, std::function<void(int,float*,float*)> 
     return output;
 }
 
-LineMeasurements measure(const Model* model, const Line* line,
-                         std::function<void(int,float*,float*)> measure_entity) {
+LineMeasurements measure(const Model* model, int lineno, const MeasureEntityFn& measure_entity) {
     
-    auto& characters = line->characters;
-    char* content = line->content.get();
+    const auto& line = model->lines[lineno];
+
+    auto& characters = line.characters;
+    char* content = line.content.get();
 
     auto regular_font = model->regular_font;
     auto bold_font    = model->bold_font;
@@ -58,8 +59,8 @@ LineMeasurements measure(const Model* model, const Line* line,
     float ascender, descender, line_height;
 
     if (characters.empty()) {
-        font_size(line->style.text_size);
-        font_face(line->style.font_bold ? bold_font : regular_font);
+        font_size(line.style.text_size);
+        font_face(line.style.font_bold ? bold_font : regular_font);
         text_metrics(&ascender, &descender, &line_height);
         
         output.line_height = output.height = line_height;
@@ -75,7 +76,7 @@ LineMeasurements measure(const Model* model, const Line* line,
         // Handle special entity characters.
         if (characters[i].entity_id != -1) {
             float width, height;
-            measure_entity(characters[i].entity_id, &width, &height);
+            measure_entity(lineno, i, characters[i].entity_id, &width, &height);
             
             // Save so that we only call measure_entity() once.
             output.characters[i].x = x;
