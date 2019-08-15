@@ -19,6 +19,7 @@ PlainTextBox::StyleOptions* PlainTextBox::get_global_styles() {
         return &styles;
     }
 
+    did_init = true;
     styles.margin = 8;
     styles.border_radius = 4;
     styles.border_width = 1;
