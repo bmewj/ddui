@@ -17,7 +17,7 @@ struct IAutoCompletionController {
     virtual void set_user_text   (const std::string& text) = 0;
     virtual void on_user_key_up  () = 0;
     virtual void on_user_key_down() = 0;
-    virtual        bool has_auto_completion_string() = 0;
+    virtual bool        has_auto_completion_string() = 0;
     virtual std::string get_auto_completion_string() = 0;
 };
 
