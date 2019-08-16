@@ -44,6 +44,9 @@ struct TokenizedTextBox : PlainTextBox {
     TokenizedTextBox& auto_completion_controller(IAutoCompletionController& ac_controller);
     void update();
 
+    // Helpers
+    static void extract_tokens(const Model* model, const char* separator, std::vector<std::string>* out);
+
 protected:
     const char* separator = ";";
     IAutoCompletionController* ac_controller;

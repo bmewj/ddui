@@ -86,9 +86,46 @@ void TokenizedTextBox::update() {
     // text box, parsing the separators into tokens.
     if (state.current_version_count != model.version_count) {
         tokenize_content();
-    } 
+    }
+
+    // If we just gained focus, we want to notify the auto completion controller
+    // to open up and refresh its contents.
+    if (state.current_version_count == model.version_count &&
+        ddui::did_focus(&state)) {
+
+        // Get the selection/range of text that the user is currently editing
+        TextEdit::Selection user_input_selection;
+        get_user_input_selection(&user_input_selection);
+
+        // Extract the content from in the range
+        std::string user_input;
+        {
+            auto str = TextEdit::get_text_content(&model, user_input_selection);
+            user_input = str.get();
+        }        
+
+        ac_controller->set_user_text(user_input);
+    }
 
     PlainTextBox::update();
+}
+
+void TokenizedTextBox::extract_tokens(const Model* model, const char* separator, std::vector<std::string>* out) {
+    auto& list = *out;
+    list.clear();
+
+    const int sep_len = std::strlen(separator);
+
+    for (const auto& line : model->lines) {
+        for (const auto& ch : line.characters) {
+            if (ch.entity_id != -1) {
+                list.push_back(std::string(
+                    line.content.get() + ch.index,
+                    ch.num_bytes - sep_len
+                ));
+            }
+        }
+    }
 }
 
 void TokenizedTextBox::process_key_input() {
