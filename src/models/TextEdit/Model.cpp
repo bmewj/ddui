@@ -227,7 +227,7 @@ void insert_text_content(Model* model, int* lineno, int* index, const char* cont
     
 }
 
-std::unique_ptr<char[]> get_text_content(Model* model, const Selection& selection) {
+std::unique_ptr<char[]> get_text_content(const Model* model, const Selection& selection) {
     
     if (selection.a_line == selection.b_line) {
         // Single-line copy string
@@ -299,7 +299,7 @@ std::unique_ptr<char[]> get_text_content(Model* model, const Selection& selectio
     }
 }
 
-std::unique_ptr<char[]> get_text_content(Model* model) {
+std::unique_ptr<char[]> get_text_content(const Model* model) {
 
     // Select all
     Selection selection;
