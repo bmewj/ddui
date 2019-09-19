@@ -2,8 +2,8 @@
 //  ContextMenu.hpp
 //  ddui
 //
-//  Created by Bartholomew Joyce on 11/03/2018.
-//  Copyright © 2018 Bartholomew Joyce All rights reserved.
+//  Created by Bartholomew Joyce on 19/09/2019.
+//  Copyright © 2019 Bartholomew Joyce All rights reserved.
 //
 
 #ifndef ddui_ContextMenu_hpp
@@ -11,18 +11,24 @@
 
 #include <ddui/core>
 #include <functional>
-#include <string>
-#include <vector>
 #include <ddui/views/Menu>
 
-namespace ContextMenu {
+struct ContextMenu {
 
-void update(std::function<void()> inner_update);
+    struct Handler {
+        Handler(const std::function<void(MenuBuilder::Menu&)>& handler_fn);
+        Handler(Handler&&) = delete;
+        Handler(const Handler&) = delete;
+        ~Handler();
 
-int process_action(void* identifier);
-void show(void* identifier, float x, float y, MenuBuilder::Menu& menu);
-bool is_showing(void* identifier);
+        const std::function<void(MenuBuilder::Menu&)>& handler_fn;
+        const Handler* parent_handler;
+        bool should_activate;
+    };
 
-}
+    static void update(const std::function<void()>& inner_update);
+    static void open();
+
+};
 
 #endif

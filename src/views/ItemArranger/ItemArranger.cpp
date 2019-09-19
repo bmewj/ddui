@@ -36,6 +36,7 @@ void update(State* state) {
 
     font_face(state->font_face);
     font_size(state->text_size);
+    text_align(align::LEFT | align::BASELINE);
   
     float ascender, descender, line_height;
     text_metrics(&ascender, &descender, &line_height);

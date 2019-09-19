@@ -45,11 +45,6 @@ TabBar& TabBar::text_color_active(ddui::Color color_text_active) {
     return *this;
 }
 
-TabBar& TabBar::add_custom_context_menu_items(const AddCustomCtxMenuItemsHandler& handler) {
-    this->add_custom_context_menu_items_handler = &handler;
-    return *this;
-}
-
 TabBar& TabBar::new_tab_button_placement(int placement) {
     this->new_tab_placement = placement;
     return *this;
@@ -118,6 +113,19 @@ void TabBar::process_user_input() {
 
     switch (state.state) {
         case IDLE: {
+            // Handling context menu actions
+            ContextMenu::Handler cmh(std::bind(&TabBar::create_context_menu, this, std::placeholders::_1));
+            if (state.ctx_menu_action == MENU_ACTION_RENAME) {
+                open_rename_input();
+            } else if (state.ctx_menu_action == MENU_ACTION_DUPLICATE) {
+                action.type = DUPLICATE_TAB;
+                action.tab_index = state.active_tab;
+            } else if (state.ctx_menu_action == MENU_ACTION_CLOSE) {
+                action.type = CLOSE_TAB;
+                action.tab_index = state.active_tab;
+            }
+            state.ctx_menu_action = -1;
+
             // Clicking tabs
             float x = 0;
             for (int i = 0; i < state.tab_names.size(); ++i) {
@@ -132,11 +140,10 @@ void TabBar::process_user_input() {
                 }
                 if (mouse_hit_secondary(x, 0, tab_width, view.height)) {
                     mouse_hit_accept();
-                    state.state = CONTEXT_MENU_SHOWING;
                     state.active_tab = i;
                     action.type = SWITCH_TO_TAB;
                     action.tab_index = i;
-                    open_context_menu();
+                    ContextMenu::open();
                     break;
                 }
                 x += tab_width;
@@ -144,24 +151,6 @@ void TabBar::process_user_input() {
             if (mouse_hit(new_tab_button_x, 0, new_tab_button_width, view.height)) {
                 mouse_hit_accept();
                 action.type = NEW_TAB;
-            }
-            break;
-        }
-        case CONTEXT_MENU_SHOWING: {
-            auto menu_action = ContextMenu::process_action(this);
-            if (menu_action == MENU_ACTION_RENAME) {
-               open_rename_input();
-            } else if (menu_action == MENU_ACTION_DUPLICATE) {
-                action.type = DUPLICATE_TAB;
-                action.tab_index = state.active_tab;
-                state.state = IDLE;
-            } else if (menu_action == MENU_ACTION_CLOSE) {
-                action.type = CLOSE_TAB;
-                action.tab_index = state.active_tab;
-                state.state = IDLE;
-            } else if (!ContextMenu::is_showing(this)) {
-                state.state = IDLE;
-                state.active_tab = -1;
             }
             break;
         }
@@ -357,23 +346,27 @@ void TabBar::open_rename_input() {
     focus(&state.text_box_state);
 }
 
-void TabBar::open_context_menu() {
-    float mx, my;
-    mouse_position(&mx, &my);
+void TabBar::create_context_menu(MenuBuilder::Menu& menu) {
+    auto state_ptr = &state;
 
-    MenuBuilder mb;
-    MenuBuilder::Menu menu = (
-        mb.menu()
-            .item("Rename").action(0)
-            .item("Duplicate").action(1)
-            .item("Close").action(state.tab_names.size() > 1 ? 2 : -1)
-    );
+    // Rename item
+    menu.item("Rename").action([state_ptr] () {
+        state_ptr->ctx_menu_action = MENU_ACTION_RENAME;
+    });
 
-    if (this->add_custom_context_menu_items_handler != NULL) {
-        (*this->add_custom_context_menu_items_handler)(state.active_tab, menu);
+    // Duplicate item
+    menu.item("Duplicate").action([state_ptr] () {
+        state_ptr->ctx_menu_action = MENU_ACTION_DUPLICATE;
+    });
+    
+    // Close item
+    if (state.tab_names.size() > 1) {
+        menu.item("Close").action([state_ptr] () {
+            state_ptr->ctx_menu_action = MENU_ACTION_CLOSE;
+        });
+    } else {
+        menu.item("Close");
     }
-
-    ContextMenu::show(this, mx, my, menu);
 }
 
 int TabBar::tab_drag_target_position() {
