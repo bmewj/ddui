@@ -17,8 +17,8 @@ struct ContextMenuState {
 
 static ContextMenuState state;
 
-ContextMenu::Handler::Handler(const std::function<void(MenuBuilder::Menu&)>& handler_fn)
- : handler_fn(handler_fn) {
+ContextMenu::Handler::Handler(std::function<void(MenuBuilder::Menu&)> handler_fn)
+ : handler_fn(std::move(handler_fn)) {
     parent_handler = state.head_handler;
     state.head_handler = this;
     should_activate = !state.is_open && ddui::mouse_hit_secondary(0, 0, ddui::view.width, ddui::view.height);

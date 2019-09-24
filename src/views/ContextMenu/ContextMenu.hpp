@@ -16,12 +16,12 @@
 struct ContextMenu {
 
     struct Handler {
-        Handler(const std::function<void(MenuBuilder::Menu&)>& handler_fn);
+        Handler(std::function<void(MenuBuilder::Menu&)> handler_fn);
         Handler(Handler&&) = delete;
         Handler(const Handler&) = delete;
         ~Handler();
 
-        const std::function<void(MenuBuilder::Menu&)>& handler_fn;
+        std::function<void(MenuBuilder::Menu&)> handler_fn;
         const Handler* parent_handler;
         bool should_activate;
     };
