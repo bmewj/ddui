@@ -18,6 +18,7 @@ Menu::IMenuView* DefaultMenuView::construct() {
 
 DefaultMenuView::DefaultMenuView() {
     styles = get_global_styles();
+    scroll_y = 0;
 }
 
 void DefaultMenuView::lay_out_menu(const SubMenuState& menu, int level, float max_width, float max_height, BoundingRect* rect) {
@@ -173,7 +174,6 @@ void DefaultMenuView::render_content(const SubMenuState& menu, const BoundingRec
     ddui::restore(); // b
     ddui::restore(); // a
 }
-
 
 void DefaultMenuView::draw_items(const SubMenuState& menu, int selected_item_index) {
     float x = styles->left_margin_width;
