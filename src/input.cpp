@@ -302,8 +302,8 @@ void pop_input_events_into_global_state() {
                 mouse_state.accepted = false;
                 mouse_state.pressed = false;
                 mouse_state.pressed_secondary = false;
-                mouse_state.initial_x = 0;
-                mouse_state.initial_y = 0;
+                // mouse_state.initial_x = 0;
+                // mouse_state.initial_y = 0;
             }
 
             input_events_queue.pop_front();
