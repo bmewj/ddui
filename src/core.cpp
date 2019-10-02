@@ -38,7 +38,6 @@ struct FocusState {
 // Globals
 static NVGcontext* vg;
 static FocusState focus_state;
-static std::vector<KeyState> key_state_queue;
 static std::mutex repaint_mutex;
 static bool is_painting, should_repaint;
 static std::mutex set_immediate_mutex;
@@ -50,6 +49,10 @@ MouseState mouse_state;
 KeyState key_state;
 Viewport view;
 static std::vector<Viewport> saved_views;
+
+// input.cpp internal functions
+void pop_input_events_into_global_state();
+bool has_input_events_to_process();
 
 // Setup
 bool init() {
@@ -97,87 +100,6 @@ void set_set_cursor_proc(std::function<void(Cursor)> proc) {
 // Teardown
 void terminate() {
     nvgDelete(vg);
-}
-
-// User input
-void input_key(int key, int scancode, int action, int mods) {
-    KeyState key_state;
-    key_state.action = action;
-    key_state.key = key;
-    key_state.mods = mods;
-    key_state.character = NULL;
-    key_state_queue.push_back(key_state);
-}
-
-void input_character(unsigned int codepoint) {
-    auto cp = codepoint;
-
-    int n = 0;
-    if (cp < 0x80) n = 1;
-    else if (cp < 0x800) n = 2;
-    else if (cp < 0x10000) n = 3;
-    else if (cp < 0x200000) n = 4;
-    else if (cp < 0x4000000) n = 5;
-    else if (cp <= 0x7fffffff) n = 6;
-
-    auto key_character = new char[7];
-    key_character[n] = '\0';
-
-    switch (n) {
-        case 6: key_character[5] = 0x80 | (cp & 0x3f); cp = cp >> 6; cp |= 0x4000000;
-        case 5: key_character[4] = 0x80 | (cp & 0x3f); cp = cp >> 6; cp |= 0x200000;
-        case 4: key_character[3] = 0x80 | (cp & 0x3f); cp = cp >> 6; cp |= 0x10000;
-        case 3: key_character[2] = 0x80 | (cp & 0x3f); cp = cp >> 6; cp |= 0x800;
-        case 2: key_character[1] = 0x80 | (cp & 0x3f); cp = cp >> 6; cp |= 0xc0;
-        case 1: key_character[0] = cp;
-    }
-
-    if (key_state_queue.empty()) {
-        KeyState key_state;
-        key_state.action = keyboard::ACTION_PRESS;
-        key_state.key = 0;
-        key_state.character = key_character;
-        key_state_queue.push_back(key_state);
-    } else {
-        key_state_queue.back().key = 0;
-        key_state_queue.back().character = key_character;
-    }
-}
-
-void input_mouse_position(float x, float y) {
-    mouse_state.x = x;
-    mouse_state.y = y;
-}
-
-void input_mouse_button(int button, int action, int mods) {
-    constexpr int ACTION_RELEASE = 0;
-    constexpr int ACTION_PRESS = 1;
-    constexpr int MOUSE_BUTTON_LEFT = 0;
-
-    if (action == ACTION_PRESS) {
-        mouse_state.accepted = false;
-        mouse_state.pressed = false;
-        mouse_state.pressed_secondary = false;
-        mouse_state.initial_x = mouse_state.x;
-        mouse_state.initial_y = mouse_state.y;
-
-        if (button == MOUSE_BUTTON_LEFT) {
-            mouse_state.pressed = true;
-        } else {
-            mouse_state.pressed_secondary = true;
-        }
-    }
-
-    if (action == ACTION_RELEASE) {
-        mouse_state.accepted = false;
-        mouse_state.pressed = false;
-        mouse_state.pressed_secondary = false;
-    }
-}
-
-void input_scroll(float offset_x, float offset_y) {
-    mouse_state.scroll_dx = offset_x;
-    mouse_state.scroll_dy = offset_y;
 }
 
 // Frame management
@@ -257,17 +179,7 @@ void update_pre(float width, float height, float pixel_ratio) {
 
     cursor_state_new = CURSOR_ARROW;
 
-    if (!key_state_queue.empty()) {
-        key_state = key_state_queue.front();
-        key_state_queue.erase(key_state_queue.begin());
-    } else {
-        key_state.action = 0;
-        if (key_state.character) {
-            delete[] key_state.character;
-            key_state.character = NULL;    
-        }
-        key_state.key = 0;
-    }
+    pop_input_events_into_global_state();
 
     focus_state.action = FocusState::NO_CHANGE;
     focus_state.groups.clear();
@@ -348,7 +260,7 @@ void update_post() {
     }
 
     if (focus_state.focus_old != focus_state.focus_new ||
-        !key_state_queue.empty()) {
+        has_input_events_to_process()) {
         should_repaint = true;
     }
 
@@ -904,19 +816,6 @@ bool has_key_event() {
 
 bool has_key_event(void* identifier) {
     return (focus_state.focus_new == identifier) && (key_state.character != NULL || key_state.key > 0);
-}
-
-void consume_key_event() {
-    auto saved_mods = key_state.mods;
-    key_state = { 0 };
-    key_state.mods = saved_mods;
-}
-
-void repeat_key_event() {
-    key_state_queue.insert(key_state_queue.begin(), key_state);
-    auto saved_mods = key_state.mods;
-    key_state = { 0 };
-    key_state.mods = saved_mods;
 }
 
 const char* get_clipboard_string() {

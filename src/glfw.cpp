@@ -168,37 +168,14 @@ void error_callback(int error, const char* desc) {
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    if (action == keyboard::ACTION_PRESS)   printf("KEY_PRESS   ");
-    if (action == keyboard::ACTION_RELEASE) printf("KEY_RELEASE ");
-    if (action == keyboard::ACTION_REPEAT)  printf("KEY_REPEAT  ");
-
-    if (mods & keyboard::MOD_SHIFT)   printf("SHIFT ");
-    if (mods & keyboard::MOD_CONTROL) printf("CONTROL ");
-    if (mods & keyboard::MOD_ALT)     printf("ALT ");
-    if (mods & keyboard::MOD_SUPER)   printf("SUPER ");
-
-    printf("%d\n", key);
-
     ddui::input_key(key, scancode, action, mods);
 }
 
 void character_callback(GLFWwindow* window, unsigned int codepoint) {
-    printf("CHARACTER ");
-    printf("%u\n", codepoint);
-
     ddui::input_character(codepoint);
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
-    if (action == 1) printf("MOUSE_PRESS   ");
-    if (action == 0) printf("MOUSE_RELEASE ");
-
-    if (mods & keyboard::MOD_SHIFT)   printf("SHIFT ");
-    if (mods & keyboard::MOD_CONTROL) printf("CONTROL ");
-    if (mods & keyboard::MOD_ALT)     printf("ALT ");
-    if (mods & keyboard::MOD_SUPER)   printf("SUPER ");
-    printf("\n");
-
     ddui::input_mouse_button(button, action, mods);
 }
 

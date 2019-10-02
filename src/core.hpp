@@ -52,8 +52,8 @@ namespace direction {
 
 namespace keyboard {
     constexpr int ACTION_PRESS   = 1;
-    constexpr int ACTION_RELEASE = 0;
     constexpr int ACTION_REPEAT  = 2;
+    constexpr int ACTION_RELEASE = 3;
 
     constexpr int MOD_SHIFT   = 0x0001;
     constexpr int MOD_CONTROL = 0x0002;
@@ -238,7 +238,7 @@ void set_set_cursor_proc(std::function<void(Cursor)> proc);
 // Teardown
 void terminate();
 
-// User input
+// User input (implemented in input.cpp)
 void input_key(int key, int scancode, int action, int mods);
 void input_character(unsigned int codepoint);
 void input_mouse_position(float x, float y);
