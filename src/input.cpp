@@ -8,6 +8,7 @@
 
 #include "core.hpp"
 #include <deque>
+#include <cstring>
 
 namespace ddui {
 
@@ -204,7 +205,7 @@ void repeat_key_event() {
     if (key_state.character == NULL) {
         event.character[0] = '\0';
     } else {
-        strcpy(event.character, key_state.character);
+        std::strcpy(event.character, key_state.character);
     }
 }
 
@@ -266,7 +267,7 @@ void pop_input_events_into_global_state() {
             key_state.key = event.key;
             key_state.mods = event.mods;
             if (event.character[0] != '\0') {
-                strcpy(character_buffer, event.character);
+                std::strcpy(character_buffer, event.character);
                 key_state.character = character_buffer;
             }
 
