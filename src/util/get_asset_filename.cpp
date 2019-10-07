@@ -9,7 +9,7 @@
 #include "get_asset_filename.hpp"
 #include <whereami.h>
 
-std::string get_asset_filename(std::string name) {
+std::string get_asset_filename(const std::string& name) {
 
     std::string executable_dir;
     {

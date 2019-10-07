@@ -11,6 +11,6 @@
 
 #include <string>
 
-std::string get_content_filename(std::string name);
+std::string get_content_filename(const std::string& name);
 
 #endif

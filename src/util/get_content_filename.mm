@@ -12,7 +12,7 @@
 
 static std::string app_support_dir;
 
-std::string get_content_filename(std::string name) {
+std::string get_content_filename(const std::string& name) {
 
     if (!app_support_dir.empty()) {
         return app_support_dir + name;

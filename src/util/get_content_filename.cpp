@@ -9,6 +9,6 @@
 #include "get_content_filename.hpp"
 #include "get_asset_filename.hpp"
 
-std::string get_content_filename(std::string name) {
+std::string get_content_filename(const std::string& name) {
     return get_asset_filename(name);
 }
