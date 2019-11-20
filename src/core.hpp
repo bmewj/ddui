@@ -261,9 +261,6 @@ Color color_interpolate(Color a, Color b, float ratio);
 // State Handling
 struct Viewport {
     float width, height;
-    struct {
-        float x1, y1, x2, y2;
-    } clip;
 };
 extern Viewport view;
 void save();
@@ -310,6 +307,7 @@ Paint image_pattern(float ox, float oy, float ex, float ey, float angle, int ima
 // Clipping
 void clip(float x, float y, float width, float height);
 void get_clip_dimensions(float* width, float* height);
+bool rect_appears_in_clip_region(float x, float y, float width, float height);
 
 // Paths
 void begin_path();

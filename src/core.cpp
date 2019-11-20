@@ -186,10 +186,6 @@ void update_pre(float width, float height, float pixel_ratio) {
 
     view.width = width;
     view.height = height;
-    view.clip.x1 = 0.0;
-    view.clip.y1 = 0.0;
-    view.clip.x2 = width;
-    view.clip.y2 = height;
     saved_views.clear();
     saved_views.push_back(view);
 }
@@ -533,6 +529,61 @@ void get_clip_dimensions(float* width, float* height) {
     *height = scissor->extent[1] * 2.0;
 }
 
+bool rect_appears_in_clip_region(float x, float y, float width, float height) {
+    auto scissor = get_scissor();
+
+    // Step 1. Transform rectangle coordinates to screen coordinates
+    float x1, y1, x2, y2, x3, y3, x4, y4;
+    {
+        float xform[6];
+        nvgCurrentTransform(vg, xform);
+        nvgTransformPoint(&x1, &y1, xform, x, y);                  // top-left corner
+        nvgTransformPoint(&x4, &y4, xform, x + width, y + height); // bottom-right corner
+        x2 = x1; y2 = y4;                                          // bottom-left corner
+        x3 = x4; y3 = y1;                                          // top-right corner
+    }
+
+    // Step 2. Transform rectangle screen coordinates to scissor coordinates
+    {
+        float inv_xform[6];
+        nvgTransformInverse(inv_xform, scissor->xform);
+        nvgTransformPoint(&x1, &y1, inv_xform, x1, y1);            // top-left corner
+        nvgTransformPoint(&x2, &y2, inv_xform, x2, y2);            // bottom-right corner
+        nvgTransformPoint(&x3, &y3, inv_xform, x3, y3);            // bottom-left corner 
+        nvgTransformPoint(&x4, &y4, inv_xform, x4, y4);            // top-right corner
+    }
+
+    // Step 3. Get the min and max bounds of the transformed points
+    float x_min, x_max, y_min, y_max;
+    {
+        x_min = x1;
+        if (x_min > x2) x_min = x2;
+        if (x_min > x3) x_min = x3;
+        if (x_min > x4) x_min = x4;
+
+        x_max = x1;
+        if (x_max < x2) x_max = x2;
+        if (x_max < x3) x_max = x3;
+        if (x_max < x4) x_max = x4;
+
+        y_min = y1;
+        if (y_min > y2) y_min = y2;
+        if (y_min > y3) y_min = y3;
+        if (y_min > y4) y_min = y4;
+
+        y_max = y1;
+        if (y_max < y2) y_max = y2;
+        if (y_max < y3) y_max = y3;
+        if (y_max < y4) y_max = y4;
+    }
+
+    // Step 4. Check if the bounded rectangle is within the clipping region extent
+    return (
+        (-scissor->extent[0] <= x_max && x_min < scissor->extent[0]) &&
+        (-scissor->extent[1] <= y_max && y_min < scissor->extent[1])
+    );
+}
+
 // Paths
 void begin_path() {
     nvgBeginPath(vg);
@@ -711,7 +762,7 @@ static bool mouse_inside(float x, float y, float width, float height) {
     
     extent[0] = width / 2;
     extent[1] = height / 2;
-    
+
     nvgTransformPoint(&x, &y, xform, x + extent[0], y + extent[1]);
     xform[4] = x;
     xform[5] = y;
