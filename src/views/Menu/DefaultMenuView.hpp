@@ -55,6 +55,7 @@ protected:
     float scroll_y;
 
     void draw_items(const SubMenuState& menu, int selected_item_index);
+    void draw_item (const SubMenuState& menu, int selected_item_index, int item_index, float x, float y, float width, float height);
     void draw_arrow();
 };
 

@@ -181,56 +181,58 @@ void DefaultMenuView::draw_items(const SubMenuState& menu, int selected_item_ind
     float w = ddui::view.width - styles->left_margin_width - styles->right_margin_width + 5;
     
     for (int i = 0; i < menu.items.size(); ++i) {
-        const auto& item = menu.items[i];
-
-        // Draw separator
-        if (item.separator) {
-            ddui::begin_path();
-            ddui::stroke_color(styles->separator_color);
-            ddui::stroke_width(styles->separator_width);
-            ddui::move_to(0, y + 0.5 * styles->item_height);
-            ddui::line_to(0 + ddui::view.width, y + 0.5 * styles->item_height);
-            ddui::stroke();
-            y += styles->item_height;
-            continue;
-        }
-
-        bool disabled = (item.action_index == 0 && item.sub_menu_index == -1);
-
-        // Draw background selection color
-        if (!disabled && selected_item_index == i) {
-            ddui::begin_path();
-            ddui::rect(0, y, ddui::view.width, styles->item_height);
-            ddui::fill_color(styles->color_bg_active);
-            ddui::fill();
-        }
-
-        // Draw text content
-        ddui::font_face(styles->font_face);
-        ddui::font_size(styles->font_size);
-        ddui::text_align(ddui::align::LEFT | ddui::align::BASELINE);
-        ddui::fill_color(
-            disabled ? styles->color_fg_disabled :
-            selected_item_index == i ? styles->color_fg_active :
-            styles->color_fg);
-        draw_text_in_box(x, y, w, styles->item_height, item.text.c_str());
-
-        // Draw sub-menu arrow
-        if (item.sub_menu_index != -1) {
-            ddui::sub_view(ddui::view.width - styles->right_margin_width, y, styles->right_margin_width, styles->item_height);
-            draw_arrow();
-            ddui::restore();
-        }
-        
-        // Draw check mark
-        if (item.checked) {
-            ddui::text_align(ddui::align::CENTER | ddui::align::MIDDLE);
-            ddui::font_face("entypo");
-            ddui::font_size(styles->item_height);
-            ddui::text(0.5 * styles->left_margin_width, y + 0.5 * styles->item_height, entypo::CHECK_MARK, NULL);
-        }
-
+        draw_item(menu, selected_item_index, i, x, y, w, styles->item_height);
         y += styles->item_height;
+    }
+}
+
+void DefaultMenuView::draw_item(const SubMenuState& menu, int selected_item_index, int item_index, float x, float y, float width, float height) {
+    const auto& item = menu.items[item_index];
+
+    // Draw separator
+    if (item.separator) {
+        ddui::begin_path();
+        ddui::stroke_color(styles->separator_color);
+        ddui::stroke_width(styles->separator_width);
+        ddui::move_to(0, y + 0.5 * height);
+        ddui::line_to(0 + ddui::view.width, y + 0.5 * height);
+        ddui::stroke();
+        return;
+    }
+
+    bool disabled = (item.action_index == 0 && item.sub_menu_index == -1);
+
+    // Draw background selection color
+    if (!disabled && selected_item_index == item_index) {
+        ddui::begin_path();
+        ddui::rect(0, y, ddui::view.width, height);
+        ddui::fill_color(styles->color_bg_active);
+        ddui::fill();
+    }
+
+    // Draw text content
+    ddui::font_face(styles->font_face);
+    ddui::font_size(styles->font_size);
+    ddui::text_align(ddui::align::LEFT | ddui::align::BASELINE);
+    ddui::fill_color(
+        disabled ? styles->color_fg_disabled :
+        selected_item_index == item_index ? styles->color_fg_active :
+        styles->color_fg);
+    draw_text_in_box(x, y, width, height, item.text.c_str());
+
+    // Draw sub-menu arrow
+    if (item.sub_menu_index != -1) {
+        ddui::sub_view(ddui::view.width - styles->right_margin_width, y, styles->right_margin_width, height);
+        draw_arrow();
+        ddui::restore();
+    }
+    
+    // Draw check mark
+    if (item.checked) {
+        ddui::text_align(ddui::align::CENTER | ddui::align::MIDDLE);
+        ddui::font_face("entypo");
+        ddui::font_size(height);
+        ddui::text(0.5 * styles->left_margin_width, y + 0.5 * height, entypo::CHECK_MARK, NULL);
     }
 }
 

@@ -53,7 +53,7 @@ struct Menu {
 
     struct SubMenuState {
         std::vector<ItemState> items;
-        IMenuView* (*construct_view_state)();
+        std::function<IMenuView*()> construct_view_state;
     };
 
     struct BoundingRect {
