@@ -175,6 +175,7 @@ Menu& Menu::process_user_input(Action* action) {
         lay_out_menu(a, b, num_opened_menus - 1);
     }
 
+    action->type = NO_ACTION;
     return *this;
 }
 
