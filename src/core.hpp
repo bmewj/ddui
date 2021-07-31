@@ -215,6 +215,11 @@ struct KeyState {
     int mods;
 };
 
+struct FileDropState {
+    int count;
+    const char** paths;
+};
+
 enum Cursor {
     CURSOR_ARROW,
     CURSOR_IBEAM,
@@ -244,6 +249,7 @@ void input_character(unsigned int codepoint);
 void input_mouse_position(float x, float y);
 void input_mouse_button(int button, int action, int mods);
 void input_scroll(float offset_x, float offset_y);
+void input_file_drop(int count, const char** paths);
 
 // Frame management
 void update(float width, float height, float pixel_ratio, std::function<void()> update_proc);
@@ -366,6 +372,11 @@ void consume_key_event();
 void repeat_key_event();
 const char* get_clipboard_string();
 void set_clipboard_string(const char* string);
+
+// File drop state
+extern FileDropState file_drop_state;
+bool has_dropped_files();
+void consume_dropped_files();
 
 // Cursor state
 void set_cursor(Cursor cursor);

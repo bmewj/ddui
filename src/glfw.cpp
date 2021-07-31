@@ -31,6 +31,7 @@ static void error_callback(int error, const char* desc);
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 static void character_callback(GLFWwindow* window, unsigned int codepoint);
 static void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
+static void drop_callback(GLFWwindow* window, int count, const char** paths);
 static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 static void window_size_callback(GLFWwindow* window, int width, int height);
 
@@ -62,6 +63,7 @@ bool init_window(GLFWwindow* window, std::function<void()> update_proc) {
     glfwSetKeyCallback(window, key_callback);
     glfwSetCharCallback(window, character_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
+    glfwSetDropCallback(window, drop_callback);
     glfwSetScrollCallback(window, scroll_callback);
     glfwSetWindowSizeCallback(window, window_size_callback);
 
@@ -177,6 +179,10 @@ void character_callback(GLFWwindow* window, unsigned int codepoint) {
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
     ddui::input_mouse_button(button, action, mods);
+}
+
+void drop_callback(GLFWwindow* window, int count, const char** paths) {
+    ddui::input_file_drop(count, paths);
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {

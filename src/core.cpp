@@ -47,6 +47,7 @@ static std::vector<std::function<void()>> set_post_update_callbacks;
 static Cursor cursor_state_old, cursor_state_new;
 MouseState mouse_state;
 KeyState key_state;
+FileDropState file_drop_state;
 Viewport view;
 static std::vector<Viewport> saved_views;
 
@@ -67,6 +68,7 @@ bool init() {
 
     mouse_state = { 0 };
     key_state = { 0 };
+    file_drop_state = { 0 };
     cursor_state_old = CURSOR_ARROW;
     cursor_state_new = CURSOR_ARROW;
 
@@ -878,6 +880,14 @@ void set_clipboard_string(const char* string) {
     if (set_clipboard_string_proc) {
         set_clipboard_string_proc(string);
     }
+}
+
+// File drop state
+bool has_dropped_files() {
+    return (file_drop_state.count != 0);
+}
+void consume_dropped_files() {
+    file_drop_state = { 0 };
 }
 
 // Cursor state

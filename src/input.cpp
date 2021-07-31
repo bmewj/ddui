@@ -38,13 +38,15 @@ struct InputEvent {
         KEY_PRESS,
         KEY_REPEAT,
         KEY_RELEASE,
+        FILE_DROP
     };
 
     Type type;
     int x, y;
     int key, mods;
     char character[7];
-
+    int count;
+    const char** paths;
 };
 
 static std::deque<InputEvent> input_events_queue;
@@ -181,6 +183,21 @@ void input_scroll(float offset_x, float offset_y) {
     event.y = offset_y;
 }
 
+void input_file_drop(int count, const char** paths) {
+    input_events_queue.push_back(InputEvent());
+    auto& event = input_events_queue.back();
+
+    event.type = InputEvent::FILE_DROP;
+    event.count = count;
+    event.paths = (const char**)malloc(sizeof(const char*) * count); // WARNING: leaking memory
+    for (int i = 0; i < count; ++i) {
+        int len = std::strlen(paths[i]);
+        char* copy = (char*)malloc(sizeof(char) * (len + 1));
+        std::strcpy(copy, paths[i]);
+        event.paths[i] = copy;
+    }
+}
+
 void consume_key_event() {
     auto saved_mods = key_state.mods;
     key_state = { 0 };
@@ -273,6 +290,14 @@ void pop_input_events_into_global_state() {
 
             input_events_queue.pop_front();
             popped_key_event = true;
+            continue;
+        }
+
+        // File drop event
+        if (event.type == InputEvent::FILE_DROP) {
+            file_drop_state.count = event.count;
+            file_drop_state.paths = event.paths;
+            input_events_queue.pop_front();
             continue;
         }
 
