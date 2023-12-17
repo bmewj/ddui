@@ -50,21 +50,23 @@ struct Timer {
 
 static void run_thread();
 
-static std::mutex mutex;
-static std::condition_variable condition_variable;
+static std::mutex* mutex;
+static std::condition_variable* condition_variable;
 static std::vector<Timer> timers;
 static int next_timer_id;
 static std::chrono::high_resolution_clock::time_point thread_wake_time;
 
 void timer_init() {
     next_timer_id = 1;
+    mutex = new std::mutex;
+    condition_variable = new std::condition_variable;
     std::thread(run_thread).detach();
 }
 
 void run_thread() {
     while (true) {
 
-        std::unique_lock<std::mutex> lock(mutex);
+        std::unique_lock<std::mutex> lock(*mutex);
         auto current_time = std::chrono::high_resolution_clock::now();
 
         // Call all callbacks that are due
@@ -89,7 +91,7 @@ void run_thread() {
 
         // No timers left? Sleep
         if (timers.empty()) {
-            condition_variable.wait(lock);
+            condition_variable->wait(lock);
             continue;
         }
 
@@ -103,13 +105,13 @@ void run_thread() {
 
         // Convert to duration and sleep
         auto sleep_duration = thread_wake_time - current_time;
-        condition_variable.wait_for(lock, sleep_duration);
+        condition_variable->wait_for(lock, sleep_duration);
 
     }
 }
 
 int schedule_timer(std::function<void()> callback, long duration_in_ms, bool repeat) {
-    std::unique_lock<std::mutex> lock(mutex);
+    std::unique_lock<std::mutex> lock(*mutex);
 
     bool thread_is_idle = timers.empty();
 
@@ -123,14 +125,14 @@ int schedule_timer(std::function<void()> callback, long duration_in_ms, bool rep
     timers.push_back(std::move(timer));
 
     if (thread_is_idle || timer.due_time < thread_wake_time) {
-        condition_variable.notify_one();
+        condition_variable->notify_one();
     }
     
     return timers.back().id;
 }
 
 void clear_timer(int timer_id) {
-    std::unique_lock<std::mutex> lock(mutex);
+    std::unique_lock<std::mutex> lock(*mutex);
 
     for (int i = 0; i < timers.size(); ++i) {
         if (timers[i].id == timer_id) {
