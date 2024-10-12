@@ -14,11 +14,13 @@
 #ifdef __APPLE__
 #include <AppKit/AppKit.h>
 #define GLFW_EXPOSE_NATIVE_NSGL
+#define GLFW_EXPOSE_NATIVE_COCOA
 #include <GLFW/glfw3native.h>
 #endif
 
 namespace ddui {
 
+static NSWindow* ns_window = nullptr;
 static bool cursors_initialised = false;
 static void init_cursors();
 static void set_window_cursor(GLFWwindow* window, ddui::Cursor cursor);
@@ -34,6 +36,11 @@ static void mouse_button_callback(GLFWwindow* window, int button, int action, in
 static void drop_callback(GLFWwindow* window, int count, const char** paths);
 static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 static void window_size_callback(GLFWwindow* window, int width, int height);
+
+static bool no_titlebar = false;
+void enable_no_titlebar() {
+    no_titlebar = true;
+}
 
 bool init_glfw() {
     if (!glfwInit()) {
@@ -87,6 +94,17 @@ bool init_window(GLFWwindow* window, std::function<void()> update_proc) {
     glfwSwapInterval(0);
     glfwSetTime(0);
 
+#ifdef __APPLE__
+    {
+        ns_window = glfwGetCocoaWindow(window);
+        if (no_titlebar) {
+            [ns_window setStyleMask: [ns_window styleMask] | NSWindowStyleMaskFullSizeContentView];
+            [ns_window setTitlebarAppearsTransparent:YES];
+            [ns_window setTitleVisibility:NSWindowTitleHidden];
+        }
+    }
+#endif
+
     return true;
 }
 
@@ -110,6 +128,7 @@ void update_window(GLFWwindow* window) {
     if (!fixed_mac_bug) {
         id nsglContext = glfwGetNSGLContext(window);
         [nsglContext update];
+        fixed_mac_bug = true;
     }
 #endif
 }
@@ -166,7 +185,7 @@ bool init_gl() {
 
 void error_callback(int error, const char* desc) {
     printf("GLFW error. %s\n", desc);
-    exit(0);
+    // exit(0);
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -242,5 +261,11 @@ void set_window_cursor(GLFWwindow* window, ddui::Cursor cursor) {
 }
 
 #endif
+
+void perform_window_drag() {
+#ifdef __APPLE__
+    [ns_window performWindowDragWithEvent:[NSApp currentEvent]];
+#endif
+}
 
 }

@@ -239,6 +239,7 @@ void set_post_empty_message_proc(std::function<void()> proc);
 void set_get_clipboard_string_proc(std::function<const char*()> proc);
 void set_set_clipboard_string_proc(std::function<void(const char*)> proc);
 void set_set_cursor_proc(std::function<void(Cursor)> proc);
+void enable_no_titlebar();
 
 // Teardown
 void terminate();
@@ -353,6 +354,7 @@ bool mouse_over(float x, float y, float width, float height);
 void mouse_hit_accept();
 void mouse_position(float* x, float* y);
 void mouse_movement(float* x, float* y, float* dx, float* dy);
+void perform_window_drag();
 
 // Focus state
 void register_focus_group(void* identifier);
