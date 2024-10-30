@@ -268,4 +268,10 @@ void perform_window_drag() {
 #endif
 }
 
+void focus_main_window() {
+#ifdef __APPLE__
+    [ns_window makeKeyWindow];
+#endif
+}
+
 }

@@ -21,6 +21,7 @@ namespace ddui {
 bool init_glfw();
 bool init_window(GLFWwindow* window, std::function<void()> update_proc);
 void update_window(GLFWwindow* window);
+void focus_main_window();
 
 }
 
