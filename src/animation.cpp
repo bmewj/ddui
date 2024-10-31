@@ -11,7 +11,7 @@
 #include <vector>
 
 struct ActiveAnimation {
-    void* identifier;
+    const void* identifier;
     std::chrono::high_resolution_clock::time_point start_time;
     bool touched;
 };
@@ -19,9 +19,9 @@ struct ActiveAnimation {
 static std::chrono::high_resolution_clock::time_point last_update_time;
 static std::vector<ActiveAnimation> active_animations;
 
-static int find_active_animation(void* identifier);
+static int find_active_animation(const void* identifier);
 
-void ddui::animation::start(void* identifier) {
+void ddui::animation::start(const void* identifier) {
 
     ActiveAnimation new_animation;
     new_animation.identifier = identifier;
@@ -36,7 +36,7 @@ void ddui::animation::start(void* identifier) {
     }
 }
 
-void ddui::animation::stop(void* identifier) {
+void ddui::animation::stop(const void* identifier) {
 
     int i = find_active_animation(identifier);
     if (i != -1) {
@@ -44,7 +44,7 @@ void ddui::animation::stop(void* identifier) {
     }
 }
 
-bool ddui::animation::is_animating(void* identifier) {
+bool ddui::animation::is_animating(const void* identifier) {
 
     int i = find_active_animation(identifier);
     if (i == -1) {
@@ -55,7 +55,7 @@ bool ddui::animation::is_animating(void* identifier) {
     return true;
 }
 
-double ddui::animation::get_time_elapsed(void* identifier) {
+double ddui::animation::get_time_elapsed(const void* identifier) {
 
     int i = find_active_animation(identifier);
     if (i == -1) {
@@ -92,7 +92,7 @@ bool ddui::animation::is_animating() {
     return !active_animations.empty();
 }
 
-int find_active_animation(void* identifier) {
+int find_active_animation(const void* identifier) {
     for (int i = 0; i < active_animations.size(); ++i) {
         if (active_animations[i].identifier == identifier) {
             return i;

@@ -19,9 +19,10 @@
 namespace ddui {
 
 struct FocusState {
-    void* focus_old;
-    void* focus_new;
-    std::vector<void*> groups;
+    std::vector<const void*> focus_old;
+    std::vector<const void*> focus_new;
+    std::vector<std::vector<const void*>> items;
+    std::vector<const void*> current;
 
     enum Action {
         NO_CHANGE,
@@ -32,7 +33,7 @@ struct FocusState {
     };
 
     Action action;
-    void* tab_to;
+    const void* tab_to;
 };
 
 // Globals
@@ -62,9 +63,6 @@ bool init() {
         printf("Could not init nanovg.\n");
         return false;
     }
-
-    focus_state.focus_old = NULL;
-    focus_state.focus_new = NULL;
 
     mouse_state = { 0 };
     key_state = { 0 };
@@ -184,7 +182,8 @@ void update_pre(float width, float height, float pixel_ratio) {
     pop_input_events_into_global_state();
 
     focus_state.action = FocusState::NO_CHANGE;
-    focus_state.groups.clear();
+    focus_state.items.clear();
+    focus_state.current.clear();
 
     view.width = width;
     view.height = height;
@@ -215,40 +214,40 @@ void update_post() {
     }
 
     focus_state.focus_old = focus_state.focus_new;
-    focus_state.focus_new = NULL;
+    focus_state.focus_new.clear();
 
-    int group_index = -1;
-    for (int i = 0; i < focus_state.groups.size(); ++i) {
-        if (focus_state.groups[i] == focus_state.focus_old) {
-            group_index = i;
+    int item_index = -1;
+    for (int i = 0; i < focus_state.items.size(); ++i) {
+        if (focus_state.items[i] == focus_state.focus_old) {
+            item_index = i;
             break;
         }
     }
 
     switch (focus_state.action) {
         case FocusState::NO_CHANGE:
-            if (group_index != -1) {
+            if (item_index != -1) {
                 focus_state.focus_new = focus_state.focus_old;
             }
             break;
         case FocusState::TAB_FORWARD:
-            if (group_index != -1 && group_index + 1 < focus_state.groups.size()) {
-                focus_state.focus_new = focus_state.groups[group_index + 1];
-            } else if (focus_state.focus_old == NULL && !focus_state.groups.empty()) {
-                focus_state.focus_new = focus_state.groups.front();
+            if (item_index != -1 && item_index + 1 < focus_state.items.size()) {
+                focus_state.focus_new = focus_state.items[item_index + 1];
+            } else if (focus_state.focus_old.empty() && !focus_state.items.empty()) {
+                focus_state.focus_new = focus_state.items.front();
             }
             break;
         case FocusState::TAB_BACKWARD:
-            if (group_index != -1 && group_index - 1 >= 0) {
-                focus_state.focus_new = focus_state.groups[group_index - 1];
-            } else if (focus_state.focus_old == NULL && !focus_state.groups.empty()) {
-                focus_state.focus_new = focus_state.groups.back();
+            if (item_index != -1 && item_index - 1 >= 0) {
+                focus_state.focus_new = focus_state.items[item_index - 1];
+            } else if (focus_state.focus_old.empty() && !focus_state.items.empty()) {
+                focus_state.focus_new = focus_state.items.back();
             }
             break;
         case FocusState::TAB_TO:
-            for (int i = 0; i < focus_state.groups.size(); ++i) {
-                if (focus_state.groups[i] == focus_state.tab_to) {
-                    focus_state.focus_new = focus_state.tab_to;
+            for (int i = 0; i < focus_state.items.size(); ++i) {
+                if (focus_state.items[i].back() == focus_state.tab_to) {
+                    focus_state.focus_new = focus_state.items[i];
                     break;
                 }
             }
@@ -824,22 +823,42 @@ void mouse_movement(float* x, float* y, float* dx, float* dy) {
 }
 
 // Focus state
-void register_focus_group(void* identifier) {
-    focus_state.groups.push_back(identifier);
+FocusItem::FocusItem(const void* identifier) {
+    std::vector<const void*> item = focus_state.current;
+    item.push_back(identifier);
+    focus_state.items.push_back(item);
 }
 
-bool did_focus(void* identifier) {
-    return (focus_state.focus_old != identifier &&
-            focus_state.focus_new == identifier);
+FocusGroup::FocusGroup(const void* identifier) {
+    focus_state.current.push_back(identifier);
+    focus_state.items.push_back(focus_state.current);
 }
 
-bool did_blur(void* identifier) {
-    return (focus_state.focus_old == identifier &&
-            focus_state.focus_new != identifier);
+FocusGroup::~FocusGroup() {
+    focus_state.current.pop_back();
 }
 
-bool has_focus(void* identifier) {
-    return (focus_state.focus_new == identifier);
+static bool contains(const std::vector<const void*>& item, const void* identifier) {
+    for (const void* entry : item) {
+        if (entry == identifier) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool did_focus(const void* identifier) {
+    return (!contains(focus_state.focus_old, identifier) &&
+            contains(focus_state.focus_new, identifier));
+}
+
+bool did_blur(const void* identifier) {
+    return (contains(focus_state.focus_old, identifier) &&
+            !contains(focus_state.focus_new, identifier));
+}
+
+bool has_focus(const void* identifier) {
+    return contains(focus_state.focus_new, identifier);
 }
 
 void tab_forward() {
@@ -850,7 +869,7 @@ void tab_backward() {
     focus_state.action = FocusState::TAB_BACKWARD;
 }
 
-void focus(void* identifier) {
+void focus(const void* identifier) {
     focus_state.action = FocusState::TAB_TO;
     focus_state.tab_to = identifier;
 }
@@ -859,13 +878,21 @@ void blur() {
     focus_state.action = FocusState::BLUR;
 }
 
+const void* current_group() {
+    if (focus_state.current.empty()) {
+        return NULL;
+    } else {
+        return focus_state.current.back();
+    }
+}
+
 // Keyboard state
 bool has_key_event() {
     return (key_state.character != NULL || key_state.key > 0);
 }
 
-bool has_key_event(void* identifier) {
-    return (focus_state.focus_new == identifier) && (key_state.character != NULL || key_state.key > 0);
+bool has_key_event(const void* identifier) {
+    return has_focus(identifier) && (key_state.character != NULL || key_state.key > 0);
 }
 
 const char* get_clipboard_string() {

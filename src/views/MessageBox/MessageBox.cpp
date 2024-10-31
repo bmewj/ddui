@@ -65,7 +65,7 @@ void update_content(MessageBoxState* state) {
 
     // Register Buttons as Focus Groups
     for (auto& button : state->button_set) {
-        register_focus_group(&button);
+        FocusItem { &button };
     }
 
     // Draw Buttons

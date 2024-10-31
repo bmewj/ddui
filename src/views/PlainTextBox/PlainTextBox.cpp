@@ -57,15 +57,15 @@ PlainTextBox& PlainTextBox::set_multiline(bool multiline) {
 
 void PlainTextBox::update() {
 
-    const auto group_id = (void*)&state;
+    const auto group_id = (const void*)&state;
 
-    register_focus_group(group_id);
+    FocusItem { group_id };
     
     // Process key input
     if (has_key_event(group_id)) {
         process_key_input();
     }
-    
+
     // When tabbing in to focus, select the entire content
     if (did_focus(group_id) && !state.is_mouse_dragging) {
         auto& selection = model.selection;
