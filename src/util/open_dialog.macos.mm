@@ -81,7 +81,11 @@ bool ddui::open_dialog::process_files(const void* identifier, size_t* num_files_
     }
 
     *num_files_out = file_paths.size();
-    *file_paths_out = &file_paths_c[0];
+    if (*num_files_out == 0) {
+        *file_paths_out = nullptr;
+    } else {
+        *file_paths_out = &file_paths_c[0];
+    }
     dialog_done = false;
 
     return true;
