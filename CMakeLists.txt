@@ -43,7 +43,7 @@ target_include_directories(ddui PUBLIC
 
 if(APPLE)
     list(APPEND EXTRA_LIBS
-        "-framework Cocoa -framework OpenGL"
+        "-framework Cocoa -framework OpenGL -framework UniformTypeIdentifiers"
     )
     set(CMAKE_EXE_LINKER_FLAGS "-std=gnu99")
 
