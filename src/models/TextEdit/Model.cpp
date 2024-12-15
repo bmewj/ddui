@@ -55,7 +55,7 @@ void set_text_content(Model* model, const char* content) {
             auto content = new char[ptr - line_start + 1];
             strncpy(content, line_start, ptr - line_start);
             content[ptr - line_start] = '\0';
-            current_line.num_bytes = ptr - line_start + 1;
+            current_line.num_bytes = int(ptr - line_start) + 1;
             current_line.content = std::unique_ptr<char[]>(content);
             current_line.style = default_style;
         
@@ -63,9 +63,9 @@ void set_text_content(Model* model, const char* content) {
             line_start = ++ptr;
             continue;
         }
-        
+
         Character character;
-        character.index = ptr - line_start;
+        character.index = int(ptr - line_start);
         character.num_bytes = (
             !(*ptr & 0x80) ? 1 :
             !(*ptr & 0x20) ? 2 :
@@ -82,7 +82,7 @@ void set_text_content(Model* model, const char* content) {
         auto content = new char[ptr - line_start + 1];
         strncpy(content, line_start, ptr - line_start);
         content[ptr - line_start] = '\0';
-        current_line.num_bytes = ptr - line_start + 1;
+        current_line.num_bytes = int(ptr - line_start) + 1;
         current_line.content = std::unique_ptr<char[]>(content);
         current_line.style = default_style;
     
@@ -117,7 +117,7 @@ void insert_text_content(Model* model, int* lineno, int* index, const char* cont
             auto content = new char[ptr - line_start + 1];
             strncpy(content, line_start, ptr - line_start);
             content[ptr - line_start] = '\0';
-            current_line.num_bytes = ptr - line_start + 1;
+            current_line.num_bytes = int(ptr - line_start) + 1;
             current_line.content = std::unique_ptr<char[]>(content);
             current_line.style = style;
         
@@ -127,7 +127,7 @@ void insert_text_content(Model* model, int* lineno, int* index, const char* cont
         }
         
         Character character;
-        character.index = ptr - line_start;
+        character.index = int(ptr - line_start);
         character.num_bytes = (
             !(*ptr & 0x80) ? 1 :
             !(*ptr & 0x20) ? 2 :
@@ -144,7 +144,7 @@ void insert_text_content(Model* model, int* lineno, int* index, const char* cont
         auto content = new char[ptr - line_start + 1];
         strncpy(content, line_start, ptr - line_start);
         content[ptr - line_start] = '\0';
-        current_line.num_bytes = ptr - line_start + 1;
+        current_line.num_bytes = int(ptr - line_start) + 1;
         current_line.content = std::unique_ptr<char[]>(content);
         current_line.style = style;
     
@@ -219,7 +219,7 @@ void insert_text_content(Model* model, int* lineno, int* index, const char* cont
         }
         
         *lineno += lines.size() - 1;
-        *index = b_size;
+        *index = int(b_size);
     }
     
     // Increment model version
@@ -305,8 +305,8 @@ std::unique_ptr<char[]> get_text_content(const Model* model) {
     Selection selection;
     selection.a_line = 0;
     selection.a_index = 0;
-    selection.b_line = model->lines.size() - 1;
-    selection.b_index = model->lines.back().characters.size();
+    selection.b_line = int(model->lines.size()) - 1;
+    selection.b_index = int(model->lines.back().characters.size());
 
     // Return the text content
     return get_text_content(model, selection);
@@ -321,7 +321,7 @@ static void apply_style_to_line(Line* line, int a_index, int b_index, StyleComma
 void set_style(Model* model, bool font_bold, float text_size, Color text_color) {
 
     Selection selection = { 0 };
-    selection.b_line = model->lines.size();
+    selection.b_line = int(model->lines.size());
 
     StyleCommand command;
     
@@ -356,12 +356,12 @@ void apply_style(Model* model, Selection selection, StyleCommand style) {
     int max_i = selection.a_line < selection.b_line ? selection.a_index : selection.b_index;
     
     if (min_line >= 0 && min_line < model->lines.size()) {
-        int min_i_b = model->lines[min_line].characters.size();
+        int min_i_b = int(model->lines[min_line].characters.size());
         apply_style_to_line(&model->lines[min_line], min_i, min_i_b, style);
     }
     for (int line = min_line + 1; line < max_line; ++line) {
         if (line >= 0 && line < model->lines.size()) {
-            int b_index = model->lines[line].characters.size();
+            int b_index = int(model->lines[line].characters.size());
             apply_style_to_line(&model->lines[line], 0, b_index, style);
         }
     }
@@ -375,7 +375,7 @@ void apply_style(Model* model, Selection selection, StyleCommand style) {
 
 void apply_style_to_line(Line* line, int a_index, int b_index, StyleCommand style) {
     int min_i = MAX(MIN(a_index, b_index), 0);
-    int max_i = MIN(MAX(a_index, b_index), line->characters.size());
+    int max_i = MIN(MAX(a_index, b_index), int(line->characters.size()));
     
     if (min_i == 0) {
         switch (style.type) {
@@ -445,12 +445,12 @@ void create_entity(Model* model, int lineno, int from, int to, int entity_id) {
     model->version_count++;
 }
 
-void apply_keyboard_input(Model* model, KeyState* key_state) {
+void apply_keyboard_input(Model* model, KeyState* key_state, bool readonly) {
 
     if (key_state->action != keyboard::ACTION_PRESS && key_state->action != keyboard::ACTION_REPEAT) {
         return;
     }
-    
+
     bool range_is_selected = (model->selection.a_line != model->selection.b_line ||
                               model->selection.a_index != model->selection.b_index);
 
@@ -467,7 +467,7 @@ void apply_keyboard_input(Model* model, KeyState* key_state) {
         } else if (sel.b_index - 1 >= 0) {
             sel.b_index -= 1;;
         } else if (sel.b_line - 1 >= 0) {
-            sel.b_index = model->lines[sel.b_line - 1].characters.size();
+            sel.b_index = int(model->lines[sel.b_line - 1].characters.size());
             sel.b_line -= 1;
         }
         
@@ -493,7 +493,7 @@ void apply_keyboard_input(Model* model, KeyState* key_state) {
     
     if (key_state->key == keyboard::KEY_END) {
         auto& sel = model->selection;
-        auto line_length = model->lines[sel.b_line].characters.size();
+        auto line_length = int(model->lines[sel.b_line].characters.size());
         sel.desired_index = sel.b_index = line_length;
         if (!(key_state->mods & keyboard::MOD_SHIFT)) {
             sel.a_index = line_length;
@@ -504,7 +504,7 @@ void apply_keyboard_input(Model* model, KeyState* key_state) {
     
     if (key_state->key == keyboard::KEY_RIGHT) {
         auto& sel = model->selection;
-        auto line_length = model->lines[sel.b_line].characters.size();
+        auto line_length = int(model->lines[sel.b_line].characters.size());
         
         if (range_is_selected && !(key_state->mods & (keyboard::MOD_COMMAND | keyboard::MOD_SHIFT))) {
             if (sel.b_line < sel.a_line || (sel.b_line == sel.a_line && sel.b_index < sel.a_index)) {
@@ -529,12 +529,26 @@ void apply_keyboard_input(Model* model, KeyState* key_state) {
         
         *key_state = { 0 };
     }
-    
+
+    if (key_state->key == keyboard::KEY_UP && (key_state->mods & keyboard::MOD_COMMAND)) {
+        auto& sel = model->selection;
+
+        sel.b_index = 0;
+        sel.b_line = 0;
+
+        if (!(key_state->mods & keyboard::MOD_SHIFT)) {
+            sel.a_index = sel.b_index;
+            sel.a_line = sel.b_line;
+        }
+
+        *key_state = { 0 };
+    }
+
     if (key_state->key == keyboard::KEY_UP) {
         auto& sel = model->selection;
         
         if (sel.b_line - 1 >= 0) {
-            sel.b_index = MIN(model->lines[sel.b_line - 1].characters.size(), sel.desired_index);
+            sel.b_index = MIN(int(model->lines[sel.b_line - 1].characters.size()), sel.desired_index);
             sel.b_line -= 1;
         }
         
@@ -545,15 +559,34 @@ void apply_keyboard_input(Model* model, KeyState* key_state) {
         
         *key_state = { 0 };
     }
-    
+
+    if (key_state->key == keyboard::KEY_DOWN && (key_state->mods & keyboard::MOD_COMMAND)) {
+        auto& sel = model->selection;
+
+        if (model->lines.size() == 0) {
+            sel.b_index = 0;
+            sel.b_line = 0;
+        } else {
+            sel.b_index = int(model->lines.back().characters.size());
+            sel.b_line = int(model->lines.size()) - 1;
+        }
+
+        if (!(key_state->mods & keyboard::MOD_SHIFT)) {
+            sel.a_index = sel.b_index;
+            sel.a_line = sel.b_line;
+        }
+
+        *key_state = { 0 };
+    }
+
     if (key_state->key == keyboard::KEY_DOWN) {
         auto& sel = model->selection;
         
         if (sel.b_line + 1 < model->lines.size()) {
-            sel.b_index = MIN(model->lines[sel.b_line + 1].characters.size(), sel.desired_index);
+            sel.b_index = MIN(int(model->lines[sel.b_line + 1].characters.size()), sel.desired_index);
             sel.b_line += 1;
         }
-        
+
         if (!(key_state->mods & keyboard::MOD_SHIFT)) {
             sel.a_index = sel.b_index;
             sel.a_line = sel.b_line;
@@ -562,8 +595,7 @@ void apply_keyboard_input(Model* model, KeyState* key_state) {
         *key_state = { 0 };
     }
     
-    if (key_state->key == keyboard::KEY_ENTER ||
-        key_state->key == keyboard::KEY_KP_ENTER) {
+    if (!readonly && (key_state->key == keyboard::KEY_ENTER || key_state->key == keyboard::KEY_KP_ENTER)) {
         auto& sel = model->selection;
         delete_range(model, sel);
         
@@ -582,8 +614,7 @@ void apply_keyboard_input(Model* model, KeyState* key_state) {
         *key_state = { 0 };
     }
         
-    if (key_state->key == keyboard::KEY_BACKSPACE ||
-        key_state->key == keyboard::KEY_DELETE) {
+    if (!readonly && (key_state->key == keyboard::KEY_BACKSPACE || key_state->key == keyboard::KEY_DELETE)) {
         auto& sel = model->selection;
         
         if (!range_is_selected) {
@@ -592,7 +623,7 @@ void apply_keyboard_input(Model* model, KeyState* key_state) {
                     sel.a_index -= 1;
                 } else if (sel.a_line > 0) {
                     sel.a_line -= 1;
-                    sel.a_index = model->lines[sel.a_line].characters.size();
+                    sel.a_index = int(model->lines[sel.a_line].characters.size());
                 }
             } else {
                 if (sel.a_index < model->lines[sel.a_line].characters.size()) {
@@ -619,7 +650,7 @@ void apply_keyboard_input(Model* model, KeyState* key_state) {
         *key_state = { 0 };
     }
     
-    if (key_state->character) {
+    if (!readonly && key_state->character) {
         auto& sel = model->selection;
         delete_range(model, sel);
         
@@ -638,7 +669,7 @@ void apply_keyboard_input(Model* model, KeyState* key_state) {
         *key_state = { 0 };
     }
     
-    if (key_state->key == keyboard::KEY_V && (key_state->mods & keyboard::MOD_COMMAND)) {
+    if (!readonly && key_state->key == keyboard::KEY_V && (key_state->mods & keyboard::MOD_COMMAND)) {
         auto& sel = model->selection;
         delete_range(model, sel);
         
@@ -668,8 +699,25 @@ void apply_keyboard_input(Model* model, KeyState* key_state) {
             *key_state = { 0 };
         }
     }
-    
-    if (key_state->key == keyboard::KEY_X && (key_state->mods & keyboard::MOD_COMMAND)) {
+
+    if (key_state->key == keyboard::KEY_A && (key_state->mods & keyboard::MOD_COMMAND)) {
+        auto& sel = model->selection;
+
+        sel.a_index = 0;
+        sel.a_line = 0;
+        if (model->lines.size() == 0) {
+            sel.b_index = 0;
+            sel.b_line = 0;
+        } else {
+            sel.b_index = int(model->lines.back().characters.size());
+            sel.b_line = int(model->lines.size()) - 1;
+        }
+        sel.desired_index = 0;
+
+        *key_state = { 0 };
+    }
+
+    if (!readonly && key_state->key == keyboard::KEY_X && (key_state->mods & keyboard::MOD_COMMAND)) {
         if (range_is_selected) {
             auto& sel = model->selection;
             

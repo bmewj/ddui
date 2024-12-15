@@ -215,6 +215,11 @@ struct KeyState {
     int mods;
 };
 
+struct FileDropState {
+    int count;
+    const char** paths;
+};
+
 enum Cursor {
     CURSOR_ARROW,
     CURSOR_IBEAM,
@@ -234,6 +239,7 @@ void set_post_empty_message_proc(std::function<void()> proc);
 void set_get_clipboard_string_proc(std::function<const char*()> proc);
 void set_set_clipboard_string_proc(std::function<void(const char*)> proc);
 void set_set_cursor_proc(std::function<void(Cursor)> proc);
+void enable_no_titlebar();
 
 // Teardown
 void terminate();
@@ -244,6 +250,7 @@ void input_character(unsigned int codepoint);
 void input_mouse_position(float x, float y);
 void input_mouse_button(int button, int action, int mods);
 void input_scroll(float offset_x, float offset_y);
+void input_file_drop(int count, const char** paths);
 
 // Frame management
 void update(float width, float height, float pixel_ratio, std::function<void()> update_proc);
@@ -347,35 +354,56 @@ bool mouse_over(float x, float y, float width, float height);
 void mouse_hit_accept();
 void mouse_position(float* x, float* y);
 void mouse_movement(float* x, float* y, float* dx, float* dy);
+void perform_window_drag();
 
 // Focus state
-void register_focus_group(void* identifier);
-bool did_focus(void* identifier);
-bool did_blur(void* identifier);
-bool has_focus(void* identifier);
+struct FocusItem {
+    FocusItem(const void* identifier);
+    FocusItem(const FocusItem&) = delete;
+    FocusItem(FocusItem&&) = delete;
+    FocusItem& operator=(const FocusItem&) = delete;
+protected:
+    const void* parent;
+};
+struct FocusGroup {
+    FocusGroup(const void* identifier);
+    ~FocusGroup();
+    FocusGroup(const FocusGroup&) = delete;
+    FocusGroup(FocusGroup&&) = delete;
+    FocusGroup& operator=(const FocusGroup&) = delete;
+};
+bool did_focus(const void* identifier);
+bool did_blur(const void* identifier);
+bool has_focus(const void* identifier);
 void tab_forward();
 void tab_backward();
-void focus(void* identifier);
+void focus(const void* identifier);
 void blur();
+const void* current_group();
 
 // Keyboard state
 extern KeyState key_state;
 bool has_key_event();
-bool has_key_event(void* identifier);
+bool has_key_event(const void* identifier);
 void consume_key_event();
 void repeat_key_event();
 const char* get_clipboard_string();
 void set_clipboard_string(const char* string);
+
+// File drop state
+extern FileDropState file_drop_state;
+bool has_dropped_files();
+void consume_dropped_files();
 
 // Cursor state
 void set_cursor(Cursor cursor);
 
 // Animation
 namespace animation {
-    void start(void* identifier);
-    void stop(void* identifier);
-    bool is_animating(void* identifier);
-    double get_time_elapsed(void* identifier);
+    void start(const void* identifier);
+    void stop(const void* identifier);
+    bool is_animating(const void* identifier);
+    double get_time_elapsed(const void* identifier);
     double ease_in(double completion);
     double ease_out(double completion);
     double ease_in_out(double completion);

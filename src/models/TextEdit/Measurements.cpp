@@ -19,6 +19,7 @@ Measurements measure(const Model* model, const MeasureEntityFn& measure_entity) 
     float y = 0.0;
 
     Measurements output;
+    output.width = 0.0;
     output.lines.reserve(model->lines.size());
 
     for (int i = 0; i < model->lines.size(); ++i) {

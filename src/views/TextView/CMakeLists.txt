@@ -1,0 +1,5 @@
+list(APPEND ddui_SOURCES
+  ${CMAKE_CURRENT_SOURCE_DIR}/TextView.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/TextView.cpp
+)
+set(ddui_SOURCES ${ddui_SOURCES} PARENT_SCOPE)

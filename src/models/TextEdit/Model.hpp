@@ -76,7 +76,7 @@ std::unique_ptr<char[]> get_text_content(const Model* model);
 void set_style(Model* model, bool font_bold, float text_size, ddui::Color text_color);
 void apply_style(Model* model, Selection selection, StyleCommand style);
 void create_entity(Model* model, int line, int from, int to, int entity_id);
-void apply_keyboard_input(Model* model, ddui::KeyState* key_state);
+void apply_keyboard_input(Model* model, ddui::KeyState* key_state, bool readonly = false);
 
 void delete_range(Model* model, const Selection& selection);
 void insert_character(Model* model, int line, int index, const char* character);
