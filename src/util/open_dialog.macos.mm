@@ -68,8 +68,6 @@ void ddui::open_dialog::show(const void* identifier, const Properties& propertie
         ddui::focus_main_window();
         ddui::repaint("");
     }];
-
-    return true;
 }
 
 bool ddui::open_dialog::process_files(const void* identifier, size_t* num_files_out, const char*** file_paths_out) {

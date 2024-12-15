@@ -240,6 +240,8 @@ void set_get_clipboard_string_proc(std::function<const char*()> proc);
 void set_set_clipboard_string_proc(std::function<void(const char*)> proc);
 void set_set_cursor_proc(std::function<void(Cursor)> proc);
 void enable_no_titlebar();
+void set_titlebar_height(float height);
+void get_control_button_rect(float* x, float* y, float* width, float* height);
 
 // Teardown
 void terminate();

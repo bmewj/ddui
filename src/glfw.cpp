@@ -274,4 +274,55 @@ void focus_main_window() {
 #endif
 }
 
+#ifdef __APPLE__
+static NSTitlebarAccessoryViewController* titlebar_acc_view_cont = NULL;
+static float titlebar_height = 26.0;
+void set_titlebar_height(float height) {
+
+    float _, h;
+    to_global_position(&_, &h, 0, height);
+
+    if (h - titlebar_height > -0.5 && h - titlebar_height < 0.5) {
+        return;
+    }
+
+    titlebar_height = h;
+    if (!titlebar_acc_view_cont) {
+        titlebar_acc_view_cont = [[NSTitlebarAccessoryViewController alloc] init];
+        [titlebar_acc_view_cont.view setFrameSize:NSMakeSize(0, titlebar_height)];
+        [titlebar_acc_view_cont setAutomaticallyAdjustsSize:NO];
+        [ns_window addTitlebarAccessoryViewController:titlebar_acc_view_cont];
+    } else {
+        [titlebar_acc_view_cont.view setFrameSize:NSMakeSize(0, titlebar_height)];
+    }
+}
+void get_control_button_rect(float* x, float* y, float* width, float* height) {
+
+    NSButton* buttons[3] = {
+        [ns_window standardWindowButton:NSWindowCloseButton],
+        [ns_window standardWindowButton:NSWindowMiniaturizeButton],
+        [ns_window standardWindowButton:NSWindowZoomButton],
+    };
+    float gx1 = buttons[0].frame.origin.x;
+    float gy1 = buttons[0].frame.origin.y;
+    float gx2 = buttons[2].frame.size.width + buttons[2].frame.origin.x - gx1;
+    float gy2 = gy1 + buttons[0].frame.size.height;
+
+    float x2, y2;
+    from_global_position(x, y, gx1, gy1);
+    from_global_position(&x2, &y2, gx2, gy2);
+    *width = x2 - *x;
+    *height = y2 - *y;
+}
+#else
+void set_titlebar_height(float height) {}
+void get_control_button_rect(float* x, float* y, float* width, float* height) {
+    *x = 0;
+    *y = 0;
+    *width = 0;
+    *height = 0;
+}
+#endif
+
+
 }
