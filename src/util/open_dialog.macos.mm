@@ -11,6 +11,7 @@
 #include <AppKit/AppKit.h>
 #include <vector>
 #include <string>
+#include <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
 static const void* dialog_identifier = nullptr;
 static NSOpenPanel* panel = nullptr;
@@ -43,11 +44,15 @@ void ddui::open_dialog::show(const void* identifier, const Properties& propertie
     panel.canChooseDirectories = properties.can_choose_directories;
     panel.allowsMultipleSelection = properties.can_choose_multiple;
     if (properties.allowed_file_types != nullptr) {
-        NSMutableArray<NSString*>* fileTypesArray = [NSMutableArray array];
+        NSMutableArray<UTType*>* fileTypesArray = [NSMutableArray array];
         for (const char** current = properties.allowed_file_types; *current != nullptr; ++current) {
-            [fileTypesArray addObject:[NSString stringWithUTF8String:*current]];
+            NSString* fileType = [NSString stringWithUTF8String:*current];
+            UTType* contentType = [UTType typeWithFilenameExtension:fileType];
+            if (contentType != nil) {
+                [fileTypesArray addObject:contentType];
+            }
         }
-        panel.allowedFileTypes = [fileTypesArray copy];
+        panel.allowedContentTypes = [fileTypesArray copy];
     }
 
     // Open the panel
@@ -81,7 +86,11 @@ bool ddui::open_dialog::process_files(const void* identifier, size_t* num_files_
     }
 
     *num_files_out = file_paths.size();
-    *file_paths_out = &file_paths_c[0];
+    if (*num_files_out == 0) {
+        *file_paths_out = nullptr;
+    } else {
+        *file_paths_out = &file_paths_c[0];
+    }
     dialog_done = false;
 
     return true;
