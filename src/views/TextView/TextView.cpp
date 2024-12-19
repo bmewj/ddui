@@ -133,7 +133,7 @@ void TextView::update() {
         model.selection.b_index = model.selection.a_index;
         caret_flicker::reset_phase();
     }
-    if (mouse_over(0, 0, view.width, view.height)) {
+    if (mouse_over(0, 0, view.width, view.height) && get_cursor() == CURSOR_ARROW) {
         set_cursor(CURSOR_IBEAM);
     }
 

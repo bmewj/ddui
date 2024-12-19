@@ -399,6 +399,7 @@ void consume_dropped_files();
 
 // Cursor state
 void set_cursor(Cursor cursor);
+Cursor get_cursor();
 
 // Animation
 namespace animation {

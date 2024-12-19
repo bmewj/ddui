@@ -921,5 +921,8 @@ void consume_dropped_files() {
 void set_cursor(Cursor cursor) {
     cursor_state_new = cursor;
 }
+Cursor get_cursor() {
+    return cursor_state_new;
+}
 
 }
