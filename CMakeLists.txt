@@ -61,6 +61,5 @@ endif()
 
 target_link_libraries(ddui
     glfw
-    whereami
     ${EXTRA_LIBS}
 )
