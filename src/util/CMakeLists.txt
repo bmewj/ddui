@@ -10,6 +10,7 @@ list(APPEND ddui_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/get_content_filename.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/open_dialog.hpp
 )
+add_subdirectory(whereami)
 
 if(APPLE)
     list(APPEND ddui_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/get_content_filename.mm)

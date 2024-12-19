@@ -28,7 +28,6 @@ set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "build examples")
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "build tests")
 
 add_subdirectory(lib/glfw)
-add_subdirectory(lib/whereami)
 
 set(CMAKE_C_FLAGS "-std=gnu99")
 

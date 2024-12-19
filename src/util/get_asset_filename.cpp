@@ -7,7 +7,7 @@
 //
 
 #include "get_asset_filename.hpp"
-#include <whereami.h>
+#include "whereami/whereami.h"
 
 std::string get_asset_filename(const std::string& name) {
 
