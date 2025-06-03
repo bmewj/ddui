@@ -329,6 +329,10 @@ void pop_input_events_into_global_state() {
                 mouse_state.pressed_secondary = false;
                 // mouse_state.initial_x = 0;
                 // mouse_state.initial_y = 0;
+
+                mouse_state.last_x = mouse_state.initial_x;
+                mouse_state.last_y = mouse_state.initial_y;
+                mouse_state.last_time = std::chrono::steady_clock::now();
             }
 
             input_events_queue.pop_front();

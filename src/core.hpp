@@ -206,6 +206,9 @@ struct MouseState {
     bool pressed, pressed_secondary, accepted;
     int initial_x, initial_y;
     int scroll_dx, scroll_dy;
+    
+    int last_x, last_y;
+    std::chrono::steady_clock::time_point last_time;
 };
 
 struct KeyState {
@@ -351,6 +354,7 @@ void text_metrics(float* ascender, float* descender, float* lineh);
 // Mouse state
 extern MouseState mouse_state;
 bool mouse_hit(float x, float y, float width, float height);
+bool mouse_hit(float x, float y, float width, float height, bool* double_click_out);
 bool mouse_hit_secondary(float x, float y, float width, float height);
 bool mouse_over(float x, float y, float width, float height);
 void mouse_hit_accept();

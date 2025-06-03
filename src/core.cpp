@@ -784,6 +784,22 @@ bool mouse_hit(float x, float y, float width, float height) {
     );
 }
 
+bool mouse_hit(float x, float y, float width, float height, bool* double_click_out) {
+    *double_click_out = false;
+    if (!mouse_hit(x, y, width, height)) {
+        return false;
+    }
+
+    if (mouse_state.initial_x > mouse_state.last_x - 2 &&
+        mouse_state.initial_x < mouse_state.last_x + 2 &&
+        mouse_state.initial_y > mouse_state.last_y - 2 &&
+        mouse_state.initial_y < mouse_state.last_y + 2 &&
+        std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - mouse_state.last_time).count() < 300) {
+        *double_click_out = true;
+    }
+    return true;
+}
+
 bool mouse_hit_secondary(float x, float y, float width, float height) {
     return (
         !mouse_state.accepted && mouse_state.pressed_secondary &&
