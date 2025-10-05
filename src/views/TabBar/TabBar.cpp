@@ -54,7 +54,9 @@ TabBar& TabBar::render(const std::vector<std::string>& tab_names, int active_tab
     new_tab_button_width = view.height;
     tab_width = view.width / tab_names.size();
 
-    float tab_xs[tab_names.size()];
+	//TODO(Wassim): implement proper stack allocation
+    //float tab_xs[tab_names.size()];
+    float tab_xs[4096];
     this->tab_xs = tab_xs;
 
     // Create a subview excluding the space taken up by the new tab button
@@ -216,8 +218,9 @@ void TabBar::calculate_tab_positions() {
     }
 
     // Step 2. Calculate the target positions
-
-    float target_positions[state.tab_names.size()];
+	//TODO(Wassim): implement proper stack allocation
+    //float target_positions[state.tab_names.size()];
+    float target_positions[4096];
 
     if (state.state == TAB_PRESSED) {
 
@@ -295,7 +298,7 @@ void TabBar::draw() {
         }
         render_button(new_tab_button_x, new_tab_button_width, "+", active, false);
     }
-    
+
     save();
     clip(0, 0, view.width, view.height);
 
@@ -358,7 +361,7 @@ void TabBar::create_context_menu(MenuBuilder::Menu& menu) {
     menu.item("Duplicate").action([state_ptr] () {
         state_ptr->ctx_menu_action = MENU_ACTION_DUPLICATE;
     });
-    
+
     // Close item
     if (state.tab_names.size() > 1) {
         menu.item("Close").action([state_ptr] () {
@@ -416,7 +419,7 @@ void TabBar::tab_drag_drop() {
             std::swap(state.initial_tab_positions[i], state.initial_tab_positions[i + 1]);
         }
     }
-    
+
     // Stop all the animations
     for (int i = 0; i < state.tab_names.size(); ++i) {
         animation::stop(&state.initial_tab_positions[i]);

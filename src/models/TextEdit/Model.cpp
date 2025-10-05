@@ -569,7 +569,7 @@ void apply_keyboard_input(Model* model, KeyState* key_state, bool readonly) {
     if (key_state->key == keyboard::KEY_HOME) {
         auto& sel = model->selection;
         sel.desired_index = sel.b_index = 0;
-        if (!(key_state->mods & keyboard::MOD_SHIFT)) {
+        if (!(key_state->mods & keyboard::MODIFIER_SHIFT)) {
             sel.a_index = 0;
             sel.a_line = sel.b_line;
         }
@@ -580,7 +580,7 @@ void apply_keyboard_input(Model* model, KeyState* key_state, bool readonly) {
         auto& sel = model->selection;
         auto line_length = int(model->lines[sel.b_line].characters.size());
         sel.desired_index = sel.b_index = line_length;
-        if (!(key_state->mods & keyboard::MOD_SHIFT)) {
+        if (!(key_state->mods & keyboard::MODIFIER_SHIFT)) {
             sel.a_index = line_length;
             sel.a_line = sel.b_line;
         }
@@ -590,14 +590,14 @@ void apply_keyboard_input(Model* model, KeyState* key_state, bool readonly) {
     if (key_state->key == keyboard::KEY_LEFT) {
         auto& sel = model->selection;
 
-        if (range_is_selected && !(key_state->mods & (keyboard::MOD_COMMAND | keyboard::MOD_SHIFT | keyboard::MOD_ALT))) {
+        if (range_is_selected && !(key_state->mods & (keyboard::MOD_COMMAND | keyboard::MODIFIER_SHIFT | keyboard::MODIFIER_ALT))) {
             if (sel.b_line > sel.a_line || (sel.b_line == sel.a_line && sel.b_index > sel.a_index)) {
                 sel.b_line = sel.a_line;
                 sel.b_index = sel.a_index;
             }
         } else if (key_state->mods & keyboard::MOD_COMMAND) {
             sel.b_index = 0;
-        } else if (key_state->mods & keyboard::MOD_ALT) {
+        } else if (key_state->mods & keyboard::MODIFIER_ALT) {
             previous_token(model, sel.b_index, sel.b_line);
         } else if (sel.b_index - 1 >= 0) {
             sel.b_index -= 1;;
@@ -606,7 +606,7 @@ void apply_keyboard_input(Model* model, KeyState* key_state, bool readonly) {
             sel.b_line -= 1;
         }
 
-        if (!(key_state->mods & keyboard::MOD_SHIFT)) {
+        if (!(key_state->mods & keyboard::MODIFIER_SHIFT)) {
             sel.a_index = sel.b_index;
             sel.a_line = sel.b_line;
         }
@@ -620,14 +620,14 @@ void apply_keyboard_input(Model* model, KeyState* key_state, bool readonly) {
         auto& sel = model->selection;
         auto line_length = int(model->lines[sel.b_line].characters.size());
 
-        if (range_is_selected && !(key_state->mods & (keyboard::MOD_COMMAND | keyboard::MOD_SHIFT | keyboard::MOD_ALT))) {
+        if (range_is_selected && !(key_state->mods & (keyboard::MOD_COMMAND | keyboard::MODIFIER_SHIFT | keyboard::MODIFIER_ALT))) {
             if (sel.b_line < sel.a_line || (sel.b_line == sel.a_line && sel.b_index < sel.a_index)) {
                 sel.b_line = sel.a_line;
                 sel.b_index = sel.a_index;
             }
         } else if (key_state->mods & keyboard::MOD_COMMAND) {
             sel.b_index = line_length;
-        } else if (key_state->mods & keyboard::MOD_ALT) {
+        } else if (key_state->mods & keyboard::MODIFIER_ALT) {
             next_token(model, sel.b_index, sel.b_line);
         } else if (sel.b_index + 1 <= line_length) {
             sel.b_index += 1;
@@ -636,7 +636,7 @@ void apply_keyboard_input(Model* model, KeyState* key_state, bool readonly) {
             sel.b_line += 1;
         }
 
-        if (!(key_state->mods & keyboard::MOD_SHIFT)) {
+        if (!(key_state->mods & keyboard::MODIFIER_SHIFT)) {
             sel.a_index = sel.b_index;
             sel.a_line = sel.b_line;
         }
@@ -652,7 +652,7 @@ void apply_keyboard_input(Model* model, KeyState* key_state, bool readonly) {
         sel.b_index = 0;
         sel.b_line = 0;
 
-        if (!(key_state->mods & keyboard::MOD_SHIFT)) {
+        if (!(key_state->mods & keyboard::MODIFIER_SHIFT)) {
             sel.a_index = sel.b_index;
             sel.a_line = sel.b_line;
         }
@@ -668,7 +668,7 @@ void apply_keyboard_input(Model* model, KeyState* key_state, bool readonly) {
             sel.b_line -= 1;
         }
 
-        if (!(key_state->mods & keyboard::MOD_SHIFT)) {
+        if (!(key_state->mods & keyboard::MODIFIER_SHIFT)) {
             sel.a_index = sel.b_index;
             sel.a_line = sel.b_line;
         }
@@ -687,7 +687,7 @@ void apply_keyboard_input(Model* model, KeyState* key_state, bool readonly) {
             sel.b_line = int(model->lines.size()) - 1;
         }
 
-        if (!(key_state->mods & keyboard::MOD_SHIFT)) {
+        if (!(key_state->mods & keyboard::MODIFIER_SHIFT)) {
             sel.a_index = sel.b_index;
             sel.a_line = sel.b_line;
         }
@@ -703,7 +703,7 @@ void apply_keyboard_input(Model* model, KeyState* key_state, bool readonly) {
             sel.b_line += 1;
         }
 
-        if (!(key_state->mods & keyboard::MOD_SHIFT)) {
+        if (!(key_state->mods & keyboard::MODIFIER_SHIFT)) {
             sel.a_index = sel.b_index;
             sel.a_line = sel.b_line;
         }

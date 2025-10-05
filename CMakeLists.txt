@@ -3,8 +3,7 @@ cmake_minimum_required(VERSION 3.5)
 project(ddui C CXX)
 
 list(APPEND ddui_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/lib/gl3w/src/gl3w.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/lib/nanovg/src/nanovg.c 
+    ${CMAKE_CURRENT_SOURCE_DIR}/lib/nanovg/src/nanovg.c
 )
 
 list(APPEND ddui_ASSETS
@@ -13,12 +12,20 @@ list(APPEND ddui_ASSETS
 set(ddui_ASSETS ${ddui_ASSETS} PARENT_SCOPE)
 set(ddui_MACOSX_BUNDLE ${CMAKE_CURRENT_SOURCE_DIR}/assets/MacOSXBundleInfo.plist.in PARENT_SCOPE)
 
-if(NOT DEFINED ddui_GL_VERSION)
+if(NOT DEFINED ddui_BACKEND)
     if(APPLE)
-        set(ddui_GL_VERSION "GL3")
+        set(ddui_BACKEND "GL3")
+    elseif(WIN32)
+        set(ddui_BACKEND "D3D11")
     else()
-        set(ddui_GL_VERSION "GLES3")
+        set(ddui_BACKEND "GLES3")
     endif()
+endif()
+
+if(NOT ddui_BACKEND STREQUAL "D3D11")
+    list(APPEND ddui_SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/gl3w/src/gl3w.cpp
+    )
 endif()
 
 add_subdirectory(src)
@@ -47,9 +54,9 @@ if(APPLE)
     set(CMAKE_EXE_LINKER_FLAGS "-std=gnu99")
 
 elseif(WIN32)
-    list(APPEND EXTRA_LIBS
-        "-lglu32 -lopengl32"
-    )
+    #list(APPEND EXTRA_LIBS
+    #    "-lglu32 -lopengl32"
+    #)
     set(CMAKE_EXE_LINKER_FLAGS "-std=gnu99 -static -static-libgcc -static-libstdc++ -mwindows")
 
 else()

@@ -58,31 +58,33 @@ void update(std::function<void()> inner_update) {
 
     // Save current identifiers to compare
     auto old_size = overlay_stack.size();
-    void* old_identifiers[old_size];
+	//TODO(Wassim): implement proper stack allocation
+    //void* old_identifiers[old_size];
+    void* old_identifiers[4096];
     for (int i = 0; i < overlay_stack.size(); ++i) {
         old_identifiers[i] = overlay_stack[i].identifier;
     }
-    
+
     // Update background content
     inner_update();
-    
+
     // Draw all the overlays in order
     for (int i = 0; i < overlay_stack.size(); ++i) {
         auto& overlay = overlay_stack[i];
-        
+
         // The overlay has changed, repaint
         if (i >= old_size || overlay.identifier != old_identifiers[i]) {
             repaint("Overlay::update(1)");
             return;
         }
-        
+
         // The overlay hasn't got a handler, so close it
         if (!overlay.active) {
             overlay_stack.erase(overlay_stack.begin() + i, overlay_stack.end());
             repaint("Overlay::update(2)");
             return;
         }
-        
+
         // Draw the overlay
         auto is_top_most_overlay = (i == overlay_stack.size() - 1);
         if (is_top_most_overlay) {
@@ -90,9 +92,9 @@ void update(std::function<void()> inner_update) {
             key_state = original_key_state;
         }
         overlay.inner_update();
-        
+
         overlay_stack[i].inner_update = std::function<void()>();
-        
+
     }
 
     // Unhandled mouse clicks trigger overlay close

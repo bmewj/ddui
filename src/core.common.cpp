@@ -230,7 +230,7 @@ void update_post() {
 
     if (key_state.action == keyboard::ACTION_RELEASE) {
         if (key_state.key == keyboard::KEY_TAB) {
-            if (key_state.mods & keyboard::MOD_SHIFT) {
+            if (key_state.mods & keyboard::MODIFIER_SHIFT) {
                 tab_backward();
             } else {
                 tab_forward();

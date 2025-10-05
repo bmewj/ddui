@@ -11,7 +11,10 @@
 
 #include <GL3/gl3w.h>
 
-#define GLFW_INCLUDE_GLCOREARB
+#ifndef WIN32
+	#define GLFW_INCLUDE_GLCOREARB
+#endif
+
 #include <GLFW/glfw3.h>
 
 #include <functional>
