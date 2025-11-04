@@ -134,7 +134,7 @@ LineMeasurements measure(const Model* model, int lineno, const MeasureEntityFn& 
         auto string_start = &content[first_char.index];
         auto string_end = &content[last_char.index + last_char.num_bytes];
 
-		//TODO(Wassim): implement proper stack allocation
+        //TODO(Wassim): implement proper stack allocation
         //GlyphPosition positions[num_chars];
         GlyphPosition positions[4096];
         text_glyph_positions(0, 0, string_start, string_end, positions, num_chars);

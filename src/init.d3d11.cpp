@@ -13,7 +13,7 @@
 
 NVGcontext* nvgCreate(void* device) {
     //return nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
-	return nvgCreateD3D11((ID3D11Device*)device, 0);
+    return nvgCreateD3D11((ID3D11Device*)device, 0);
 }
 
 void nvgDelete(NVGcontext* vg) {

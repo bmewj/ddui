@@ -54,7 +54,7 @@ TabBar& TabBar::render(const std::vector<std::string>& tab_names, int active_tab
     new_tab_button_width = view.height;
     tab_width = view.width / tab_names.size();
 
-	//TODO(Wassim): implement proper stack allocation
+    //TODO(Wassim): implement proper stack allocation
     //float tab_xs[tab_names.size()];
     float tab_xs[4096];
     this->tab_xs = tab_xs;
@@ -218,7 +218,7 @@ void TabBar::calculate_tab_positions() {
     }
 
     // Step 2. Calculate the target positions
-	//TODO(Wassim): implement proper stack allocation
+    //TODO(Wassim): implement proper stack allocation
     //float target_positions[state.tab_names.size()];
     float target_positions[4096];
 

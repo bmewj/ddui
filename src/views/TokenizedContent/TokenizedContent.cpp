@@ -228,7 +228,7 @@ static float measure_content(State* state, float total_width, float* xs, float* 
 }
 
 float measure_content_height(State* state, float total_width) {
-	//TODO(Wassim): implement proper stack allocation
+    //TODO(Wassim): implement proper stack allocation
     //float xs[state->content_tokens.size()];
     //float ys[state->content_tokens.size()];
     //float ws[state->content_tokens.size()];
@@ -241,7 +241,7 @@ float measure_content_height(State* state, float total_width) {
 }
 
 void update(State* state) {
-	//TODO(Wassim): implement proper stack allocation
+    //TODO(Wassim): implement proper stack allocation
     //float xs[state->content_tokens.size()];
     //float ys[state->content_tokens.size()];
     //float ws[state->content_tokens.size()];

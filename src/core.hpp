@@ -246,17 +246,17 @@ enum Cursor {
 
 struct DDUIState {
 #ifdef _WIN32
-	HWND                  	hwnd = 0;
-	ID3D11Device          	*device = nullptr;
-    ID3D11DeviceContext   	*device_ctx = nullptr;
-	IDXGISwapChain        	*swap_chain = nullptr;
-	ID3D11RenderTargetView	*swapchain_rtv = nullptr;
+    HWND                    hwnd = 0;
+    ID3D11Device*           device = nullptr;
+    ID3D11DeviceContext*    device_ctx = nullptr;
+    IDXGISwapChain*         swap_chain = nullptr;
+    ID3D11RenderTargetView* swapchain_rtv = nullptr;
 #endif
-	GLFWwindow            	*glfw_window;
+    GLFWwindow*             glfw_window;
 };
 
 // State
-DDUIState *get_state();
+DDUIState* get_state();
 
 // Setup
 bool init();

@@ -57,48 +57,48 @@ void pop_input_events_into_global_state();
 bool has_input_events_to_process();
 
 DDUIState *get_state() {
-	static ddui::DDUIState state = {};
-	return &state;
+    static ddui::DDUIState state = {};
+    return &state;
 }
 
 // Setup
 bool init() {
-	auto ddui_state = get_state();
+    auto ddui_state = get_state();
 #ifdef _WIN32
 
-	ddui_state->hwnd = glfwGetWin32Window(ddui_state->glfw_window);
+    ddui_state->hwnd = glfwGetWin32Window(ddui_state->glfw_window);
 
-	DXGI_SWAP_CHAIN_DESC desc_swap_chain = {};
-	desc_swap_chain.BufferCount = 2;
-	desc_swap_chain.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	desc_swap_chain.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	desc_swap_chain.OutputWindow = ddui_state->hwnd;
-	desc_swap_chain.SampleDesc.Count = 1;
-	desc_swap_chain.Windowed = TRUE;
-	desc_swap_chain.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+    DXGI_SWAP_CHAIN_DESC desc_swap_chain = {};
+    desc_swap_chain.BufferCount = 2;
+    desc_swap_chain.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    desc_swap_chain.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    desc_swap_chain.OutputWindow = ddui_state->hwnd;
+    desc_swap_chain.SampleDesc.Count = 1;
+    desc_swap_chain.Windowed = TRUE;
+    desc_swap_chain.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 
-	D3D11CreateDeviceAndSwapChain(
-		NULL,
-		D3D_DRIVER_TYPE_HARDWARE,
-		NULL,
-		D3D11_CREATE_DEVICE_DEBUG,
-		NULL, 0,
-		D3D11_SDK_VERSION,
-		&desc_swap_chain,
-		&ddui_state->swap_chain,
-		&ddui_state->device,
-		NULL,
-		&ddui_state->device_ctx
-	);
+    D3D11CreateDeviceAndSwapChain(
+        NULL,
+        D3D_DRIVER_TYPE_HARDWARE,
+        NULL,
+        D3D11_CREATE_DEVICE_DEBUG,
+        NULL, 0,
+        D3D11_SDK_VERSION,
+        &desc_swap_chain,
+        &ddui_state->swap_chain,
+        &ddui_state->device,
+        NULL,
+        &ddui_state->device_ctx
+    );
 
-	ID3D11Texture2D* backbuffer = NULL;
-	ddui_state->swap_chain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void* *)&backbuffer);
-	ddui_state->device->CreateRenderTargetView(
-		backbuffer,
-		NULL, // default RTV desc
-		&ddui_state->swapchain_rtv
-	);
-	backbuffer->Release();
+    ID3D11Texture2D* backbuffer = NULL;
+    ddui_state->swap_chain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void* *)&backbuffer);
+    ddui_state->device->CreateRenderTargetView(
+        backbuffer,
+        NULL, // default RTV desc
+        &ddui_state->swapchain_rtv
+    );
+    backbuffer->Release();
 
     vg = nvgCreate((void*)ddui_state->device);
 #else
@@ -152,7 +152,7 @@ static void update_pre(float width, float height, float pixel_ratio);
 static void update_post();
 
 void update(float width, float height, float pixel_ratio, std::function<void()> update_proc) {
-	auto ddui_state = get_state();
+    auto ddui_state = get_state();
     #ifdef DDUI_PROFILING_ON
         profiling::frame_start();
     #endif
@@ -161,16 +161,16 @@ void update(float width, float height, float pixel_ratio, std::function<void()> 
     auto frame_buffer_width  = (int)(width * pixel_ratio);
     auto frame_buffer_height = (int)(height * pixel_ratio);
 #ifdef _WIN32
-	// Rasterizing stage
+    // Rasterizing stage
     D3D11_VIEWPORT viewport = {
-		0.0f, 0.0f,
-		frame_buffer_width, frame_buffer_height,
-		0.0f, 1.0f
+        0.0f, 0.0f,
+        frame_buffer_width, frame_buffer_height,
+        0.0f, 1.0f
     };
     ddui_state->device_ctx->RSSetViewports(1, &viewport);
-	ddui_state->device_ctx->OMSetRenderTargets(1, &ddui_state->swapchain_rtv, 0);
-	FLOAT color[4] = { 0.949f, 0.949f, 0.949f, 1.0f };
-	ddui_state->device_ctx->ClearRenderTargetView(ddui_state->swapchain_rtv, color);
+    ddui_state->device_ctx->OMSetRenderTargets(1, &ddui_state->swapchain_rtv, 0);
+    FLOAT color[4] = { 0.949f, 0.949f, 0.949f, 1.0f };
+    ddui_state->device_ctx->ClearRenderTargetView(ddui_state->swapchain_rtv, color);
 #else
     glViewport(0, 0, frame_buffer_width, frame_buffer_height);
     glClearColor(0.949f, 0.949f, 0.949f, 1.0f);

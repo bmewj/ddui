@@ -58,7 +58,7 @@ bool init_glfw() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #else
-	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 #endif
@@ -112,7 +112,7 @@ bool init_window(GLFWwindow* window, std::function<void()> update_proc) {
 }
 
 void update_window(GLFWwindow* window) {
-	auto ddui_state = get_state();
+    auto ddui_state = get_state();
     auto update_proc_ptr = (std::function<void()>*)glfwGetWindowUserPointer(window);
 
     int fb_width, fb_height, win_width, win_height;
@@ -126,7 +126,7 @@ void update_window(GLFWwindow* window) {
 
     ddui::update(win_width, win_height, pixel_ratio, *update_proc_ptr);
 #ifdef _WIN32
-	ddui_state->swap_chain->Present(0, 0);
+    ddui_state->swap_chain->Present(0, 0);
 #else
     glfwSwapBuffers(window);
 #endif
@@ -176,14 +176,14 @@ void get_glsl_version(int* major, int* minor) {
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
-	auto ddui_state = get_state();
+    auto ddui_state = get_state();
     if (width == 0 || height == 0) return; // minimized
 
 #ifdef _WIN32
     if (ddui_state->swapchain_rtv) {
-		ddui_state->swapchain_rtv->Release();
-		ddui_state->swapchain_rtv = nullptr;
-	}
+        ddui_state->swapchain_rtv->Release();
+        ddui_state->swapchain_rtv = nullptr;
+    }
 
     // resize swap chain buffers
     ddui_state->swap_chain->ResizeBuffers(0, width, height, DXGI_FORMAT_B8G8R8A8_UNORM, 0);
@@ -197,9 +197,9 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 }
 
 bool init_graphics_api() {
-	auto ddui_state = get_state();
+    auto ddui_state = get_state();
 #ifdef _WIN32
-	glfwSetFramebufferSizeCallback(ddui_state->glfw_window, framebuffer_size_callback);
+    glfwSetFramebufferSizeCallback(ddui_state->glfw_window, framebuffer_size_callback);
 #else
     if (gl3wInit()) {
         printf("Problem initializing OpenGL\n");

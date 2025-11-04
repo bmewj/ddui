@@ -13,7 +13,7 @@
 namespace ddui {
 
 bool app_init(int window_width, int window_height, const char* title, std::function<void()> update_proc) {
-	auto ddui_state = get_state();
+    auto ddui_state = get_state();
     if (!ddui::init_glfw()) {
         printf("Failed to init GLFW.\n");
         return false;
@@ -35,7 +35,7 @@ bool app_init(int window_width, int window_height, const char* title, std::funct
 }
 
 void app_run() {
-	auto ddui_state = get_state();
+    auto ddui_state = get_state();
 
     while (!glfwWindowShouldClose(ddui_state->glfw_window)) {
         ddui::update_window(ddui_state->glfw_window);

@@ -58,7 +58,7 @@ void update(std::function<void()> inner_update) {
 
     // Save current identifiers to compare
     auto old_size = overlay_stack.size();
-	//TODO(Wassim): implement proper stack allocation
+    //TODO(Wassim): implement proper stack allocation
     //void* old_identifiers[old_size];
     void* old_identifiers[4096];
     for (int i = 0; i < overlay_stack.size(); ++i) {
