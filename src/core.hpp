@@ -247,12 +247,12 @@ enum Cursor {
 struct DDUIState {
 #ifdef _WIN32
 	HWND                  	hwnd = 0;
-	GLFWwindow            	*glfw_window;
 	ID3D11Device          	*device = nullptr;
     ID3D11DeviceContext   	*device_ctx = nullptr;
 	IDXGISwapChain        	*swap_chain = nullptr;
 	ID3D11RenderTargetView	*swapchain_rtv = nullptr;
 #endif
+	GLFWwindow            	*glfw_window;
 };
 
 // State

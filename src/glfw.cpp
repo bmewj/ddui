@@ -179,6 +179,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 	auto ddui_state = get_state();
     if (width == 0 || height == 0) return; // minimized
 
+#ifdef _WIN32
     if (ddui_state->swapchain_rtv) {
 		ddui_state->swapchain_rtv->Release();
 		ddui_state->swapchain_rtv = nullptr;
@@ -192,6 +193,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     ddui_state->swap_chain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backbuf);
     ddui_state->device->CreateRenderTargetView(backbuf, nullptr, &ddui_state->swapchain_rtv);
     backbuf->Release();
+#endif
 }
 
 bool init_graphics_api() {
