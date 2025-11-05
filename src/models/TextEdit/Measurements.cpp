@@ -37,7 +37,7 @@ Measurements measure(const Model* model, const MeasureEntityFn& measure_entity) 
 }
 
 LineMeasurements measure(const Model* model, int lineno, const MeasureEntityFn& measure_entity) {
-    
+
     const auto& line = model->lines[lineno];
 
     auto& characters = line.characters;
@@ -45,32 +45,32 @@ LineMeasurements measure(const Model* model, int lineno, const MeasureEntityFn& 
 
     auto regular_font = model->regular_font;
     auto bold_font    = model->bold_font;
-    
+
     LineMeasurements output;
     output.line_height = 0.0;
     output.height = 0.0;
     output.max_ascender = 0.0;
-    
+
     output.characters.reserve(characters.size());
     CharacterMeasurements empty_character = { 0 };
     for (int i = 0; i < characters.size(); ++i) {
         output.characters.push_back(empty_character);
     }
-    
+
     float ascender, descender, line_height;
 
     if (characters.empty()) {
         font_size(line.style.text_size);
         font_face(line.style.font_bold ? bold_font : regular_font);
         text_metrics(&ascender, &descender, &line_height);
-        
+
         output.line_height = output.height = line_height;
         output.max_ascender = ascender;
         return output;
     }
-    
+
     float x = 0.0;
-    
+
     // First pass: measure all horizontal, and get maximum verticals
     int i = 0;
     while (i < characters.size()) {
@@ -78,7 +78,7 @@ LineMeasurements measure(const Model* model, int lineno, const MeasureEntityFn& 
         if (characters[i].entity_id != -1) {
             float width, height;
             measure_entity(lineno, i, characters[i].entity_id, &width, &height);
-            
+
             // Save so that we only call measure_entity() once.
             output.characters[i].x = x;
             output.characters[i].width = width;
@@ -86,19 +86,19 @@ LineMeasurements measure(const Model* model, int lineno, const MeasureEntityFn& 
             output.characters[i].max_x = x + width;
             output.characters[i].line_height = height;
             output.characters[i].ascender = 0.0;
-            
+
             if (output.height < height) {
                 output.height = height;
             }
-            
+
             x += width;
             ++i;
             continue;
         }
-        
+
         auto font_bold = characters[i].style.font_bold;
         auto text_size = characters[i].style.text_size;
-        
+
         // Get number of characters in the current segment.
         int num_chars = 1;
         while (i + num_chars < characters.size()) {
@@ -110,12 +110,12 @@ LineMeasurements measure(const Model* model, int lineno, const MeasureEntityFn& 
             }
             ++num_chars;
         }
-        
+
         // Apply segment-styles
         font_size(text_size);
         font_face(font_bold ? bold_font : regular_font);
         text_metrics(&ascender, &descender, &line_height);
-        
+
         // Update vertical measurements
         if (output.line_height < line_height) {
             output.line_height = line_height;
@@ -126,7 +126,7 @@ LineMeasurements measure(const Model* model, int lineno, const MeasureEntityFn& 
         if (output.height < output.line_height) {
             output.height = output.line_height;
         }
-        
+
         // Get all the glyph positions
         auto& first_char = characters[i];
         auto& last_char = characters[i + num_chars - 1];
@@ -134,7 +134,9 @@ LineMeasurements measure(const Model* model, int lineno, const MeasureEntityFn& 
         auto string_start = &content[first_char.index];
         auto string_end = &content[last_char.index + last_char.num_bytes];
 
-        GlyphPosition positions[num_chars];
+        //TODO(Wassim): implement proper stack allocation
+        //GlyphPosition positions[num_chars];
+        GlyphPosition positions[4096];
         text_glyph_positions(0, 0, string_start, string_end, positions, num_chars);
 
         // Measure all the characters in segment
@@ -147,14 +149,14 @@ LineMeasurements measure(const Model* model, int lineno, const MeasureEntityFn& 
             measurement.line_height = line_height;
             measurement.ascender = ascender;
         }
-        
+
         x += positions[num_chars - 1].maxx;
         i += num_chars;
     }
-    
+
     // Second pass: update baselines for all characters
     float baseline = (output.height - output.line_height) / 2 + output.max_ascender;
-    
+
     for (int i = 0; i < characters.size(); ++i) {
         auto& measurement = output.characters[i];
         measurement.baseline = baseline;
@@ -166,7 +168,7 @@ LineMeasurements measure(const Model* model, int lineno, const MeasureEntityFn& 
             measurement.y = (output.height - measurement.height) / 2;
         }
     }
-    
+
     return output;
 }
 
@@ -179,24 +181,24 @@ void locate_selection_point(const Measurements* measurements, float x, float y, 
         *index = 0;
         return;
     }
-    
+
     if (y >= lines.back().y + lines.back().height) {
         *lineno = lines.size() - 1;
         *index = lines.back().characters.size();
         return;
     }
-    
+
     for (int i = 0; i < lines.size(); ++i) {
         if (y < lines[i].y + lines[i].height) {
             *lineno = i;
             break;
         }
     }
-    
+
     auto& line = lines[*lineno];
-    
+
     float prev_max_x = 0.0;
-    
+
     for (int i = 0; i < line.characters.size(); ++i) {
         float mid = (prev_max_x + line.characters[i].max_x) / 2;
         if (x < mid) {
@@ -205,7 +207,7 @@ void locate_selection_point(const Measurements* measurements, float x, float y, 
         }
         prev_max_x = line.characters[i].max_x;
     }
-    
+
     *index = line.characters.size();
 }
 

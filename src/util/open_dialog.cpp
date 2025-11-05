@@ -6,7 +6,7 @@
 //  Copyright © 2024 Bartholomew Joyce All rights reserved.
 //
 
-#include "open_dialog.h"
+#include "open_dialog.hpp"
 
 void ddui::open_dialog::show(const void* identifier, const Properties& properties) {
     // No-op

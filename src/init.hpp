@@ -11,7 +11,7 @@
 
 #include <nanovg.h>
 
-NVGcontext* nvgCreate();
+NVGcontext* nvgCreate(void* device = nullptr);
 void nvgDelete(NVGcontext*);
 
 #endif

@@ -14,12 +14,14 @@ list(APPEND ddui_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/profiling.cpp
 )
 
-if(ddui_GL_VERSION MATCHES "GL3")
+if(ddui_BACKEND MATCHES "GL3")
     list(APPEND ddui_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/init.gl3.cpp)
-elseif(ddui_GL_VERSION MATCHES "GLES3")
+elseif(ddui_BACKEND MATCHES "GLES3")
     list(APPEND ddui_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/init.gles3.cpp)
+elseif(ddui_BACKEND MATCHES "D3D11")
+    list(APPEND ddui_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/init.d3d11.cpp)
 else()
-    message(FATAL_ERROR "ddui_GL_VERSION must be one of: GL3, GLES3")
+    message(FATAL_ERROR "ddui_BACKEND must be one of: GL3, GLES3, D3D11")
 endif()
 
 if(APPLE)

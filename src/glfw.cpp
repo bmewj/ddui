@@ -20,14 +20,16 @@
 
 namespace ddui {
 
+#ifdef __APPLE__
 static NSWindow* ns_window = nullptr;
+#endif
 static bool cursors_initialised = false;
 static void init_cursors();
 static void set_window_cursor(GLFWwindow* window, ddui::Cursor cursor);
 
 static void get_gl_version(int* major, int* minor);
 static void get_glsl_version(int* major, int* minor);
-static bool init_gl();
+static bool init_graphics_api();
 
 static void error_callback(int error, const char* desc);
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -56,6 +58,7 @@ bool init_glfw() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #else
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 #endif
@@ -75,8 +78,8 @@ bool init_window(GLFWwindow* window, std::function<void()> update_proc) {
     glfwSetWindowSizeCallback(window, window_size_callback);
 
     glfwMakeContextCurrent(window);
-    if (!init_gl()) {
-        printf("Could not init GL3 API\n");
+    if (!init_graphics_api()) {
+        printf("Could not init Graphics API\n");
         glfwTerminate();
         return false;
     }
@@ -109,6 +112,7 @@ bool init_window(GLFWwindow* window, std::function<void()> update_proc) {
 }
 
 void update_window(GLFWwindow* window) {
+    auto ddui_state = get_state();
     auto update_proc_ptr = (std::function<void()>*)glfwGetWindowUserPointer(window);
 
     int fb_width, fb_height, win_width, win_height;
@@ -121,8 +125,12 @@ void update_window(GLFWwindow* window) {
     ddui::input_mouse_position(xpos, ypos);
 
     ddui::update(win_width, win_height, pixel_ratio, *update_proc_ptr);
+#ifdef _WIN32
+    ddui_state->swap_chain->Present(0, 0);
+#else
     glfwSwapBuffers(window);
-    
+#endif
+
 #ifdef __APPLE__
     static bool fixed_mac_bug = false;
     if (!fixed_mac_bug) {
@@ -167,7 +175,32 @@ void get_glsl_version(int* major, int* minor) {
     }
 }
 
-bool init_gl() {
+void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+    auto ddui_state = get_state();
+    if (width == 0 || height == 0) return; // minimized
+
+#ifdef _WIN32
+    if (ddui_state->swapchain_rtv) {
+        ddui_state->swapchain_rtv->Release();
+        ddui_state->swapchain_rtv = nullptr;
+    }
+
+    // resize swap chain buffers
+    ddui_state->swap_chain->ResizeBuffers(0, width, height, DXGI_FORMAT_B8G8R8A8_UNORM, 0);
+
+    // get backbuffer
+    ID3D11Texture2D* backbuf = nullptr;
+    ddui_state->swap_chain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backbuf);
+    ddui_state->device->CreateRenderTargetView(backbuf, nullptr, &ddui_state->swapchain_rtv);
+    backbuf->Release();
+#endif
+}
+
+bool init_graphics_api() {
+    auto ddui_state = get_state();
+#ifdef _WIN32
+    glfwSetFramebufferSizeCallback(ddui_state->glfw_window, framebuffer_size_callback);
+#else
     if (gl3wInit()) {
         printf("Problem initializing OpenGL\n");
         return false;
@@ -179,7 +212,7 @@ bool init_gl() {
 
     printf("OpenGL version: %d.%d\n", maj, min);
     printf("GLSL version: %d.%d\n", slmaj, slmin);
-
+#endif
     return true;
 }
 

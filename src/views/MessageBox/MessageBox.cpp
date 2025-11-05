@@ -8,7 +8,7 @@
 
 #include "MessageBox.hpp"
 
-namespace MessageBox {
+namespace dduiMessageBox {
 
 using namespace ddui;
 

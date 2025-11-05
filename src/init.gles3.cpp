@@ -13,7 +13,7 @@
 #define NANOVG_GLES3_IMPLEMENTATION
 #include <nanovg_gl.h>
 
-NVGcontext* nvgCreate() {
+NVGcontext* nvgCreate(void* device) {
     return nvgCreateGLES3(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
 }
 

@@ -10,6 +10,14 @@
 #define ddui_core_hpp
 
 #include <functional>
+#include <chrono>
+#include "glfw.hpp"
+
+#ifdef _WIN32
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <d3d11.h>
+#include <GLFW/glfw3native.h>
+#endif
 
 namespace ddui {
 
@@ -55,11 +63,11 @@ namespace keyboard {
     constexpr int ACTION_REPEAT  = 2;
     constexpr int ACTION_RELEASE = 3;
 
-    constexpr int MOD_SHIFT   = 0x0001;
-    constexpr int MOD_CONTROL = 0x0002;
-    constexpr int MOD_ALT     = 0x0004;
-    constexpr int MOD_SUPER   = 0x0008;
-    
+    constexpr int MODIFIER_SHIFT   = 0x0001;
+    constexpr int MODIFIER_CONTROL = 0x0002;
+    constexpr int MODIFIER_ALT     = 0x0004;
+    constexpr int MODIFIER_SUPER   = 0x0008;
+
     constexpr int MOD_COMMAND = 0x000a;
 
     constexpr int KEY_UNKNOWN = 1;
@@ -206,7 +214,7 @@ struct MouseState {
     bool pressed, pressed_secondary, accepted;
     int initial_x, initial_y;
     int scroll_dx, scroll_dy;
-    
+
     int last_x, last_y;
     std::chrono::steady_clock::time_point last_time;
 };
@@ -232,9 +240,23 @@ enum Cursor {
     CURSOR_OPEN_HAND,
     CURSOR_HORIZONTAL_RESIZE,
     CURSOR_VERTICAL_RESIZE,
-  
+
     CURSOR_COUNT
 };
+
+struct DDUIState {
+#ifdef _WIN32
+    HWND                    hwnd = 0;
+    ID3D11Device*           device = nullptr;
+    ID3D11DeviceContext*    device_ctx = nullptr;
+    IDXGISwapChain*         swap_chain = nullptr;
+    ID3D11RenderTargetView* swapchain_rtv = nullptr;
+#endif
+    GLFWwindow*             glfw_window;
+};
+
+// State
+DDUIState* get_state();
 
 // Setup
 bool init();

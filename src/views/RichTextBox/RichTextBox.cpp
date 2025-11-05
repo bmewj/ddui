@@ -51,7 +51,7 @@ void apply_rich_text_commands(TextEdit::Model* model, KeyState* key) {
     }
 
     if ((key->mods & keyboard::MOD_COMMAND) &&
-        (key->mods & keyboard::MOD_SHIFT) &&
+        (key->mods & keyboard::MODIFIER_SHIFT) &&
         (key->key == keyboard::KEY_EQUAL)) {
         
         auto& line = model->lines[min_line];

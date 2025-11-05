@@ -13,7 +13,7 @@
 #include <string>
 #include <vector>
 
-namespace MessageBox {
+namespace dduiMessageBox {
 
 struct MessageBoxState {
     MessageBoxState();
@@ -23,7 +23,7 @@ struct MessageBoxState {
     std::string message;
     std::vector<std::string> button_set;
     bool can_dismiss;
-    
+
     int action;
 };
 

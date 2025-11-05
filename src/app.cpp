@@ -12,21 +12,20 @@
 
 namespace ddui {
 
-static GLFWwindow* window;
-
 bool app_init(int window_width, int window_height, const char* title, std::function<void()> update_proc) {
+    auto ddui_state = get_state();
     if (!ddui::init_glfw()) {
         printf("Failed to init GLFW.\n");
         return false;
     }
 
-    window = glfwCreateWindow(window_width, window_height, title, NULL, NULL);
-    if (!window) {
+    ddui_state->glfw_window = glfwCreateWindow(window_width, window_height, title, NULL, NULL);
+    if (!ddui_state->glfw_window) {
         glfwTerminate();
         return false;
     }
 
-    ddui::init_window(window, update_proc);
+    ddui::init_window(ddui_state->glfw_window, update_proc);
     if (!ddui::init()) {
         printf("Could not init ddui.\n");
         return false;
@@ -36,8 +35,10 @@ bool app_init(int window_width, int window_height, const char* title, std::funct
 }
 
 void app_run() {
-    while (!glfwWindowShouldClose(window)) {
-        ddui::update_window(window);
+    auto ddui_state = get_state();
+
+    while (!glfwWindowShouldClose(ddui_state->glfw_window)) {
+        ddui::update_window(ddui_state->glfw_window);
         if (ddui::animation::is_animating()) {
             glfwWaitEventsTimeout(15e-3);
         } else {

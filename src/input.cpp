@@ -65,15 +65,15 @@ void input_key(int key, int scancode, int action, int mods) {
     // Fix the mod keys. On a PRESS or REPEAT we want to include
     // the current key as a mod, and on RELEASE we want to exclude it.
     if (action != ACTION_RELEASE) {
-        if (key == KEY_SHIFT)   mods |=  keyboard::MOD_SHIFT;
-        if (key == KEY_CONTROL) mods |=  keyboard::MOD_CONTROL;
-        if (key == KEY_ALT)     mods |=  keyboard::MOD_ALT;
-        if (key == KEY_SUPER)   mods |=  keyboard::MOD_SUPER;
+        if (key == KEY_SHIFT)   mods |=  keyboard::MODIFIER_SHIFT;
+        if (key == KEY_CONTROL) mods |=  keyboard::MODIFIER_CONTROL;
+        if (key == KEY_ALT)     mods |=  keyboard::MODIFIER_ALT;
+        if (key == KEY_SUPER)   mods |=  keyboard::MODIFIER_SUPER;
     } else {
-        if (key == KEY_SHIFT)   mods &= ~keyboard::MOD_SHIFT;
-        if (key == KEY_CONTROL) mods &= ~keyboard::MOD_CONTROL;
-        if (key == KEY_ALT)     mods &= ~keyboard::MOD_ALT;
-        if (key == KEY_SUPER)   mods &= ~keyboard::MOD_SUPER;
+        if (key == KEY_SHIFT)   mods &= ~keyboard::MODIFIER_SHIFT;
+        if (key == KEY_CONTROL) mods &= ~keyboard::MODIFIER_CONTROL;
+        if (key == KEY_ALT)     mods &= ~keyboard::MODIFIER_ALT;
+        if (key == KEY_SUPER)   mods &= ~keyboard::MODIFIER_SUPER;
     }
 
     event.mods = mods;

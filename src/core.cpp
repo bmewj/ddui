@@ -56,9 +56,54 @@ static std::vector<Viewport> saved_views;
 void pop_input_events_into_global_state();
 bool has_input_events_to_process();
 
+DDUIState *get_state() {
+    static ddui::DDUIState state = {};
+    return &state;
+}
+
 // Setup
 bool init() {
+    auto ddui_state = get_state();
+#ifdef _WIN32
+
+    ddui_state->hwnd = glfwGetWin32Window(ddui_state->glfw_window);
+
+    DXGI_SWAP_CHAIN_DESC desc_swap_chain = {};
+    desc_swap_chain.BufferCount = 2;
+    desc_swap_chain.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    desc_swap_chain.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    desc_swap_chain.OutputWindow = ddui_state->hwnd;
+    desc_swap_chain.SampleDesc.Count = 1;
+    desc_swap_chain.Windowed = TRUE;
+    desc_swap_chain.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+
+    D3D11CreateDeviceAndSwapChain(
+        NULL,
+        D3D_DRIVER_TYPE_HARDWARE,
+        NULL,
+        D3D11_CREATE_DEVICE_DEBUG,
+        NULL, 0,
+        D3D11_SDK_VERSION,
+        &desc_swap_chain,
+        &ddui_state->swap_chain,
+        &ddui_state->device,
+        NULL,
+        &ddui_state->device_ctx
+    );
+
+    ID3D11Texture2D* backbuffer = NULL;
+    ddui_state->swap_chain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void* *)&backbuffer);
+    ddui_state->device->CreateRenderTargetView(
+        backbuffer,
+        NULL, // default RTV desc
+        &ddui_state->swapchain_rtv
+    );
+    backbuffer->Release();
+
+    vg = nvgCreate((void*)ddui_state->device);
+#else
     vg = nvgCreate();
+#endif
     if (vg == NULL) {
         printf("Could not init nanovg.\n");
         return false;
@@ -107,18 +152,30 @@ static void update_pre(float width, float height, float pixel_ratio);
 static void update_post();
 
 void update(float width, float height, float pixel_ratio, std::function<void()> update_proc) {
-
+    auto ddui_state = get_state();
     #ifdef DDUI_PROFILING_ON
         profiling::frame_start();
     #endif
 
-    // Setup GL frame
+    // Setup frame
     auto frame_buffer_width  = (int)(width * pixel_ratio);
     auto frame_buffer_height = (int)(height * pixel_ratio);
+#ifdef _WIN32
+    // Rasterizing stage
+    D3D11_VIEWPORT viewport = {
+        0.0f, 0.0f,
+        frame_buffer_width, frame_buffer_height,
+        0.0f, 1.0f
+    };
+    ddui_state->device_ctx->RSSetViewports(1, &viewport);
+    ddui_state->device_ctx->OMSetRenderTargets(1, &ddui_state->swapchain_rtv, 0);
+    FLOAT color[4] = { 0.949f, 0.949f, 0.949f, 1.0f };
+    ddui_state->device_ctx->ClearRenderTargetView(ddui_state->swapchain_rtv, color);
+#else
     glViewport(0, 0, frame_buffer_width, frame_buffer_height);
     glClearColor(0.949f, 0.949f, 0.949f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
+#endif
     repaint_mutex.lock();
     is_painting = true;
     repaint_mutex.unlock();
@@ -204,7 +261,7 @@ void update_post() {
     // Update focus group
     if (key_state.action == keyboard::ACTION_RELEASE) {
         if (key_state.key == keyboard::KEY_TAB) {
-            if (key_state.mods & keyboard::MOD_SHIFT) {
+            if (key_state.mods & keyboard::MODIFIER_SHIFT) {
                 tab_backward();
             } else {
                 tab_forward();
@@ -547,7 +604,7 @@ bool rect_appears_in_clip_region(float x, float y, float width, float height) {
         nvgTransformInverse(inv_xform, scissor->xform);
         nvgTransformPoint(&x1, &y1, inv_xform, x1, y1);            // top-left corner
         nvgTransformPoint(&x2, &y2, inv_xform, x2, y2);            // bottom-right corner
-        nvgTransformPoint(&x3, &y3, inv_xform, x3, y3);            // bottom-left corner 
+        nvgTransformPoint(&x3, &y3, inv_xform, x3, y3);            // bottom-left corner
         nvgTransformPoint(&x4, &y4, inv_xform, x4, y4);            // top-right corner
     }
 
@@ -757,18 +814,18 @@ static bool is_point_inside_rect(float* xform, float* extent, float x, float y) 
 static bool mouse_inside(float x, float y, float width, float height) {
     float xform[6], extent[2];
     nvgCurrentTransform(vg, xform);
-    
+
     extent[0] = width / 2;
     extent[1] = height / 2;
 
     nvgTransformPoint(&x, &y, xform, x + extent[0], y + extent[1]);
     xform[4] = x;
     xform[5] = y;
-    
+
     if (!is_point_inside_rect(xform, extent, mouse_state.x, mouse_state.y)) {
         return false;
     }
-    
+
     auto scissor = get_scissor();
     if (scissor->extent[0] < 0) {
         return true;
@@ -829,11 +886,11 @@ void mouse_movement(float* x, float* y, float* dx, float* dy) {
     float mat[6], inv_mat[6];
     nvgCurrentTransform(vg, mat);
     nvgTransformInverse(inv_mat, mat);
-    
+
     float ix, iy;
     nvgTransformPoint(x, y, inv_mat, mouse_state.x, mouse_state.y);
     nvgTransformPoint(&ix, &iy, inv_mat, mouse_state.initial_x, mouse_state.initial_y);
-    
+
     *dx = *x - ix;
     *dy = *y - iy;
 }

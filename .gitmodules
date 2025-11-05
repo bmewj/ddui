@@ -1,6 +1,0 @@
-[submodule "lib/glfw"]
-	path = lib/glfw
-	url = https://github.com/glfw/glfw
-[submodule "lib/nanovg"]
-	path = lib/nanovg
-	url = https://github.com/memononen/nanovg

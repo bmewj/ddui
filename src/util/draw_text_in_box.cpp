@@ -12,11 +12,13 @@
 
 void draw_text_in_box(float x, float y, float width, float height, const char* content) {
     constexpr float MARGIN = 2.0;
-  
+
     int length = strlen(content);
-    char new_content[length + 4];
+    //TODO(Wassim): implement proper stack allocation
+    //char new_content[length + 4];
+    char new_content[4096];
     truncate_text(width - 2 * MARGIN, length, new_content, content);
-  
+
     auto text_x = x + MARGIN;
     auto text_y = y + 0.5 * height;
     ddui::text_align(ddui::align::LEFT | ddui::align::MIDDLE);
@@ -25,11 +27,13 @@ void draw_text_in_box(float x, float y, float width, float height, const char* c
 
 void draw_centered_text_in_box(float x, float y, float width, float height, const char* content) {
     constexpr float MARGIN = 2.0;
-  
+
     int length = strlen(content);
-    char new_content[length + 4];
+    //TODO(Wassim): implement proper stack allocation
+    //char new_content[length + 4];
+    char new_content[4096];
     auto text_width = truncate_text(width - 2 * MARGIN, length, new_content, content);
-  
+
     auto text_x = x + (width - text_width) / 2 + MARGIN;
     auto text_y = y + 0.5 * height;
     ddui::text_align(ddui::align::LEFT | ddui::align::MIDDLE);
@@ -45,7 +49,9 @@ int truncate_text(float width, int strlen, char* dst, const char* src) {
     }
 
     // Get glyph positions
-    ddui::GlyphPosition glyph_positions[strlen];
+    //TODO(Wassim): implement proper stack allocation
+    //ddui::GlyphPosition glyph_positions[strlen];
+    ddui::GlyphPosition glyph_positions[4096];
     auto num_glyph_positions = ddui::text_glyph_positions(0, 0, src, NULL, glyph_positions, strlen);
 
     // Does the entire line fit?

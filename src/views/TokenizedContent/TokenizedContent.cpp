@@ -50,7 +50,7 @@ void tokenize_and_append_text(State* state, float space_before, float space_afte
     }
 
     for (auto& part : parts) {
-        
+
         if (part == "\n") {
             Token token;
             token.type = Token::LINE_BREAK;
@@ -198,7 +198,7 @@ static float measure_content(State* state, float total_width, float* xs, float* 
         // Update baselines for all tokens
         for (int j = line_start_index; j < i; ++j) {
             auto& token = state->content_tokens[j];
-            
+
             switch (token.type) {
                 case Token::TEXT: {
                     ys[j] = y + baseline;
@@ -228,18 +228,28 @@ static float measure_content(State* state, float total_width, float* xs, float* 
 }
 
 float measure_content_height(State* state, float total_width) {
-    float xs[state->content_tokens.size()];
-    float ys[state->content_tokens.size()];
-    float ws[state->content_tokens.size()];
-    float hs[state->content_tokens.size()];
+    //TODO(Wassim): implement proper stack allocation
+    //float xs[state->content_tokens.size()];
+    //float ys[state->content_tokens.size()];
+    //float ws[state->content_tokens.size()];
+    //float hs[state->content_tokens.size()];
+    float xs[4096];
+    float ys[4096];
+    float ws[4096];
+    float hs[4096];
     return measure_content(state, total_width, xs, ys, ws, hs);
 }
 
 void update(State* state) {
-    float xs[state->content_tokens.size()];
-    float ys[state->content_tokens.size()];
-    float ws[state->content_tokens.size()];
-    float hs[state->content_tokens.size()];
+    //TODO(Wassim): implement proper stack allocation
+    //float xs[state->content_tokens.size()];
+    //float ys[state->content_tokens.size()];
+    //float ws[state->content_tokens.size()];
+    //float hs[state->content_tokens.size()];
+    float xs[4096];
+    float ys[4096];
+    float ws[4096];
+    float hs[4096];
     measure_content(state, view.width, xs, ys, ws, hs);
 
     text_align(align::BASELINE | align::LEFT);
@@ -249,7 +259,7 @@ void update(State* state) {
         auto& token = state->content_tokens[i];
 
         switch (token.type) {
-        
+
             case Token::TEXT: {
                 font_face(token.text.font_face);
                 font_size(token.text.font_size);
@@ -266,7 +276,7 @@ void update(State* state) {
                 }
                 break;
             }
-            
+
             case Token::OBJECT: {
                 sub_view(xs[i], ys[i], token.object.width, token.object.height);
                 token.object.update();
@@ -282,15 +292,15 @@ void update(State* state) {
                 }
                 break;
             }
-            
+
             case Token::LINE_BREAK: {
                 break;
             }
-            
+
         }
-        
+
         if (token.action_id != -1) {
-            
+
         }
     }
 }
