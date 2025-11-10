@@ -117,12 +117,31 @@ void update_window(GLFWwindow* window) {
 
     int fb_width, fb_height, win_width, win_height;
     glfwGetFramebufferSize(window, &fb_width, &fb_height);
-    glfwGetWindowSize(window, &win_width, &win_height);
-    auto pixel_ratio = (float)fb_width / (float)win_width;
 
     double xpos, ypos;
     glfwGetCursorPos(window, &xpos, &ypos);
+
+#ifdef _WIN32
+    float pixel_ratio, yscale;
+    glfwGetWindowContentScale(window, &pixel_ratio, &yscale);
+    float win_width_f = fb_width / pixel_ratio;
+    float win_height_f = fb_height / pixel_ratio;
+    win_width = int(win_width_f);
+    win_height = int(win_height_f);
+    if (win_width < win_width_f) {
+        win_width++;
+    }
+    if (win_height < win_height_f) {
+        win_height++;
+    }
+
+    ddui::input_mouse_position(xpos / pixel_ratio, ypos / pixel_ratio);
+#else
+    glfwGetWindowSize(window, &win_width, &win_height);
+    float pixel_ratio = (float)fb_width / (float)win_width;
+
     ddui::input_mouse_position(xpos, ypos);
+#endif
 
     ddui::update(win_width, win_height, pixel_ratio, *update_proc_ptr);
 #ifdef _WIN32
